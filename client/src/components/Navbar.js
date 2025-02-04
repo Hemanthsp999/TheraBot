@@ -8,18 +8,19 @@ const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
-        <nav className="bg-white border-gray-200 dark:bg-gray-900">
+        <div className="font-mono text-xl">
+        <nav className="bg-white border-gray-200 dark:bg-stone-900">
             <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-                <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+                <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
                     <img
                         src={Bot}
                         className="h-10 rounded-full"
-                        alt="Flowbite Logo"
+                        alt="TherBot Logo"
                     />
-                    <span className="self-center text-black text-2xl font-semibold whitespace-nowrap dark:text-white">
+                    <span className="self-center text-black text-3xl font-semibold whitespace-nowrap dark:text-white">
                         TheraBot 
                     </span>
-                </a>
+                </Link>
                 <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
                     {/* User Dropdown */}
                     <button
@@ -29,7 +30,7 @@ const Navbar = () => {
                     >
                         <span className="sr-only">Open user menu</span>
                         <img
-                            className="bg-white w-8 h-8 rounded-full"
+                            className="bg-white w-10 h-10 rounded-full"
                             src={User}
                             alt=""
                         />
@@ -38,7 +39,7 @@ const Navbar = () => {
                     {isDropdownOpen && (
                         <div className="absolute right-0 top-10 mt-6 w-48 bg-white dark:bg-gray-700 shadbottomow-lg rounded-lg z-50 md:right-auto md:left-auto">
                             <div className="px-4 py-3">
-                                <span className="block text-sm text-gray-900 dark:text-white">
+                                <span className="block text-lg text-gray-900 dark:text-white">
                                     Bonnie Green
                                 </span>
                                 <span className="block text-sm text-gray-500 dark:text-gray-400">
@@ -47,36 +48,36 @@ const Navbar = () => {
                             </div>
                             <ul className="py-2">
                                 <li>
-                                    <a
-                                        href="#"
+                                    <Link
+                                        to="#"
                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                                     >
                                         Dashboard
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
+                                    <Link
                                         href="#"
                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                                     >
                                         Settings
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
+                                    <Link
                                         href="#"
                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                                     >
                                         Earnings
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
+                                    <Link
                                         href="#"
                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                                     >
                                         Sign out
-                                    </a>
+                                    </Link>
                                 </li>
                             </ul>
                         </div>
@@ -123,41 +124,42 @@ isMobileMenuOpen ? "block" : "hidden"
                             </Link>
                         </li>
                         <li>
-                            <a
+                            <Link
                                 href="#"
                                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500"
                             >
                                 About
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a
+                            <Link
                                 href="#"
                                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500"
                             >
                                 Services
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a
+                            <Link
                                 href="#"
                                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500"
                             >
-                                Pricing
-                            </a>
+                                    Therapist
+                            </Link>
                         </li>
                         <li>
-                            <a
+                            <Link
                                 href="#"
                                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500"
                             >
                                 Contact
-                            </a>
+                            </Link>
                         </li>
                     </ul>
                 </div>
             </div>
         </nav>
+        </div>
     );
 };
 

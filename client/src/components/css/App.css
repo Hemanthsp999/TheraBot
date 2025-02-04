@@ -1,3 +1,7 @@
+@import "tailwindcss";
+body{
+    font-family: monospace;
+}
 .App {
     text-align: center;
 }
