@@ -7,9 +7,8 @@ const Navbar = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // This component is done
     return (
-        <div className="relative font-mono text-lg w-full">
+        <div className="flex mt-10 font-mono text-lg w-full">
             <nav className="fixed top-0 left-0 right-0 w-full bg-white border-gray-200 dark:bg-stone-900">
                 <div className="w-full px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between mx-auto py-3">
                     <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
