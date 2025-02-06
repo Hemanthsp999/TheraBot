@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import Bot from './images/Bot.jpeg';
 const Footer = () => {
+    // This component is done 
     return (
         <>
             <footer className="fixed bottom-0 absolute w-full left-0 bg-white shadow-sm dark:bg-stone-900 m-0 font-mono" style={{marginTop: "190px"}}>

@@ -9,6 +9,7 @@ import carsouel3 from './images/Carsouel.webp';
 import carsouel from './images/Bot_Human.png';
 import Carsouel5 from './images/stress.jpg';
 
+// This page is not fitting to mobie screen correctly
 const LandingPage = () => {
     const settings = {
         dots: true,

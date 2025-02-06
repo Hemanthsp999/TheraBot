@@ -7,6 +7,7 @@ import Landingpage from './components/Landingpage';
 import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 
 const router = createBrowserRouter([
+    // if you want to create a new router, then mention it in child
     {
         path: "/",
         element: <App/>,
