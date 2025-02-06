@@ -1,8 +1,16 @@
-# React + Vite
+# How to contribute ?
+1. Fork the repo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+2. clone the forked repo in local machine
 
-Currently, two official plugins are available:
+3. cd "project_repo"
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+4. install dependency
+```bash
+npm install
+```
+
+5. exec the frontend 
+```bash
+npm run dev
+```
