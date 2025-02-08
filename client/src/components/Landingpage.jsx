@@ -1,3 +1,4 @@
+import './css/App.css';
 import { useRef } from "react";
 import Slider from "react-slick";
 import { useNavigate } from 'react-router-dom';
@@ -55,7 +56,7 @@ const LandingPage = () => {
     return (
         
 
-        <div className="min-h-screen static overflow-x-hidden bg-white" >
+        <div className="Landingpage min-h-screen max-w-full overflow-x-hidden bg-white" >
             <div className="w-screen animate-fadeInDown lg:w-full md:w-full px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">
                 {/* Hero Section */}
                 <section className="max-w-6xl justify-center  w-full mx-auto text-center py-8 sm:py-12">
@@ -83,7 +84,7 @@ const LandingPage = () => {
                 <div className="w-screen max-w-lg mx-auto px-2 sm:px-4 mb-8 sm:mb-12">
                     <Slider {...settings}>
                         {[carsouel, carsouel1, carsouel2, carsouel3, Carsouel5].map((image, index) => (
-                            <div key={index} className="outline-none">
+                            <div key={index} className="outline-none" >
                                 <img 
                                     className=" w-screen h-auto max-h-[400px] sm:h-64 md:h-80 lg:h-96 sm:object-cover rounded-lg"
                                     src={image} 

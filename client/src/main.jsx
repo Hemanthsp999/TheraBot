@@ -5,6 +5,7 @@ import App from './App';
 import Login from './components/Login';
 import Register from './components/Register.jsx';
 import Landingpage from './components/Landingpage';
+import ChatBot from './components/ChatBot.jsx';
 import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 
 const router = createBrowserRouter([
@@ -15,7 +16,8 @@ const router = createBrowserRouter([
         children: [
             {index: true, element: <Landingpage/>},
             {path: "/login", element: <Login/>},
-            {path: "/signup", element: <Register/>}
+            {path: "/signup", element: <Register/>},
+            {path: "/chatbot", element: <ChatBot/>}
         ]
     }
 ]);

@@ -42,3 +42,79 @@
 .read-the-docs {
   color: #888;
 }
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgb(0, 0, 0);
+    max-width: 100vw;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    text-align: center;
+    z-index: 50;
+}
+
+
+.Landingpage {
+    width: 100%; /* Ensures full width without overflow */
+    min-height: 100vh; /* Full viewport height */
+    top: 0;
+    left: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box; /* Prevents padding from affecting width */
+    overflow-x: hidden; /* Ensures no horizontal scroll */
+}
+
+/* Fix for elements causing overflow */
+body, html {
+    width: 100%;
+    overflow-x: hidden; /* Prevents any overflow globally */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .Landingpage {
+        padding: 10px;
+        margin-left: -3vh;
+        width: 100%; /* Ensures full width */
+    }
+}
+
+@media (max-width: 480px) {
+    .Landingpage {
+        text-align: center;
+        margin: auto;
+        margin-left: -6vw;
+        padding: 0;
+       flex-direction: column; 
+        width: 100%; /* Prevents any overflow */
+    }
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100vw;
+    background: rgb(0, 0, 0);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60px;
+    padding: 10px 20px;
+    flex-direction: column;
+    text-align: center;
+}
+
