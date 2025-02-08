@@ -101,6 +101,27 @@ body, html {
     }
 }
 
+.chatbot {
+    width: 500px;
+    max-width: 900px;
+    height: 60vh;
+    margin: 5% auto;
+    display: flex;
+    flex-direction: column;
+    background-color: #1a202c;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+@media (max-width: 600px) {
+    .chatbot {
+        width: 95%;
+        height: 70vh;
+    }
+}
+
+
+
 .footer {
     position: fixed;
     bottom: 0;
