@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Send, ArrowLeft } from 'lucide-react';
 
 const ChatBot = () => {
@@ -67,15 +67,15 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-white">
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gray-100 rounded-2xl">
       {/* Chat Header */}
-      <div className="bg-white border-b p-4 shadow-sm flex items-center justify-between">
+      <div className="bg-white border-b rounded-xl p-4 shadow-sm flex items-center justify-between">
         <button onClick={handleBack} className="text-gray-600 hover:text-gray-800 p-1 rounded-lg hover:bg-gray-100">
           <ArrowLeft size={24} />
         </button>
         <div className="flex items-center">
           <img src="client\src\components\images\Bot.jpeg" alt="Bot Logo" className="h-8 w-8 mr-2" />
-          <div>
+          <div >
             <h1 className="text-xl font-semibold text-black">TheraBot</h1>
             <p className="text-sm text-gray-500">Your Mental Health Assistant</p>
           </div>
@@ -90,7 +90,7 @@ const ChatBot = () => {
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[70%] p-3 rounded-lg ${message.type === 'user'
+              className={`max-w-[70%] p-3  ${message.type === 'user'
                 ? 'bg-blue-500 text-white rounded-br-none'
                 : 'bg-gray-100 text-black rounded-bl-none'
                 }`}
@@ -115,7 +115,7 @@ const ChatBot = () => {
 
       {/* Input Area */}
       <form onSubmit={handleSendMessage} className="border-t p-4">
-        <div className="flex gap-2">
+        <div className="flex gap-2 bg-white">
           <input
             type="text"
             value={inputMessage}

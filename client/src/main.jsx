@@ -20,6 +20,7 @@ const router = createBrowserRouter([
     },
     // Separate route for ChatBot without App wrapper
     {
+        // You mentioned route without <App/> component, so the chatbot will not wrap up inside the footer and navbar
         path: "/chatbot",
         element: <ChatBot />
     }

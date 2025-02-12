@@ -56,7 +56,7 @@ const LandingPage = () => {
     return (
         
 
-        <div className="Landingpage min-h-screen max-w-full overflow-x-hidden bg-white" >
+        <div className="Landingpage  min-h-screen max-w-full overflow-x-hidden bg-white" >
             <div className="w-screen animate-fadeInDown lg:w-full md:w-full px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">
                 {/* Hero Section */}
                 <section className="max-w-6xl justify-center  w-full mx-auto text-center py-8 sm:py-12">
