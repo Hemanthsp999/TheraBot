@@ -40,8 +40,8 @@ export default function Footer() {
                     {["About Us", "License", "Contribute", "Contact Us"].map((item, index) => (
                         <li key={index}>
                             <Typography
-                                as="a"
-                                href="#"
+                                as={Link}
+                                to={`/${item.toLowerCase()}`}
                                 color="blue-gray"
                                 className="font-normal transition-colors hover:text-blue-500 focus:text-blue-500"
                             >
