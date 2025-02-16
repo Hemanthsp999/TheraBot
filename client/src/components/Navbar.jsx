@@ -40,7 +40,12 @@ export default function Navbar() {
                 <ul className="hidden md:flex gap-6">
                     {["Home", "About", "Services", "Contact"].map((item, index) => (
                         <li key={index} className="py-2">
-                            <Link to="" className="hover:text-blue-500 transition">{item}</Link>
+                            <Link 
+                                to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+                                className="hover:text-blue-500 transition"
+                            >
+                                {item}
+                            </Link>
                         </li>
                     ))}
                 </ul>
@@ -81,7 +86,13 @@ export default function Navbar() {
                             <ul className="absolute right-0 top-full mt-2 w-40 bg-black text-white text-center p-4 rounded-lg shadow-lg z-50">
                                 {["Home", "About", "Services", "Contact"].map((item, index) => (
                                     <li key={index} className="py-2">
-                                        <Link to={item === "Home" ? "/" : `/${item.toLowerCase()}`} className="hover:text-blue-500 transition">{item}</Link>
+                                        <Link 
+                                            to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+                                            className="hover:text-blue-500 transition"
+                                            onClick={() => setIsOpen(false)}
+                                        >
+                                            {item}
+                                        </Link>
                                     </li>
                                 ))}
                             </ul>

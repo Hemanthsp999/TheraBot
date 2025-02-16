@@ -6,6 +6,9 @@ import Login from './components/Login';
 import Register from './components/Register.jsx';
 import Landingpage from './components/Landingpage';
 import ChatBot from './components/ChatBot.jsx';
+import About from './components/About';
+import Contact from './components/Contact';
+import Therapist from './components/Therapist';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 const router = createBrowserRouter([
@@ -16,6 +19,9 @@ const router = createBrowserRouter([
             { index: true, element: <Landingpage /> },
             { path: "/login", element: <Login /> },
             { path: "/signup", element: <Register /> },
+            { path: "/about", element: <About /> },
+            { path: "/contact", element: <Contact /> },
+            { path: "/therapist", element: <Therapist /> }
         ]
     },
     // Separate route for ChatBot without App wrapper
