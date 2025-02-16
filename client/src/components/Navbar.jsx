@@ -1,15 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import { Typography } from "@material-tailwind/react";
 import User from './images/user.png';
 import Bot from './images/Bot.jpeg';
 import { useRef } from "react";
+import axios from 'axios';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
     const topRef = useRef(null);
+
+    const[email, setEmail] = useState("");
+
+    useEffect(() => {
+        const storeUser = localStorage.getItem("userEmail");
+        if(storeUser){
+            setEmail(storeUser)
+        }
+    },[]);
+
+    const handleLogout = async () => {
+        const refreshToken = localStorage.getItem("refreshToken");
+        
+        localStorage.clear();  // Clear tokens from frontend
+        alert("Logged out successfully!");
+
+        if (refreshToken) {
+            try {
+                await axios.post("http://127.0.0.1:8000/api/logout/", { refresh_token: refreshToken });
+            } catch (error) {
+                console.error("Error logging out:", error);
+            }
+        }
+
+        
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("userEmail");
+
+        window.location.href = "/login";  // Redirect to login page
+    };
 
     // Scroll to the top of the page
     const scrollToTop = () => {
@@ -54,23 +86,30 @@ export default function Navbar() {
                 <div className="flex items-center space-x-4">
 
                     {/* User Profile (Dropdown Toggle) */}
-                    <div className="relative">
-                        <img
-                            src={User}
-                            alt="User"
-                            className="w-8 h-8 md:w-10 md:h-10 bg-gray-100 rounded-full cursor-pointer"
-                            onClick={() => setDropdownOpen(!dropdownOpen)}
-                        />
-                        {dropdownOpen && (
-                            <div className="absolute right-0 top-full mt-2 w-48 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
-                                <ul className="py-2">
-                                    <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">Email: user@example.com</li>
-                                    <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">Sign In</li>
-                                    <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">Logout</li>
-                                </ul>
-                            </div>
-                        )}
-                    </div>
+                    { email ? (
+                        <div className="relative">
+                            <img
+                                src={User}
+                                alt="User"
+                                className="w-8 h-8 md:w-10 md:h-10 bg-gray-100 rounded-full cursor-pointer"
+                                onClick={() => setDropdownOpen(!dropdownOpen)}
+                            />
+                            {dropdownOpen && (
+                                <div className="absolute right-0 top-full mt-2 w-48 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
+                                    <ul className="py-2">
+                                        <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer"><b>{email}</b></li>
+                                        {/* <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">Sign In</li> */}
+                                        <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer" onClick={handleLogout}>Logout</li>
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    ): (
+
+                            <Link to="/login" className="bg-blue-100 text-white px-4 py-2 rounded-md hover:bg-blue-300 transition">
+                                Login
+                            </Link>
+                    )}
 
                     {/* Mobile Menu Button with Navbar Color */}
                     <div className="relative md:hidden">
