@@ -75,5 +75,5 @@ class LogoutView(APIView):
             return Response({"message": "Logged out successfully"}, status=200)
 
         except Exception as e:
-            return Response({"error": "Invalid token"}, status=400)
+            return Response({"error": f"Invalid token {e}"}, status=400)
 
