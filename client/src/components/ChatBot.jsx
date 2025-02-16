@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useState, useRef, useEffect } from 'react';
 import { Send, ArrowLeft } from 'lucide-react';
 import Bot from './images/Bot.jpeg';
@@ -22,22 +23,12 @@ const ChatBot = () => {
   }, [messages]);
 
   const sendMessageToBackend = async (message) => {
+        const URL = `http://127.0.0.0.1:8000/api/chatbot/`
+        const session = localStorage.getItem('accessToken')
     try {
-      const response = await fetch('http://localhost:5000/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message }),
-        credentials: 'include'
-      });
+      const response = await axios(URL, {query: message}, {headers: {'Authorization': session}});
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = await response.json();
-      return data.response;
+      return response.data.response; 
     } catch (error) {
       console.error('Error:', error);
       return "I apologize, but I'm having trouble connecting to the server. Please try again later.";

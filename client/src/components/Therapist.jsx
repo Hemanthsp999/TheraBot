@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import  { useState, useMemo } from 'react';
+import Bot from './images/Bot.jpeg';
 
 const therapists = [
   {
@@ -7,7 +7,18 @@ const therapists = [
     name: "Dr. Sarah Johnson",
     specialization: "Anxiety & Depression",
     experience: "15 years",
-    image: "https://placekitten.com/200/200", // Replace with actual therapist image
+    image: Bot, // Replace with actual therapist image
+    availability: "Mon, Wed, Fri",
+    rating: 4.9,
+    description: "Specializes in cognitive behavioral therapy with extensive experience in treating anxiety and depression.",
+    languages: ["English", "Spanish"]
+  },
+  {
+    id: 1,
+    name: "Dr. Sarah Johnson",
+    specialization: "Anxiety & Depression",
+    experience: "15 years",
+    image: Bot, // Replace with actual therapist image
     availability: "Mon, Wed, Fri",
     rating: 4.9,
     description: "Specializes in cognitive behavioral therapy with extensive experience in treating anxiety and depression.",

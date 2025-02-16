@@ -8,6 +8,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 from django.utils.timezone import now
 from datetime import timedelta
+# Load model directly
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+
+model = AutoModelForCausalLM.from_pretrained("victunes/TherapyBeagle-11B-v2", device_map="auto",
+                                             offload_folder="offload_dir"  # Set a folder to store offloaded weights
+                                             )
+tokenizer = AutoTokenizer.from_pretrained("victunes/TherapyBeagle-11B-v2")
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -77,3 +85,22 @@ class LogoutView(APIView):
         except Exception as e:
             return Response({"error": f"Invalid token {e}"}, status=400)
 
+
+class ChatbotView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        query = request.data.get('query')
+
+        if not query:
+            return Response('Query Required', status=400)
+
+        input_ids = tokenizer(query, return_tensors='pt').input_ids
+
+        with torch.no_grad():
+            output = model.generate(input_ids, max_length=200, do_sample=True, top_p=0.9)
+
+        # Decode the generated response
+        response_text = tokenizer.decode(output[0], skip_special_tokens=True)
+
+        return Response({"response": response_text})
