@@ -1,4 +1,5 @@
 import Bot from './images/Bot.jpeg';
+import { Link } from 'react-router-dom';
 import { Typography } from "@material-tailwind/react";
 import './css/App.css';
 import { useRef } from "react";

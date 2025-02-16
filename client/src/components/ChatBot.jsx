@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, ArrowLeft } from 'lucide-react';
+import Bot from './images/Bot.jpeg';
 
 const ChatBot = () => {
   const [messages, setMessages] = useState([
@@ -70,11 +71,11 @@ const ChatBot = () => {
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-gray-100 rounded-2xl">
       {/* Chat Header */}
       <div className="bg-white border-b rounded-xl p-4 shadow-sm flex items-center justify-between">
-        <button onClick={handleBack} className="text-gray-600 hover:text-gray-800 p-1 rounded-lg hover:bg-gray-100">
+        <button onClick={handleBack} className="text-gray-100 hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100">
           <ArrowLeft size={24} />
         </button>
         <div className="flex items-center">
-          <img src="client\src\components\images\Bot.jpeg" alt="Bot Logo" className="h-8 w-8 mr-2" />
+          <img src={Bot} alt="Bot Logo" className="h-9 w-9 mr-3 mb-3 rounded-xl" />
           <div >
             <h1 className="text-xl font-semibold text-black">TheraBot</h1>
             <p className="text-sm text-gray-500">Your Mental Health Assistant</p>
