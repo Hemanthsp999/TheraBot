@@ -1,3 +1,7 @@
+from django.core.cache import cache
+import random
+from django.conf import settings
+from django.core.mail import send_mail
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,13 +13,24 @@ from rest_framework import serializers
 from django.utils.timezone import now
 from datetime import timedelta
 # Load model directly
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import torch
+# from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+# import torch
 
-model = AutoModelForCausalLM.from_pretrained("victunes/TherapyBeagle-11B-v2", device_map="auto",
-                                             offload_folder="offload_dir"  # Set a folder to store offloaded weights
-                                             )
-tokenizer = AutoTokenizer.from_pretrained("victunes/TherapyBeagle-11B-v2")
+'''
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True  # Enables 8-bit quantization
+)
+
+model_name = "victunes/TherapyBeagle-11B-v2"
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    quantization_config=bnb_config,
+    device_map="auto"
+)
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+'''
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -86,6 +101,8 @@ class LogoutView(APIView):
             return Response({"error": f"Invalid token {e}"}, status=400)
 
 
+'''
+
 class ChatbotView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -104,3 +121,55 @@ class ChatbotView(APIView):
         response_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
         return Response({"response": response_text})
+'''
+
+
+class SendOTPView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'error': 'User with this email does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp = random.randint(100000, 999999)
+        cache.set(email, otp, timeout=300)  # Store OTP in cache for 5 minutes
+
+        send_mail(
+            subject="Password Reset OTP",
+            message=f"Your OTP for password reset is {otp}. It will expire in 5 minutes.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False
+        )
+
+        return Response({'message': 'OTP sent to email'}, status=status.HTTP_200_OK)
+
+
+class ResetPasswordView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        otp = request.data.get('otp')
+        new_password = request.data.get('new_password')
+
+        cached_otp = cache.get(email)
+
+        if not cached_otp or str(cached_otp) != str(otp):
+            return Response({'error': 'Invalid or expired OTP'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+            user.password = make_password(new_password)
+            user.save()
+
+            cache.delete(email)  # Remove OTP after successful reset
+            return Response({'message': 'Password reset successfully'}, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+
