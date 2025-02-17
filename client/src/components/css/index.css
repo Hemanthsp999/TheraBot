@@ -30,6 +30,7 @@ a:hover {
 }
 
 body {
+    font-family: monospace;
   margin: 0;
   display: flex;
   place-items: center;

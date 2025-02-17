@@ -152,7 +152,7 @@ const LandingPage = () => {
                         for personalized guidance, we're here for you.
                     </p>
 
-                    <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                    <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-4 justify-center" style={{fontSize: "15px"}}>
                         <button 
                             onClick={() => navigate("/chatbot")}  
                             className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md transition"

@@ -50,7 +50,7 @@ export default function Navbar() {
 
     return (
 
-        <nav className="navbar fixed top-0 left-0 w-full bg-black text-white p-4 shadow-md">
+        <nav className="navbar fixed top-0 left-0 w-full bg-black text-white p-4 shadow-md" style={{fontSize: "15px"}}>
             <div ref={topRef}></div> {/* Reference to the top of the page */}
             <div className="container mx-auto flex justify-between items-center px-4 md:px-8">
 
@@ -97,7 +97,7 @@ export default function Navbar() {
                             {dropdownOpen && (
                                 <div className="absolute right-0 top-full mt-2 w-48 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
                                     <ul className="py-2">
-                                        <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer"><b>{email}</b></li>
+                                        <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer "><b>{email}</b></li>
                                         {/* <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">Sign In</li> */}
                                         <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer" onClick={handleLogout}>Logout</li>
                                     </ul>

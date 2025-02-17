@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import Forget from './ForgetPassword';
 import { Link } from "react-router-dom";
 
 const Login = () => {
@@ -67,7 +68,7 @@ const Login = () => {
                     <div className="flex flex-col">
                         <button type="submit" className="bg-blue-600 text-white px-4 rounded">Login</button>
                         <p className="text-gray-900 py-2">Don't have an Account? <Link to="/signup"><u> Register here </u></Link></p>
-                        <p className="text-gray-900 py-2"><a href="#">Forget Password?</a></p>
+                        <p className="text-gray-900 py-2"><Link to={'/forget'}>Forget Password?</Link></p>
                     </div>
                 </form>
             </div>

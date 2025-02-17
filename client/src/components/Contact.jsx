@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -76,7 +76,7 @@ const Contact = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 lg:w-100 md:w-100 sm:w-10">
           <div>
             <label htmlFor="name" className="block text-black font-medium mb-2">Name</label>
             <input

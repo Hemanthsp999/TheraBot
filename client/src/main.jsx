@@ -4,6 +4,7 @@ import './components/css/index.css';
 import App from './App';
 import Login from './components/Login';
 import Register from './components/Register.jsx';
+import Forgetpassword from './components/ForgetPassword.jsx';
 import Landingpage from './components/Landingpage';
 import ChatBot from './components/ChatBot.jsx';
 import About from './components/About';
@@ -21,7 +22,8 @@ const router = createBrowserRouter([
             { path: "/signup", element: <Register /> },
             { path: "/about", element: <About /> },
             { path: "/contact", element: <Contact /> },
-            { path: "/therapist", element: <Therapist /> }
+            { path: "/therapist", element: <Therapist /> },
+            { path: "/forget", element: <Forgetpassword/> }
         ]
     },
     // Separate route for ChatBot without App wrapper
