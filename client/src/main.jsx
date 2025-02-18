@@ -10,6 +10,9 @@ import ChatBot from './components/ChatBot.jsx';
 import About from './components/About';
 import Contact from './components/Contact';
 import Therapist from './components/Therapist';
+import LoginSelection from './components/LoginSelection';
+import AccessAccount from './components/AccessAccount';
+import TherapistLogin from './components/TherapistLogin';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 const router = createBrowserRouter([
@@ -18,7 +21,9 @@ const router = createBrowserRouter([
         element: <App />,
         children: [
             { index: true, element: <Landingpage /> },
+            { path: "/access-account", element: <AccessAccount /> },
             { path: "/login", element: <Login /> },
+            { path: "/therapist-login", element: <TherapistLogin /> },
             { path: "/signup", element: <Register /> },
             { path: "/about", element: <About /> },
             { path: "/contact", element: <Contact /> },

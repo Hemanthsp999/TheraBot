@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Typography } from "@material-tailwind/react";
 import './css/App.css';
 import { useRef } from "react";
+import { Link } from 'react-router-dom';
 
 /* Don't alter Footer: You mentioned route '/chatbot' which is not a children of <App/> component, so the footer and navbar will not affect ChatBot page*/
 
