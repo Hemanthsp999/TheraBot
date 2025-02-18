@@ -106,7 +106,10 @@ export default function Navbar() {
                         </div>
                     ): (
 
-                            <Link to="/login" className="bg-blue-100 text-white px-4 py-2 rounded-md hover:bg-blue-300 transition">
+                            <Link 
+                                to="/access-account" 
+                                className="bg-blue-100 text-white px-4 py-2 rounded-md hover:bg-blue-300 transition"
+                            >
                                 Login
                             </Link>
                     )}
