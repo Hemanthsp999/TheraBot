@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const TherapistLogin = () => {
@@ -27,19 +27,21 @@ const TherapistLogin = () => {
       // Add your therapist login logic here
       // navigate('/therapist-dashboard'); // After successful login
     } catch (err) {
-      setError('Login failed. Please check your credentials.');
+      setError('Login failed. Please check your credentials.', err);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-40 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-black mb-2">Therapist Login</h1>
           <p className="text-gray-600">Welcome back, please login to your professional account</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-8">
+<div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl  duration-100 transform hover:scale-105">
+
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-black font-medium mb-2" htmlFor="email">

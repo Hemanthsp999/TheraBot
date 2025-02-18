@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AccessAccount = () => {
@@ -31,7 +30,7 @@ const AccessAccount = () => {
               </div>
               <button
                 onClick={() => navigate('/login')}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300"
+                                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 shadow-lg transition-colors duration-100 tansform hover:shadow-2xl hover:scale-105"
               >
                 Login as User
               </button>
@@ -53,7 +52,7 @@ const AccessAccount = () => {
               </div>
               <button
                 onClick={() => navigate('/therapist-login')}
-                className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors duration-300"
+                className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors duration-100 tansform hover:shadow-2xl hover:scale-105"
               >
                 Login as Therapist
               </button>
