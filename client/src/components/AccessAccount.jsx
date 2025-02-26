@@ -6,7 +6,7 @@ const AccessAccount = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 py-12">
       <div className="max-w-4xl w-full">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12" data-aos="fade-up">
           <h1 className="text-4xl font-bold text-black mb-4">Welcome to TheraBot</h1>
           <p className="text-gray-700 text-lg max-w-2xl mx-auto">
             Choose your account type to access personalized mental health support. 
@@ -16,7 +16,7 @@ const AccessAccount = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* User Access Card */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300" data-aos="fade-right">
             <div className="p-8">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-semibold text-black mb-3">User Account</h2>
@@ -38,7 +38,7 @@ const AccessAccount = () => {
           </div>
 
           {/* Therapist Access Card */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300" data-aos="fade-left">
             <div className="p-8">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-semibold text-black mb-3">Therapist Account</h2>

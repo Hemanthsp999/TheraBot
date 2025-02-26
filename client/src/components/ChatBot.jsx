@@ -59,7 +59,7 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gray-100 rounded-2xl">
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gray-100 rounded-2xl" >
       {/* Chat Header */}
       <div className="bg-white border-b rounded-xl p-4 shadow-sm flex items-center justify-between">
         <button onClick={handleBack} className="text-gray-100 hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100">

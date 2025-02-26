@@ -1,33 +1,33 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const TherapistLogin = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    licenseNumber: '' // Additional field for therapists
+    email: "",
+    password: "",
+    licenseNumber: "", // Additional field for therapists
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     try {
       // Here you would typically send the data to your backend
-      console.log('Therapist login attempt:', formData);
-      
+      console.log("Therapist login attempt:", formData);
+
       // Add your therapist login logic here
       // navigate('/therapist-dashboard'); // After successful login
     } catch (err) {
-      setError('Login failed. Please check your credentials.', err);
+      setError("Login failed. Please check your credentials.", err);
     }
   };
 
@@ -35,16 +35,21 @@ const TherapistLogin = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-40 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">Therapist Login</h1>
-          <p className="text-gray-600">Welcome back, please login to your professional account</p>
+          <h1 className="text-3xl font-bold text-black mb-2">
+            Therapist Login
+          </h1>
+          <p className="text-gray-600">
+            Welcome back, please login to your professional account
+          </p>
         </div>
 
-<div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl  duration-100 transform hover:scale-105">
-
-
+        <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl  duration-100 transform hover:scale-105">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-black font-medium mb-2" htmlFor="email">
+              <label
+                className="block text-black font-medium mb-2"
+                htmlFor="email"
+              >
                 Email Address
               </label>
               <input
@@ -59,7 +64,10 @@ const TherapistLogin = () => {
             </div>
 
             <div>
-              <label className="block text-black font-medium mb-2" htmlFor="licenseNumber">
+              <label
+                className="block text-black font-medium mb-2"
+                htmlFor="licenseNumber"
+              >
                 License Number
               </label>
               <input
@@ -74,7 +82,10 @@ const TherapistLogin = () => {
             </div>
 
             <div>
-              <label className="block text-black font-medium mb-2" htmlFor="password">
+              <label
+                className="block text-black font-medium mb-2"
+                htmlFor="password"
+              >
                 Password
               </label>
               <input
@@ -88,9 +99,7 @@ const TherapistLogin = () => {
               />
             </div>
 
-            {error && (
-              <div className="text-red-500 text-center">{error}</div>
-            )}
+            {error && <div className="text-red-500 text-center">{error}</div>}
 
             <button
               type="submit"
@@ -100,7 +109,12 @@ const TherapistLogin = () => {
             </button>
 
             <div className="text-center text-gray-600">
-              <p>Need help? <Link to="/contact" className="text-green-600 hover:underline">Contact Support</Link></p>
+              <p>
+                Need help?{" "}
+                <Link to="/contact" className="text-green-600 hover:underline">
+                  Contact Support
+                </Link>
+              </p>
             </div>
           </form>
         </div>
@@ -109,4 +123,4 @@ const TherapistLogin = () => {
   );
 };
 
-export default TherapistLogin; 
+export default TherapistLogin;

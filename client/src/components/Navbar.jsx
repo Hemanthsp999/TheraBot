@@ -99,7 +99,7 @@ export default function Navbar() {
                                     <ul className="py-2">
                                         <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer "><b>{email}</b></li>
                                         {/* <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">Sign In</li> */}
-                                        <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer" onClick={handleLogout}>Logout</li>
+                                        <li className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition cursor-pointer" onClick={handleLogout}>Logout</li>
                                     </ul>
                                 </div>
                             )}
