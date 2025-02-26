@@ -31,6 +31,7 @@ import Therapist from "./components/Therapist";
 import Protected from "./components/ProtectedRoute.jsx";
 import AccessAccount from "./components/AccessAccount";
 import TherapistLogin from "./components/TherapistLogin";
+import TherapistRegister from "./components/TherapistRegistration.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 const router = createBrowserRouter([
@@ -46,6 +47,7 @@ const router = createBrowserRouter([
       { path: "/about", element: <About /> },
       { path: "/contact", element: <Contact /> },
       { path: "/therapist", element: <Therapist /> },
+      { path: "/register", element: <TherapistRegister /> },
       { path: "/forget", element: <Forgetpassword /> },
     ],
   },

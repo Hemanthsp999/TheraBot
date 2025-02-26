@@ -89,9 +89,9 @@ const TherapistLogin = () => {
 
             <div className="text-center text-gray-600">
               <p>
-                Need help?{" "}
-                <Link to="/contact" className="text-green-600 hover:underline">
-                  Contact Support
+                Don't have an account?{" "}
+                <Link to="/register" className="text-green-600 hover:underline">
+                  Create one
                 </Link>
               </p>
             </div>
