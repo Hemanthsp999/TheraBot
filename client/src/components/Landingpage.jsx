@@ -1,5 +1,5 @@
 import "./css/App.css";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import Slider from "react-slick";
 import { useNavigate } from "react-router-dom";
 import "slick-carousel/slick/slick.css";
@@ -10,7 +10,6 @@ import carsouel3 from "./images/Carsouel.webp";
 import carsouel from "./images/Bot_Human.png";
 import Carsouel5 from "./images/stress.jpg";
 
-// This page is not fitting to mobie screen correctly
 const LandingPage = () => {
   const settings = {
     dots: true,
@@ -49,15 +48,37 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const sectionRef = useRef(null);
 
+      const [scrollingUp, setScrollingUp] = useState(false);
+
+      useEffect(() => {
+    let lastScrollY = window.scrollY;
+    const handleScroll = () => {
+      if (window.scrollY < lastScrollY) {
+        setScrollingUp(true);
+      } else {
+        setScrollingUp(false);
+      }
+      lastScrollY = window.scrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const scrollToSection = () => {
     sectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <div className="Landingpage  min-h-screen max-w-full overflow-x-hidden bg-white">
-      <div className="w-screen animate-fadeInDown lg:w-full md:w-full px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">
+    <div
+      className="Landingpage min-h-screen max-w-full overflow-x-hidden bg-white" data-aos="zoom-in"
+    >
+      <div className="w-screen lg:w-full md:w-full px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">
         {/* Hero Section */}
-        <section className="max-w-6xl justify-center  w-full mx-auto text-center py-8 sm:py-12">
+        <section
+          className="max-w-6xl justify-center  w-full mx-auto text-center py-8 sm:py-12"
+          data-aos="fade-up"
+        >
           <h1 className="text-xl sm:text-xl md:text-3xl lg:text-4xl font-bold text-blue-700 px-2">
             🤖 Meet <span className="text-indigo-800">TheraBot</span>: Your AI
             Mental Health Companion
@@ -86,7 +107,8 @@ const LandingPage = () => {
           <Slider {...settings}>
             {[carsouel, carsouel1, carsouel2, carsouel3, Carsouel5].map(
               (image, index) => (
-                <div key={index} className="outline-none">
+                <div key={index} className="outline-none" data-aos="fade-up"
+                                >
                   <img
                     className=" w-screen h-auto max-h-[400px] sm:h-64 md:h-80 lg:h-96 sm:object-cover rounded-lg"
                     src={image}
@@ -99,14 +121,18 @@ const LandingPage = () => {
         </div>
 
         {/* Why TherBot? */}
-        <section className="w-full max-w-6xl mx-auto px-4 py-8 sm:py-12">
+        <section
+          className="w-full max-w-6xl mx-auto px-4 py-8 sm:py-12"
+          data-aos="fade-left"
+          data-aos-delay="500"
+        >
           <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-blue-800 text-center">
             Why Choose TherBot?
           </h2>
           <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-700 text-center">
             Because your mental well-being matters. TherBot is here to:
           </p>
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className=" mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
               {
                 icon: "💡",
@@ -124,7 +150,9 @@ const LandingPage = () => {
             ].map((item, index) => (
               <div
                 key={index}
-                className="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition"
+                className="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition shadow-lg transition-colors duration-100 tansform hover:shadow-xl hover:scale-110"
+                data-aos="fade-up"
+                data-aos-delay={index * 100}
               >
                 <span className="text-xl sm:text-2xl block mb-2">
                   {item.icon}
@@ -138,8 +166,11 @@ const LandingPage = () => {
         </section>
 
         {/* Testimonials */}
-        <section className="w-full max-w-6xl mx-auto px-4 py-8 sm:py-12">
-          <div className="bg-gray-50 rounded-xl p-4 sm:p-8">
+        <section
+          className="w-full max-w-6xl mx-auto px-4 py-8 sm:py-12"
+          data-aos="fade-right"
+        >
+          <div className=" rounded-xl p-4 sm:p-8">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-blue-800 text-center">
               What Users Say
             </h2>
@@ -159,6 +190,7 @@ const LandingPage = () => {
         <div
           ref={sectionRef}
           className="w-full max-w-6xl mx-auto px-4 py-8 sm:py-12"
+          data-aos="fade-up"
         >
           <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-blue-700 text-center">
             🧠 Find the Right Support for Your Mental Wellness
@@ -205,15 +237,15 @@ const LandingPage = () => {
             <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-blue-800 text-center">
               How It Works?
             </h2>
-            <div className="mt-4 sm:mt-6 space-y-4">
-              <div className="p-4 sm:p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition">
+            <div className=" mt-4 sm:mt-6 space-y-4">
+              <div className="rounded-lg hover:bg-gray-100 shadow-lg transition-colors duration-100 tansform hover:shadow-2xl hover:scale-105 p-4 sm:p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition">
                 <p className="text-sm sm:text-base text-gray-700">
                   🌟 <b>AI Chatbot:</b> Get instant, 24/7 support with our
                   AI-powered mental wellness assistant. Share your thoughts
                   freely, anytime.
                 </p>
               </div>
-              <div className="p-4 sm:p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition">
+              <div className="hover:bg-gray-100 shadow-lg transition-colors duration-100 tansform hover:shadow-2xl hover:scale-105 p-4 sm:p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition">
                 <p className="text-sm sm:text-base text-gray-700">
                   💬 <b>Therapist:</b> Book a session with a professional
                   therapist for personalized guidance and in-depth
