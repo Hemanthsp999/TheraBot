@@ -32,7 +32,10 @@ const TherapistLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-40 px-4">
+    <div
+      className="min-h-screen flex items-center justify-center bg-gray-40 px-4"
+      data-aos="flip-down"
+    >
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-black mb-2">
@@ -43,60 +46,36 @@ const TherapistLogin = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl  duration-100 transform hover:scale-105">
+        <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl  duration-100 transform hover:scale-100">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label
-                className="block text-black font-medium mb-2"
-                htmlFor="email"
-              >
-                Email Address
-              </label>
+            <div className="relative z-0 w-full mb-5 group">
               <input
                 type="email"
-                id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-black"
+                className="text-center block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                placeholder=" "
                 required
               />
-            </div>
-
-            <div>
-              <label
-                className="block text-black font-medium mb-2"
-                htmlFor="licenseNumber"
-              >
-                License Number
+              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
+                Therapist Email
               </label>
-              <input
-                type="text"
-                id="licenseNumber"
-                name="licenseNumber"
-                value={formData.licenseNumber}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-black"
-                required
-              />
             </div>
-
-            <div>
-              <label
-                className="block text-black font-medium mb-2"
-                htmlFor="password"
-              >
-                Password
-              </label>
+            <div className="relative z-0 w-full mb-5 group">
               <input
                 type="password"
-                id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-black"
+                className="block text-center py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                placeholder=" "
                 required
               />
+
+              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
+                Password
+              </label>
             </div>
 
             {error && <div className="text-red-500 text-center">{error}</div>}

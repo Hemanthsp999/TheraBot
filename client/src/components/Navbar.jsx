@@ -1,148 +1,166 @@
 import { useState, useEffect } from "react";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import { Typography } from "@material-tailwind/react";
-import User from './images/user.png';
-import Bot from './images/Bot.jpeg';
+import User from "./images/user.png";
+import Bot from "./images/Bot.jpeg";
 import { useRef } from "react";
-import axios from 'axios';
+import axios from "axios";
 
 export default function Navbar() {
-    const [isOpen, setIsOpen] = useState(false);
-    const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-    const topRef = useRef(null);
+  const topRef = useRef(null);
 
-    const[email, setEmail] = useState("");
+  const [email, setEmail] = useState("");
 
-    useEffect(() => {
-        const storeUser = localStorage.getItem("userEmail");
-        if(storeUser){
-            setEmail(storeUser)
-        }
-    },[]);
+  useEffect(() => {
+    const storeUser = localStorage.getItem("userEmail");
+    if (storeUser) {
+      setEmail(storeUser);
+    }
+  }, []);
 
-    const handleLogout = async () => {
-        const refreshToken = localStorage.getItem("refreshToken");
-        
-        localStorage.clear();  // Clear tokens from frontend
-        alert("Logged out successfully!");
+  const handleLogout = async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+    const accessToken = localStorage.getItem("accessToken");
+    console.log("refresh: ", refreshToken);
+    console.log("access token", accessToken);
 
-        if (refreshToken) {
-            try {
-                await axios.post("http://127.0.0.1:8000/api/logout/", { refresh_token: refreshToken });
-            } catch (error) {
-                console.error("Error logging out:", error);
-            }
-        }
+    //alert("Logged out successfully!");
 
-        
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userEmail");
+    try {
+      const resp = await axios.post("http://127.0.0.1:8000/api/logout/", {
+        refresh_token: refreshToken,
+      });
+      alert("Logged out successfully!");
+            console.log(resp.data.message);
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
 
-        window.location.href = "/login";  // Redirect to login page
-    };
+    {
+      /*
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("userEmail");
+    */
+    }
+    localStorage.clear(); // Clear tokens from frontend
 
-    // Scroll to the top of the page
-    const scrollToTop = () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    };
+    window.location.href = "/login"; // Redirect to login page
+  };
 
-    return (
+  // Scroll to the top of the page
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-        <nav className="navbar fixed top-0 left-0 w-full bg-black text-white p-4 shadow-md" style={{fontSize: "15px"}}>
-            <div ref={topRef}></div> {/* Reference to the top of the page */}
-            <div className="container mx-auto flex justify-between items-center px-4 md:px-8">
+  return (
+    <nav
+      className="navbar fixed top-0 left-0 w-full bg-black text-white p-4 shadow-md"
+      style={{ fontSize: "15px" }}
+    >
+      <div ref={topRef}></div> {/* Reference to the top of the page */}
+      <div className="container mx-auto flex justify-between items-center px-4 md:px-8">
+        {/* Left Section (Logo & Name) */}
+        <div className="flex items-center space-x-2 mt-1">
+          <Link to={"/"}>
+            <img
+              src={Bot}
+              onClick={scrollToTop}
+              className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover"
+              alt="Logo"
+            />
+          </Link>
+          <Typography
+            as="span"
+            className="text-lg sm:text-xl font-semibold cursor-pointer"
+            onClick={scrollToTop} // Click to scroll to the top
+          >
+            TheraBot
+          </Typography>
+        </div>
 
-                {/* Left Section (Logo & Name) */}
-                <div className="flex items-center space-x-2 mt-1">
-                    <Link to={'/'}>
-                    <img src={Bot} onClick={scrollToTop} className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover" alt="Logo"/>
-                    </Link>
-                    <Typography
-                        as="span"
-                        className="text-lg sm:text-xl font-semibold cursor-pointer"
-                        onClick={scrollToTop} // Click to scroll to the top
+        {/* Center Section (Navbar Links for Large Screens) */}
+        <ul className="hidden md:flex gap-6">
+          {["Home", "About", "Services", "Contact"].map((item, index) => (
+            <li key={index} className="py-2">
+              <Link
+                to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+                className="hover:text-blue-500 transition"
+              >
+                {item}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        {/* Right Section (User Profile & Mobile Menu) */}
+        <div className="flex items-center space-x-4">
+          {/* User Profile (Dropdown Toggle) */}
+          {email ? (
+            <div className="relative">
+              <img
+                src={User}
+                alt="User"
+                className="w-8 h-8 md:w-10 md:h-10 bg-gray-100 rounded-full cursor-pointer"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              />
+              {dropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
+                  <ul className="py-2">
+                    <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer ">
+                      <b>{email}</b>
+                    </li>
+                    {/* <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">Sign In</li> */}
+                    <li
+                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition cursor-pointer"
+                      onClick={handleLogout}
                     >
-                        TheraBot
-                    </Typography>
+                      Logout
+                    </li>
+                  </ul>
                 </div>
-
-                {/* Center Section (Navbar Links for Large Screens) */}
-                <ul className="hidden md:flex gap-6">
-                    {["Home", "About", "Services", "Contact"].map((item, index) => (
-                        <li key={index} className="py-2">
-                            <Link 
-                                to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-                                className="hover:text-blue-500 transition"
-                            >
-                                {item}
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
-
-                {/* Right Section (User Profile & Mobile Menu) */}
-                <div className="flex items-center space-x-4">
-
-                    {/* User Profile (Dropdown Toggle) */}
-                    { email ? (
-                        <div className="relative">
-                            <img
-                                src={User}
-                                alt="User"
-                                className="w-8 h-8 md:w-10 md:h-10 bg-gray-100 rounded-full cursor-pointer"
-                                onClick={() => setDropdownOpen(!dropdownOpen)}
-                            />
-                            {dropdownOpen && (
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
-                                    <ul className="py-2">
-                                        <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer "><b>{email}</b></li>
-                                        {/* <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">Sign In</li> */}
-                                        <li className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition cursor-pointer" onClick={handleLogout}>Logout</li>
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-                    ): (
-
-                            <Link 
-                                to="/access-account" 
-                                className="bg-blue-100 text-white px-4 py-2 rounded-md hover:bg-blue-300 transition"
-                            >
-                                Login
-                            </Link>
-                    )}
-
-                    {/* Mobile Menu Button with Navbar Color */}
-                    <div className="relative md:hidden">
-                        <button
-                            className="bg-black text-white p-2 rounded-md hover:bg-gray-800 transition focus:outline-none"
-                            onClick={() => setIsOpen(!isOpen)}
-                        >
-                            ☰
-                        </button>
-
-                        {/* Mobile Navbar Links (Appears Below Button) */}
-                        {isOpen && (
-                            <ul className="absolute right-0 top-full mt-2 w-40 bg-black text-white text-center p-4 rounded-lg shadow-lg z-50">
-                                {["Home", "About", "Services", "Contact"].map((item, index) => (
-                                    <li key={index} className="py-2">
-                                        <Link 
-                                            to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-                                            className="hover:text-blue-500 transition"
-                                            onClick={() => setIsOpen(false)}
-                                        >
-                                            {item}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                </div>
+              )}
             </div>
-        </nav>
-    );
-}
+          ) : (
+            <Link
+              to="/access-account"
+              className="bg-blue-100 text-white px-4 py-2 rounded-md hover:bg-blue-300 transition"
+            >
+              Login
+            </Link>
+          )}
 
+          {/* Mobile Menu Button with Navbar Color */}
+          <div className="relative md:hidden">
+            <button
+              className="bg-black text-white p-2 rounded-md hover:bg-gray-800 transition focus:outline-none"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              ☰
+            </button>
+
+            {/* Mobile Navbar Links (Appears Below Button) */}
+            {isOpen && (
+              <ul className="absolute right-0 top-full mt-2 w-40 bg-black text-white text-center p-4 rounded-lg shadow-lg z-50">
+                {["Home", "About", "Services", "Contact"].map((item, index) => (
+                  <li key={index} className="py-2">
+                    <Link
+                      to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+                      className="hover:text-blue-500 transition"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}

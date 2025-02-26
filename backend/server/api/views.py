@@ -103,9 +103,10 @@ class LogoutView(APIView):
     def post(self, request):
 
         try:
-            refresh_token = request.data.get('refresh_token')
+            refresh_token = request.data.get('refreshToken')
             if not refresh_token:
                 return Response({'error:' 'Refresh token is required'}, status=400)
+            print(f"refresh token{ refresh_token}")
 
             token = RefreshToken(refresh_token)
             token.blacklist()
