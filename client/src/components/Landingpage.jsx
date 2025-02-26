@@ -224,7 +224,7 @@ const LandingPage = () => {
             <button
               onClick={() => navigate("/chatbot")}
               className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md transition"
-                                data-aos="zoom-out"
+                                data-aos="fade-right"
             >
               🤖 Talk to AI Chatbot
             </button>
@@ -232,7 +232,7 @@ const LandingPage = () => {
             <button
               onClick={() => navigate("/therapist")}
               className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md transition"
-                                data-aos="zoom-out"
+                                data-aos="fade-left"
             >
               👨‍⚕️ Connect with a Therapist
             </button>
