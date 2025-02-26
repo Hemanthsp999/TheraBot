@@ -1,7 +1,7 @@
 import "aos/dist/aos.css";
 import AOS from "aos";
 import { Outlet } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 //import AnimateIn from "./components/AnimateIn.tsx";
 import "./components/css/App.css";
 import Navbar from "./components/Navbar";

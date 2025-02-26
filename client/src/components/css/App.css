@@ -73,6 +73,7 @@
     padding: 20px;
     box-sizing: border-box; /* Prevents padding from affecting width */
     overflow-x: hidden; /* Ensures no horizontal scroll */
+    overflow-y: hidden;
 }
 
 /* Fix for elements causing overflow */

@@ -71,13 +71,13 @@ const LandingPage = () => {
 
   return (
     <div
-      className="Landingpage min-h-screen max-w-full overflow-x-hidden bg-white" data-aos="zoom-in"
+      className="Landingpage min-h-screen max-w-full overflow-x-hidden bg-white" data-aos="fade-down"
     >
       <div className="w-screen lg:w-full md:w-full px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">
         {/* Hero Section */}
         <section
           className="max-w-6xl justify-center  w-full mx-auto text-center py-8 sm:py-12"
-          data-aos="fade-up"
+          //data-aos="fade-down"
         >
           <h1 className="text-xl sm:text-xl md:text-3xl lg:text-4xl font-bold text-blue-700 px-2">
             🤖 Meet <span className="text-indigo-800">TheraBot</span>: Your AI
@@ -97,13 +97,16 @@ const LandingPage = () => {
           <button
             onClick={scrollToSection}
             className="mt-4 sm:mt-6 px-4 sm:px-6 py-2 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm sm:text-base rounded-full shadow-md transition"
+                        data-aos="zoom-in"
           >
             💬 Get Started Journey
           </button>
         </section>
 
         {/* Carousel Section */}
-        <div className="w-screen max-w-lg mx-auto px-2 sm:px-4 mb-8 sm:mb-12">
+        <div className="w-screen max-w-lg mx-auto px-2 sm:px-4 mb-8 sm:mb-12"
+                    data-aos = "zoom-out"
+                >
           <Slider {...settings}>
             {[carsouel, carsouel1, carsouel2, carsouel3, Carsouel5].map(
               (image, index) => (
@@ -123,7 +126,7 @@ const LandingPage = () => {
         {/* Why TherBot? */}
         <section
           className="w-full max-w-6xl mx-auto px-4 py-8 sm:py-12"
-          data-aos="fade-left"
+          data-aos="fade-right"
           data-aos-delay="500"
         >
           <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-blue-800 text-center">
@@ -151,7 +154,7 @@ const LandingPage = () => {
               <div
                 key={index}
                 className="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition shadow-lg transition-colors duration-100 tansform hover:shadow-xl hover:scale-110"
-                data-aos="fade-up"
+                data-aos="fade-right"
                 data-aos-delay={index * 100}
               >
                 <span className="text-xl sm:text-2xl block mb-2">
@@ -168,7 +171,7 @@ const LandingPage = () => {
         {/* Testimonials */}
         <section
           className="w-full max-w-6xl mx-auto px-4 py-8 sm:py-12"
-          data-aos="fade-right"
+          data-aos="fade-left"
         >
           <div className=" rounded-xl p-4 sm:p-8">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-blue-800 text-center">
@@ -190,8 +193,8 @@ const LandingPage = () => {
         <div
           ref={sectionRef}
           className="w-full max-w-6xl mx-auto px-4 py-8 sm:py-12"
-          data-aos="fade-up"
         >
+                    <div data-aos="fade-up">
           <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-blue-700 text-center">
             🧠 Find the Right Support for Your Mental Wellness
           </h1>
@@ -221,6 +224,7 @@ const LandingPage = () => {
             <button
               onClick={() => navigate("/chatbot")}
               className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md transition"
+                                data-aos="zoom-out"
             >
               🤖 Talk to AI Chatbot
             </button>
@@ -228,12 +232,14 @@ const LandingPage = () => {
             <button
               onClick={() => navigate("/therapist")}
               className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md transition"
+                                data-aos="zoom-out"
             >
               👨‍⚕️ Connect with a Therapist
             </button>
+            </div>
           </div>
 
-          <section className="mt-8 sm:mt-12">
+          <section className="mt-8 sm:mt-12" data-aos="zoom-in">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-blue-800 text-center">
               How It Works?
             </h2>
