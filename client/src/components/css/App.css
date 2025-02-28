@@ -61,7 +61,6 @@
 
 
 .Landingpage {
-    width: 100%; /* Ensures full width without overflow */
     min-height: 100vh; /* Full viewport height */
     top: 0;
     left: 0;
@@ -70,7 +69,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    // padding: 20px;
     box-sizing: border-box; /* Prevents padding from affecting width */
     overflow-x: hidden; /* Ensures no horizontal scroll */
     overflow-y: hidden;

@@ -52,9 +52,7 @@ function App() {
         <Outlet />
       </main>
       {/* </AnimateIn>*/}
-      <div className="mt-20 sm:mt-30 xs:mt-400">
         <Footer />
-      </div>
     </div>
   );
 }

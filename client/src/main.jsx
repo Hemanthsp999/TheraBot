@@ -27,7 +27,7 @@ import ChatBot from "./components/ChatBot.jsx";
 import About from "./components/About";
 import Contact from "./components/Contact";
 import Therapist from "./components/Therapist";
-//import LoginSelection from './components/LoginSelection';
+import Service from "./components/Service.jsx";
 import Protected from "./components/ProtectedRoute.jsx";
 import AccessAccount from "./components/AccessAccount";
 import TherapistLogin from "./components/TherapistLogin";
@@ -49,6 +49,7 @@ const router = createBrowserRouter([
       { path: "/therapist", element: <Therapist /> },
       { path: "/register", element: <TherapistRegister /> },
       { path: "/forget", element: <Forgetpassword /> },
+      { path: "/services", element: <Service/> },
     ],
   },
   // Separate route for ChatBot without App wrapper

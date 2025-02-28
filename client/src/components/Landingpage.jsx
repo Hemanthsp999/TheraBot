@@ -48,9 +48,9 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const sectionRef = useRef(null);
 
-      const [scrollingUp, setScrollingUp] = useState(false);
+  const [scrollingUp, setScrollingUp] = useState(false);
 
-      useEffect(() => {
+  useEffect(() => {
     let lastScrollY = window.scrollY;
     const handleScroll = () => {
       if (window.scrollY < lastScrollY) {
@@ -70,20 +70,19 @@ const LandingPage = () => {
   };
 
   return (
-    <div
-      className="Landingpage min-h-screen max-w-full overflow-x-hidden bg-white" data-aos="fade-down"
-    >
+    <div className="Landingpage  max-w-full " data-aos="fade-down">
       <div className="w-screen lg:w-full md:w-full px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">
         {/* Hero Section */}
         <section
-          className="max-w-6xl justify-center  w-full mx-auto text-center py-8 sm:py-12"
+          // here i've changed bg-white -> bg-blue-500. cause of change is I thought its looking nice.
+          className="max-w-6xl justify-center bg-white rounded-xl  w-full mx-auto text-center py-8 sm:py-12"
           //data-aos="fade-down"
         >
           <h1 className="text-xl sm:text-xl md:text-3xl lg:text-4xl font-bold text-blue-700 px-2">
             🤖 Meet <span className="text-indigo-800">TheraBot</span>: Your AI
             Mental Health Companion
           </h1>
-          <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg italic text-gray-700 px-4">
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg italic text-black px-4">
             A safe space to express, reflect, and heal — anytime, anywhere.
           </p>
 
@@ -97,21 +96,21 @@ const LandingPage = () => {
           <button
             onClick={scrollToSection}
             className="mt-4 sm:mt-6 px-4 sm:px-6 py-2 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm sm:text-base rounded-full shadow-md transition"
-                        data-aos="zoom-in"
+            data-aos="zoom-in"
           >
             💬 Get Started Journey
           </button>
         </section>
 
         {/* Carousel Section */}
-        <div className="w-screen max-w-lg mx-auto px-2 sm:px-4 mb-8 sm:mb-12"
-                    data-aos = "zoom-out"
-                >
+        <div
+          className="w-screen max-w-lg mx-auto px-2 mt-10 sm:px-4 mb-8 sm:mb-12"
+          data-aos="zoom-out"
+        >
           <Slider {...settings}>
             {[carsouel, carsouel1, carsouel2, carsouel3, Carsouel5].map(
               (image, index) => (
-                <div key={index} className="outline-none" data-aos="fade-up"
-                                >
+                <div key={index} className="outline-none" data-aos="fade-up">
                   <img
                     className=" w-screen h-auto max-h-[400px] sm:h-64 md:h-80 lg:h-96 sm:object-cover rounded-lg"
                     src={image}
@@ -125,7 +124,7 @@ const LandingPage = () => {
 
         {/* Why TherBot? */}
         <section
-          className="w-full max-w-6xl mx-auto px-4 py-8 sm:py-12"
+          className="w-full max-w-6xl  mx-auto px-4 py-8 sm:py-12"
           data-aos="fade-right"
           data-aos-delay="500"
         >
@@ -194,52 +193,52 @@ const LandingPage = () => {
           ref={sectionRef}
           className="w-full max-w-6xl mx-auto px-4 py-8 sm:py-12"
         >
-                    <div data-aos="fade-up">
-          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-blue-700 text-center">
-            🧠 Find the Right Support for Your Mental Wellness
-          </h1>
-          <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg italic text-gray-700 text-center">
-            Your Safe Space to Heal, Reflect & Grow
-          </p>
+          <div data-aos="fade-up">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-blue-700 text-center">
+              🧠 Find the Right Support for Your Mental Wellness
+            </h1>
+            <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg italic text-gray-700 text-center">
+              Your Safe Space to Heal, Reflect & Grow
+            </p>
 
-          <p className="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-gray-800 font-medium text-center">
-            We all have moments when we need someone to listen. Whether you
-            prefer an
-            <span className="text-indigo-800 font-semibold">
-              {" "}
-              AI-powered companion{" "}
-            </span>
-            for instant support or a
-            <span className="text-green-800 font-semibold">
-              {" "}
-              certified therapist{" "}
-            </span>
-            for personalized guidance, we're here for you.
-          </p>
+            <p className="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-gray-800 font-medium text-center">
+              We all have moments when we need someone to listen. Whether you
+              prefer an
+              <span className="text-indigo-800 font-semibold">
+                {" "}
+                AI-powered companion{" "}
+              </span>
+              for instant support or a
+              <span className="text-green-800 font-semibold">
+                {" "}
+                certified therapist{" "}
+              </span>
+              for personalized guidance, we're here for you.
+            </p>
 
-          <div
-            className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-4 justify-center"
-            style={{ fontSize: "15px" }}
-          >
-            <button
-              onClick={() => navigate("/chatbot")}
-              className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md transition"
-                                data-aos="fade-right"
+            <div
+              className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-4 justify-center"
+              style={{ fontSize: "15px" }}
             >
-              🤖 Talk to AI Chatbot
-            </button>
+              <button
+                onClick={() => navigate("/chatbot")}
+                className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md transition"
+                data-aos="fade-right"
+              >
+                🤖 Talk to AI Chatbot
+              </button>
 
-            <button
-              onClick={() => navigate("/therapist")}
-              className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md transition"
-                                data-aos="fade-left"
-            >
-              👨‍⚕️ Connect with a Therapist
-            </button>
+              <button
+                onClick={() => navigate("/therapist")}
+                className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md transition"
+                data-aos="fade-left"
+              >
+                👨‍⚕️ Connect with a Therapist
+              </button>
             </div>
           </div>
 
-          <section className="mt-8 sm:mt-12" data-aos="zoom-in">
+          <section className="mt-8 sm:mt-12 bg-white rounded-xl mb-20" data-aos="zoom-in">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-blue-800 text-center">
               How It Works?
             </h2>

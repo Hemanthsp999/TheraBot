@@ -1,12 +1,12 @@
 const About = () => {
   return (
-    <div className="container mx-auto px-4 py-24 max-w-4xl">
+    <div className="container mx-auto px-4 bg-gray-100 py-24 max-w-4xl">
       <h1 className="text-3xl font-bold text-blue-700 mb-8 text-center" data-aos="fade-down">
         About <span className="text-indigo-700">TheraBot</span>
       </h1>
 
       <div className="space-y-6 text-gray-800">
-        <section className="bg-white rounded-lg shadow-sm p-6 hover:bg-gray-100" data-aos="flip-up">
+        <section className="bg-white rounded-lg shadow-sm p-6 hover:bg-gray-300" data-aos="flip-up">
           <h2 className="text-2xl font-semibold text-blue-600 mb-4">
             Our Mission
           </h2>
@@ -17,7 +17,7 @@ const About = () => {
           </p>
         </section>
 
-        <section className="bg-white rounded-lg shadow-sm p-6 hover:bg-gray-100" data-aos="flip-right">
+        <section className="bg-white rounded-lg shadow-sm p-6 hover:bg-gray-300" data-aos="flip-right">
           <h2 className="text-2xl font-semibold text-blue-600 mb-4">
             What We Offer
           </h2>
@@ -29,7 +29,7 @@ const About = () => {
           </ul>
         </section>
 
-        <section className="bg-white rounded-lg shadow-sm p-6 hover:bg-gray-100" data-aos="flip-left">
+        <section className="bg-white rounded-lg shadow-sm p-6 hover:bg-gray-300" data-aos="flip-left">
           <h2 className="text-2xl font-semibold text-blue-600 mb-4">
             Our Values
           </h2>
@@ -53,7 +53,7 @@ const About = () => {
           </div>
         </section>
 
-        <section className="bg-white rounded-lg shadow-sm p-6 hover:bg-gray-100" data-aos="flip-down">
+        <section className="bg-white rounded-lg shadow-sm p-6 hover:bg-gray-300" data-aos="flip-down">
           <h2 className="text-2xl font-semibold text-blue-600 mb-4">
             Our Team
           </h2>
