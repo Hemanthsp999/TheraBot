@@ -85,6 +85,7 @@ body, html {
 @media (max-width: 768px) {
     .Landingpage {
         padding: 10px;
+        
         margin-left: -3vh;
         width: 100%; /* Ensures full width */
     }
@@ -95,8 +96,9 @@ body, html {
         text-align: center;
         margin: auto;
         margin-left: -6vw;
-        padding: 0;
-       flex-direction: column; 
+        margin-bottom: 30vh; /* increase the bottom size if you r facing the footer overflow issue.
+        padding: 10px;
+        flex-direction: column; 
         width: 100%; /* Prevents any overflow */
     }
 }
@@ -150,7 +152,7 @@ body, html {
 
 @media screen and (max-width: 480px) {
     .footer {
-        min-height: 40px;
+        min-height: 20vw;
         padding: 6px 10px;
         font-size: 12px;
         flex-direction: column;

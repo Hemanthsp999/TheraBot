@@ -71,22 +71,28 @@ const LandingPage = () => {
 
   return (
     <div className="Landingpage  max-w-full " data-aos="fade-down">
-      <div className="w-screen lg:w-full md:w-full px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">
+     {/* <div className="w-screen lg:w-full md:w-full px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">*/}
         {/* Hero Section */}
         <section
           // here i've changed bg-white -> bg-blue-500. cause of change is I thought its looking nice.
-          className="max-w-6xl justify-center bg-white rounded-xl  w-full mx-auto text-center py-8 sm:py-12"
+          className="max-w-6xl justify-center bg-white mt-10  w-full mx-auto text-center py-8 sm:py-12"
           //data-aos="fade-down"
         >
           <h1 className="text-xl sm:text-xl md:text-3xl lg:text-4xl font-bold text-blue-700 px-2">
             🤖 Meet <span className="text-indigo-800">TheraBot</span>: Your AI
             Mental Health Companion
           </h1>
+                {/*
+          <h1 className="text-xl sm:text-xl md:text-3xl lg:text-4xl font-bold text-white px-2">
+            🤖 Meet <span className="text-white">TheraBot</span>: Your AI
+            Mental Health Companion
+          </h1>
+          */}
           <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg italic text-black px-4">
             A safe space to express, reflect, and heal — anytime, anywhere.
           </p>
 
-          <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg text-gray-800 font-medium px-4">
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg text-black font-medium px-4">
             Whether you're feeling overwhelmed, anxious, or just need someone to
             listen,
             <span className="text-indigo-800 font-semibold"> TherBot</span> is
@@ -264,7 +270,6 @@ const LandingPage = () => {
             </p>
           </section>
         </div>
-      </div>
     </div>
   );
 };

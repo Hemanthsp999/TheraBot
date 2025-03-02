@@ -1,3 +1,4 @@
+import {Link} from "react-router-dom";
 const Service = () => {
   return (
     <div className="bg-gray-100 min-h-screen mt-20 text-gray-800">
@@ -12,10 +13,14 @@ const Service = () => {
         </p>
         <div className="mt-6">
           <button className="bg-white text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">
+                        <Link to={'/chatbot'}>
             Try TheraBot Now
+            </Link>
           </button>
           <button className="bg-white text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">
+                        <Link to={'/therapist'}>
             Meet Our Therapists
+            </Link>
           </button>
         </div>
       </section>

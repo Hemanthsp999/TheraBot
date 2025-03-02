@@ -46,10 +46,17 @@ const router = createBrowserRouter([
       { path: "/signup", element: <Register /> },
       { path: "/about", element: <About /> },
       { path: "/contact", element: <Contact /> },
-      { path: "/therapist", element: <Therapist /> },
+
+      {
+        path: "/therapist",
+        element: <Protected />,
+        children: [{ index: true, element: <Therapist /> }],
+      },
+      //{ path: "/therapist", element: <Therapist /> },
+
       { path: "/register", element: <TherapistRegister /> },
       { path: "/forget", element: <Forgetpassword /> },
-      { path: "/services", element: <Service/> },
+      { path: "/services", element: <Service /> },
     ],
   },
   // Separate route for ChatBot without App wrapper
