@@ -52,7 +52,7 @@ function App() {
         <Outlet />
       </main>
       {/* </AnimateIn>*/}
-        <Footer />
+      <Footer />
     </div>
   );
 }

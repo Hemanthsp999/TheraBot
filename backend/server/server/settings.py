@@ -78,8 +78,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
-
 
 ROOT_URLCONF = 'server.urls'
 
@@ -137,6 +139,11 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,  # Enable token blacklisting
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ("Bearer",),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id'
+
 }
 
 

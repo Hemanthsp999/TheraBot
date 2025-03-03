@@ -16,9 +16,11 @@ Copyright 2025 [Hemanth S P]
 */
 
 import React from "react";
+import { Outlet } from "react-router-dom";
 import ReactDOM from "react-dom/client";
 import "./components/css/index.css";
 import App from "./App";
+import AutoLogout from "./components/AutoLogout.jsx";
 import Login from "./components/Login";
 import Register from "./components/Register.jsx";
 import Forgetpassword from "./components/ForgetPassword.jsx";

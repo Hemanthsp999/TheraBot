@@ -1,4 +1,4 @@
-import {Link, useNavigate} from 'react-router-dom';
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { useState, useRef, useEffect } from "react";
 import { Send, ArrowLeft, Mic } from "lucide-react";
@@ -15,7 +15,6 @@ const ChatBot = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
-    const navigate = useNavigate();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,10 +32,53 @@ const ChatBot = () => {
     setInputMessage("");
     setIsLoading(true);
 
+    const API_URL = "http://127.0.0.1:8000/api/chatbot/";
+    //console.log(accessToken);
+
+    /*
+    if (!accessToken) {
+      console.error("No access token found. User may need to log in.");
+      setMessages((prev) => [
+        ...prev,
+        { type: "bot", content: "Authentication error. Please log in again." },
+      ]);
+      setIsLoading(false);
+      return;
+    }*/
+
     setMessages((prev) => [...prev, { type: "user", content: userMessage }]);
 
-    const botResponse = "I'm here to listen. How can I help?";
-    setMessages((prev) => [...prev, { type: "bot", content: botResponse }]);
+    try {
+            const accessToken = localStorage.getItem('accessToken');
+            console.log("Access: ", accessToken);
+      const response = await axios.post(
+        API_URL,
+        { query: userMessage }, // Correct: Send only query in body
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`, // Ensure correct format
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      const botResponse =
+        response.data.response || "Sorry, I couldn't understand that.";
+
+      setMessages((prev) => [...prev, { type: "bot", content: botResponse }]);
+    } catch (error) {
+      console.error("Error:", error.response?.data || error.message);
+
+            /*
+      if (error.response?.status === 401) {
+        setMessages((prev) => [
+          ...prev,
+          { type: "bot", content: "Session expired. Please log in again." },
+        ]);
+        localStorage.removeItem("accessToken"); // Clear invalid token
+      }
+            */
+    }
+
     setIsLoading(false);
   };
 
@@ -44,21 +86,30 @@ const ChatBot = () => {
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-gray-100 rounded-2xl">
       <div className="bg-white border-b rounded-xl p-4 shadow-sm flex items-center justify-between">
         <button className="text-gray-500 hover:text-gray-700 p-1 rounded-lg">
-                    <Link to={'/'}>
-          <ArrowLeft size={24} />
+          <Link to={"/"}>
+            <ArrowLeft size={24} />
           </Link>
         </button>
         <div className="flex items-center">
-          <img src={Bot} alt="Bot Logo" className="h-9 w-9 mr-3 mb-3 rounded-xl" />
+          <img
+            src={Bot}
+            alt="Bot Logo"
+            className="h-9 w-9 mr-3 mb-3 rounded-xl"
+          />
           <div>
             <h1 className="text-xl font-semibold text-purple-600">TheraBot</h1>
-            <p className="text-sm text-gray-500">Your Mental Health Assistant</p>
+            <p className="text-sm text-gray-500">
+              Your Mental Health Assistant
+            </p>
           </div>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages.map((message, index) => (
-          <div key={index} className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}>
+          <div
+            key={index}
+            className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
+          >
             <div
               className={`max-w-[70%] p-3 rounded-2xl text-white ${
                 message.type === "user"
@@ -114,4 +165,3 @@ const ChatBot = () => {
 };
 
 export default ChatBot;
-
