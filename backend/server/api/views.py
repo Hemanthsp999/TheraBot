@@ -12,34 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from rest_framework_simplejwt.tokens import AccessToken
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import PromptTemplate
+from langchain.chains import create_retrieval_chain
+from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_ollama import ChatOllama
+from datetime import timedelta
+from django.utils.timezone import now
+from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import get_user_model
+# from api.models import User
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.core.mail import send_mail
+import random
+from django.core.cache import cache
+from rest_framework_simplejwt.authentication import JWTAuthentication
+import time
 from django.conf import settings
 import jwt
+import logging
 
-import time
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from django.core.cache import cache
-import random
-from django.conf import settings
-from django.core.mail import send_mail
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from api.models import User
-from django.contrib.auth.hashers import make_password, check_password
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import serializers
-from django.utils.timezone import now
-from datetime import timedelta
-from langchain_ollama import ChatOllama
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
+logger = logging.getLogger(__name__)
+
 # from langchain.memory import ConversationBufferMemory
-from langchain.chains import create_retrieval_chain
-from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain.chains.combine_documents import create_stuff_documents_chain
 
 transformer_model_name = "sentence-transformers/all-miniLM-L6-v2"
 embedding_model = HuggingFaceEmbeddings(model_name=transformer_model_name)
@@ -48,6 +50,8 @@ embedding_model = HuggingFaceEmbeddings(model_name=transformer_model_name)
 folder_path = "/home/hexa/ai_bhrtya/backend/mental_health_faiss_index/"
 vector_db = FAISS.load_local(folder_path=folder_path,
                              embeddings=embedding_model, allow_dangerous_deserialization=True)
+
+User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -65,11 +69,15 @@ class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, format=None):
+        print("📩 Received Data:", request.data)  # ✅ Print incoming request data
         serializer = UserSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
+            print("✅ Registration Successful!")
             return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
+
+        print("❌ Serializer Errors:", serializer.errors)  # ✅ Print validation errors
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -117,20 +125,30 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-
         try:
-            refresh_token = request.data.get('refreshToken')
+            # Debugging: Print authentication headers
+            print("Authorization Header:", request.headers.get("Authorization"))
+
+            # Manually authenticate user
+            auth = JWTAuthentication()
+            user, token = auth.authenticate(request)
+
+            if not user:
+                return Response({"error": "User not authenticated"}, status=401)
+
+            print("User Found:", user.email)
+
+            refresh_token = request.data.get("refreshToken")
             if not refresh_token:
-                return Response({'error:' 'Refresh token is required'}, status=400)
-            print(f"refresh token{ refresh_token}")
+                return Response({"error": "Refresh token is required"}, status=400)
 
             token = RefreshToken(refresh_token)
             token.blacklist()
 
-            return Response({"message": "Logged out successfully"}, status=200)
+            return Response({"message": "Logout successful"}, status=200)
 
         except Exception as e:
-            return Response({"error": f"Invalid token {e}"}, status=400)
+            return Response({"error": str(e)}, status=400)
 
 
 class SendOTPView(APIView):
@@ -141,6 +159,7 @@ class SendOTPView(APIView):
 
         try:
             user = User.objects.get(email=email)
+            print(f"Email: {user}")
         except User.DoesNotExist:
             return Response({'error': 'User with this email does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -184,7 +203,7 @@ class ResetPasswordView(APIView):
 
 
 class ChatbotView(APIView):
-    # authentication_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def __init__(self, **kwargs):
@@ -205,7 +224,7 @@ class ChatbotView(APIView):
         retriever = self.vector_db.as_retriever()
 
         prompt = PromptTemplate(
-            input_variables=["context", "question"],
+            input_variables=["context", "input"],
             template="You are a helpful AI assistant. Based on the following retrieved documents:\n{context}\n\nAnswer the user's question:\n{question}"
         )
 
@@ -222,51 +241,73 @@ class ChatbotView(APIView):
         if query.lower() == "exit":
             return Response({"Message": "Conversation endend"})
 
-        response = self.rag_chain.invoke({"input": query})
+        response = self.rag_chain.invoke({"question": query})
 
         return Response({"response": response["output"]})
 
     def post(self, request):
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            token = auth_header.split(' ')[1]
-            print(f"Received token: {token}")
+        # Add extensive logging
+        print("Full Request Headers:", request.headers)
+        print("Authorization Header:", request.headers.get("Authorization"))
 
+        # Manual token extraction and validation
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            return Response(
+                {"error": "No authorization header", "code": "no_auth_header"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        try:
+            # Extract token (remove 'Bearer ' prefix)
+            token = auth_header.split(' ')[1] if len(auth_header.split(' ')) > 1 else None
+
+            if not token:
+                return Response(
+                    {"error": "Invalid token format", "code": "invalid_token_format"},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
+            # Manually decode the token
             try:
-                decoded = jwt.decode(token, key=settings.SECRET_KEY, algorithms=["HS256"])
-                print(f"Decoded token payload: {decoded}")
-                user_id = decoded.get('user_id')
-                print(f"Extracted user ID: {user_id}")
+                decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+                print("Decoded Token:", decoded_token)
+
+                # Manually check user existence
+                user_id = decoded_token.get('user_id')
+                if not user_id:
+                    return Response(
+                        {"error": "No user_id in token", "code": "no_user_id"},
+                        status=status.HTTP_401_UNAUTHORIZED
+                    )
 
                 try:
-                    user = User.objects.get(pk=user_id)
-                    print(f"Found user: {user}")
+                    user = User.objects.get(id=user_id)
+                    print(f"User found: {user.email}")
                 except User.DoesNotExist:
-                    print(f"User with ID {user_id} not found!")
-                    return Response({"error": "User not found"}, status=status.HTTP_401_UNAUTHORIZED)
+                    return Response(
+                        {"error": "User not found", "code": "user_not_found"},
+                        status=status.HTTP_401_UNAUTHORIZED
+                    )
+
             except jwt.ExpiredSignatureError:
-                print("Token has expired")
-                return Response({"error": "Token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response(
+                    {"error": "Token has expired", "code": "token_expired"},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
             except jwt.InvalidTokenError:
-                print("Invalid token")
-                return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response(
+                    {"error": "Invalid token", "code": "invalid_token"},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
 
-        return self.conversation(request)
-
-
-'''
-        auth_header = request.headers.get("Authorization")
-        print("Authorization Header Recieved: ", auth_header)
-
-        auth = JWTAuthentication()
-        try:
-            user, token = auth.authenticate(request)
-            if user is None:
-                return Response({"error": "Invalid or missing token"}, status=status.HTTP_401_UnAUTHORIZED)
-
-            print(f"Authenticated {user}")
         except Exception as e:
-            print("Token Authentication failed", str(e))
-            return Response({"error": f"Token authentication error: {str(e)}"}, status=status.HTTP_401_UNAUTHORIZED)
-        '''
+            print(f"Unexpected error: {str(e)}")
+            return Response(
+                {"error": f"Authentication error: {str(e)}", "code": "auth_error"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # If all checks pass, proceed with the conversation
+        return self.conversation(request)
 

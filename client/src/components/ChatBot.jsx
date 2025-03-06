@@ -49,26 +49,26 @@ const ChatBot = () => {
     setMessages((prev) => [...prev, { type: "user", content: userMessage }]);
 
     try {
-            const accessToken = localStorage.getItem('accessToken');
-            console.log("Access: ", accessToken);
+      const accessToken = localStorage.getItem("accessToken");
+      console.log("Access: ", accessToken);
       const response = await axios.post(
         API_URL,
         { query: userMessage }, // Correct: Send only query in body
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`, // Ensure correct format
+            "Authorization": `Bearer ${accessToken}`, // Ensure correct format
             "Content-Type": "application/json",
           },
         },
       );
       const botResponse =
-        response.data.response || "Sorry, I couldn't understand that.";
+        (await response.data.response) || "Sorry, I couldn't understand that.";
 
       setMessages((prev) => [...prev, { type: "bot", content: botResponse }]);
     } catch (error) {
       console.error("Error:", error.response?.data || error.message);
 
-            /*
+      /*
       if (error.response?.status === 401) {
         setMessages((prev) => [
           ...prev,

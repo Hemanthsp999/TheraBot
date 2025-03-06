@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Typography } from "@material-tailwind/react";
 import User from "./images/user.png";
 import Bot from "./images/Bot.jpeg";
@@ -9,6 +9,7 @@ import axios from "axios";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
 
   const topRef = useRef(null);
 
@@ -21,36 +22,47 @@ export default function Navbar() {
     }
   }, []);
 
-  const handleLogout = async () => {
-    const refreshToken = localStorage.getItem("refreshToken");
-    const accessToken = localStorage.getItem("accessToken");
-    console.log("refresh: ", refreshToken);
-    console.log("access token", accessToken);
-
-    //alert("Logged out successfully!");
+  const handleLogout = async (e) => {
+    e.preventDefault();
 
     try {
-      const resp = await axios.post("http://127.0.0.1:8000/api/logout/", {
-        refresh_token: refreshToken,
-      });
-      alert("Logged out successfully!");
-            console.log(resp.data.message);
+      const refreshToken = localStorage.getItem("refreshToken");
+      const access_token = localStorage.getItem("accessToken");
+      console.log(access_token);
+      console.log(refreshToken);
+
+      if (!refreshToken || !access_token) {
+        console.log("Refresh or access token is not found");
+        localStorage.clear();
+        navigate("/login");
+        return;
+      }
+
+      // Send logout request
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/logout/",
+        { refreshToken: refreshToken },
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      console.log(response.data.message);
+
+      // Clear local storage
+      localStorage.clear();
+
+      // Redirect to login page
+      navigate("/login");
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.error("Logout failed:", error.response.data );
+      localStorage.clear();
+      navigate("/login");
     }
-
-    {
-      /*
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userEmail");
-    */
-    }
-    localStorage.clear(); // Clear tokens from frontend
-
-    window.location.href = "/login"; // Redirect to login page
   };
-
   // Scroll to the top of the page
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });

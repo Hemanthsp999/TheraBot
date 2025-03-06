@@ -36,7 +36,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y+adgu1v-t#f&)(i3dg9e$7t9mep9z5*!i2sujxn!gt8$0$m71'
+SECRET_KEY = 'django-insecure-y+adgu1v-t#f&)(i3dg9e$7t9mep9z5*!i2sujxn!gt8$0$m71@asdkfj'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -53,11 +53,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
     'api'
 ]
+
+AUTH_USER_MODEL = 'api.User'  # ✅ Tell Django to use your custom User model
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -137,12 +141,15 @@ AUTH_PASSWORD_VALIDATORS = [
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': True,
+    'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,  # Enable token blacklisting
     'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ("Bearer",),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=1),
+    "TOKEN_BLACKLIST": True,
     'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id'
+    # 'USER_ID_CLAIM': 'user_id'
 
 }
 
