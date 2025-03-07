@@ -16,7 +16,7 @@ export default function Navbar() {
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    const storeUser = localStorage.getItem("userEmail");
+    const storeUser = localStorage.getItem("name");
     if (storeUser) {
       setEmail(storeUser);
     }
@@ -58,7 +58,7 @@ export default function Navbar() {
       // Redirect to login page
       navigate("/login");
     } catch (error) {
-      console.error("Logout failed:", error.response.data );
+      console.error("Logout failed:", error.response.data);
       localStorage.clear();
       navigate("/login");
     }
@@ -123,7 +123,9 @@ export default function Navbar() {
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
                   <ul className="py-2">
                     <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer ">
-                      <b>{email}</b>
+                      <span className="text-black ">
+                        Welcome <b className="text-indigo-800">{email}</b>
+                      </span>
                     </li>
                     {/* <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">Sign In</li> */}
                     <li

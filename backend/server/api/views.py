@@ -117,7 +117,8 @@ class LoginView(APIView):
             'refresh': str(refresh),
             'access_token': str(refresh.access_token),
             'redirect_url': '/',
-            'expires_at': access_token_expiry
+            'expires_at': access_token_expiry,
+            "name": str(user.username)
         }, status=status.HTTP_200_OK)
 
 

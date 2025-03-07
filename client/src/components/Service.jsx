@@ -1,7 +1,7 @@
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 const Service = () => {
   return (
-    <div className="bg-gray-100 min-h-screen mt-20 text-gray-800">
+    <div className="Service bg-gray-100 min-h-screen mt-20 text-gray-800">
       {/* Hero Section */}
       <section className="text-center py-16 px-6 bg-blue-500 text-white">
         <h1 className="text-4xl font-bold">
@@ -12,20 +12,16 @@ const Service = () => {
           certified therapists.
         </p>
         <div className="mt-6">
-          <button className="bg-white text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">
-                        <Link to={'/chatbot'}>
-            Try TheraBot Now
-            </Link>
+          <button className="bg-white btn text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">
+            <Link to={"/chatbot"}>Try TheraBot Now</Link>
           </button>
           <button className="bg-white text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">
-                        <Link to={'/therapist'}>
-            Meet Our Therapists
-            </Link>
+            <Link to={"/therapist"}>Meet Our Therapists</Link>
           </button>
         </div>
       </section>
 
-            {/*
+      {/*
       <section className="text-center py-16 px-6 bg-gray-300 text-black">
         <h1 className="text-4xl font-bold">
           Your AI Mental Health Companion, Backed by Experts
@@ -155,7 +151,7 @@ const Service = () => {
           Ready to start your journey to better mental health?
         </h2>
         <div className="mt-6">
-          <button className="bg-white text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">
+          <button className="bg-white btn text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">
             Try TheraBot Now
           </button>
           <button className="bg-white text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">

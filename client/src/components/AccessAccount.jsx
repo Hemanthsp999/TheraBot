@@ -4,7 +4,7 @@ const AccessAccount = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 py-12">
+    <div className="min-h-screen TherapistUser flex flex-col items-center justify-center bg-gray-50 px-4 py-12">
       <div className="max-w-4xl w-full">
         <div className="text-center mb-12" data-aos="fade-down">
           <h1 className="text-4xl font-bold text-black mb-4">Welcome to TheraBot</h1>
