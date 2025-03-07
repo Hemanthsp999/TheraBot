@@ -15,4 +15,6 @@ npm install
 npm run dev
 ```
 
-#ok
+#ok got it
+
+
