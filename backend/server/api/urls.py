@@ -16,7 +16,7 @@
 # api/urls.py
 
 from django.urls import path
-from .views import RegisterView, LoginView, LogoutView, SendOTPView, ResetPasswordView, ChatbotView
+from .views import RegisterView, LoginView, LogoutView, SendOTPView, ResetPasswordView, ChatbotView, TherapistRegisterView, TherapistLoginView
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
@@ -25,6 +25,7 @@ urlpatterns = [
     path('send-otp/', SendOTPView.as_view(), name='send-otp'),
     path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
     path('chatbot/', ChatbotView.as_view(), name='chatbot'),
-    #   path('chatbot/', ChatbotView.as_view(), name='chatbot')
+    path('register-therapist/', TherapistRegisterView.as_view(), name='register-therapist'),
+    path('login-therapist/', TherapistLoginView.as_view(), name='login-therapist')
 ]
 

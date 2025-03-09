@@ -1,9 +1,11 @@
+import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const TherapistLogin = () => {
   const [formData, setFormData] = useState({
-    email: "",
+    therapist_email: "",
     password: "",
     licenseNumber: "", // Additional field for therapists
   });
@@ -16,18 +18,29 @@ const TherapistLogin = () => {
     });
   };
 
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
-      // Here you would typically send the data to your backend
-      console.log("Therapist login attempt:", formData);
+      const api = "http://127.0.0.1:8000/api/login-therapist/";
+      console.log("Sending Request Data:", formData); // ✅ Log request data
 
-      // Add your therapist login logic here
-      // navigate('/therapist-dashboard'); // After successful login
+      const response = await axios.post(api, formData);
+      console.log("Response", response.data);
+
+      alert("Therapist logged in");
+
+      localStorage.setItem("accessToken", response.data.access_token);
+      localStorage.setItem("refreshToken", response.data.refresh_token);
+      localStorage.setItem("name", response.data.name);
+      localStorage.setItem("expiresAt", response.data.expires_at);
+
+      navigate(response.data.redirect_url);
     } catch (err) {
-      setError("Login failed. Please check your credentials.", err);
+      console.error("Login Failed:", err.response?.data || err.message); // ✅ Log backend error
+      setError("Login failed. Please check your credentials.");
     }
   };
 
@@ -51,8 +64,8 @@ const TherapistLogin = () => {
             <div className="relative z-0 w-full mb-5 group">
               <input
                 type="email"
-                name="email"
-                value={formData.email}
+                name="therapist_email"
+                value={formData.therapist_email}
                 onChange={handleChange}
                 className="text-center block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                 placeholder=" "

@@ -28,8 +28,8 @@ export default function Navbar() {
     try {
       const refreshToken = localStorage.getItem("refreshToken");
       const access_token = localStorage.getItem("accessToken");
-      console.log(access_token);
-      console.log(refreshToken);
+      console.log("Access Token: ", access_token);
+      console.log("Refresh Token: ", refreshToken);
 
       if (!refreshToken || !access_token) {
         console.log("Refresh or access token is not found");

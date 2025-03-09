@@ -12,71 +12,99 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''
-from django.db import models
-
-
-class User(models.Model):
-    # user_id = models.AutoField(primary_key=True)  # ✅ Custom primary key with auto-increment
-    username = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=10, unique=True, null=True, blank=True)
-
-    def __str__(self) -> str:
-        return self.username
-
-'''
 
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
-# ✅ Custom User Manager
-
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, username, password=None, **extra_fields):
+    def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError('The Email field must be set')
+            raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
-        user = self.model(email=email, username=username, **extra_fields)
-        user.set_password(password)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)  # ✅ Hash password
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, username, password=None, **extra_fields):
+    def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        return self.create_user(email, username, password, **extra_fields)
-
-# ✅ Custom User Model
+        return self.create_user(email, password, **extra_fields)
 
 
-class User(AbstractBaseUser, PermissionsMixin):  # Inherit from AbstractBaseUser
-    username = models.CharField(max_length=100)
+class User(AbstractBaseUser, PermissionsMixin):
+    username = models.CharField(max_length=100, unique=True, blank=True, null=True)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=10, unique=True,
+                                    null=True, blank=True)  # ✅ Fix missing field
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    groups = models.ManyToManyField(
+        "auth.Group",
+        related_name="user_groups",  # ✅ Fix conflict
+        blank=True
+    )
+    user_permissions = models.ManyToManyField(
+        "auth.Permission",
+        related_name="user_permissions",  # ✅ Fix conflict
+        blank=True
+    )
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'phone_number']
+
+    class Meta:
+        db_table = 'user'
+
+    def __str__(self):
+        return self.email
+
+
+class TherapistManager(BaseUserManager):
+    def create_therapist(self, email, name, password=None, **extra_fields):
+        if not email:
+            raise ValueError("The Email field must be set")
+        email = self.normalize_email(email)
+        therapist = self.model(email=email, name=name, **extra_fields)
+        therapist.set_password(password)  # ✅ Hash password
+        therapist.save(using=self._db)
+        return therapist
+
+
+class Therapist(AbstractBaseUser, PermissionsMixin):
+    name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=255)
+    specialization = models.CharField(max_length=255)
+    experience = models.PositiveIntegerField()
     phone_number = models.CharField(max_length=10, unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
-    objects = UserManager()  # ✅ Attach custom user manager
+    groups = models.ManyToManyField(
+        "auth.Group",
+        related_name="therapist_groups",  # ✅ Fix conflict
+        blank=True
+    )
+    user_permissions = models.ManyToManyField(
+        "auth.Permission",
+        related_name="therapist_permissions",  # ✅ Fix conflict
+        blank=True
+    )
 
-    USERNAME_FIELD = 'email'  # ✅ Use email as the unique login field
-    REQUIRED_FIELDS = ['username']  # ✅ Required fields when creating superuser
+    objects = TherapistManager()
 
-    def __str__(self) -> str:
-        return self.email
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name', 'specialization', 'experience']
 
-
-class Therapist(models.Model):
-    # therapist_id = models.AutoField(primary_key=True)  # ✅ Custom primary key with auto-increment
-    name = models.CharField(max_length=100)
-    Type = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=10, unique=True, blank=True)
+    class Meta:
+        db_table = 'therapist'
 
     def __str__(self):
-        return self.name
+        return self.email
 
