@@ -72,7 +72,8 @@ class UserSerializer(serializers.ModelSerializer):
 class TherapistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Therapist
-        fields = ['name', 'email', 'password', 'specialization', 'experience', 'phone_number']
+        fields = ['name', 'email', 'password', 'specialization',
+                  'experience', 'phone_number', 'desc']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -285,6 +286,47 @@ class ResetPasswordView(APIView):
 
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TherapistMembers(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        print("Full Request Headers:", request.headers)
+        print("Authorization Header:", request.headers.get("Authorization"))
+
+        # ✅ Check for authorization token
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            return Response(
+                {"error": "No authorization header", "code": "no_auth_header"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        try:
+            # ✅ Fetch all therapists
+            therapists = Therapist.objects.all()
+            if not therapists.exists():
+                return Response({"message": "No therapists available"}, status=status.HTTP_404_NOT_FOUND)
+
+            # ✅ Serialize therapist data
+            therapist_list = [
+                {
+                    "id": therapist.id,
+                    "name": therapist.name,
+                    "email": therapist.email,
+                    "specialization": therapist.specialization,
+                    "experience": therapist.experience,
+                    "desc": therapist.desc
+                }
+                for therapist in therapists
+            ]
+
+            return Response({"therapists": therapist_list}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ChatbotView(APIView):

@@ -82,6 +82,7 @@ class Therapist(AbstractBaseUser, PermissionsMixin):
     password = models.CharField(max_length=255)
     specialization = models.CharField(max_length=255)
     experience = models.PositiveIntegerField()
+    desc = models.CharField(max_length=500, null=False, blank=False, default="No description provided")
     phone_number = models.CharField(max_length=10, unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -100,7 +101,7 @@ class Therapist(AbstractBaseUser, PermissionsMixin):
     objects = TherapistManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'specialization', 'experience']
+    REQUIRED_FIELDS = ['name', 'specialization', 'experience', 'desc', 'phone_number']
 
     class Meta:
         db_table = 'therapist'
@@ -108,3 +109,14 @@ class Therapist(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+
+class TherapistUserModel():
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    therapist = models.ForeignKey(Therapist, on_delete=models.CASCADE)
+    note = models.CharField(max_length=500)
+    session_type = models.CharField(max_length=255)
+    assigned_date = models.DateField()
+    assigned_time = models.DateTimeField()
+
+    def __str__(self):
+        return self.therapist
