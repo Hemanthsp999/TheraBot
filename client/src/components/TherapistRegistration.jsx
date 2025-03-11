@@ -13,6 +13,7 @@ const TherapistLogin = () => {
     desc: "", // Additional field for therapists
     re_password: "",
     phone_number: "",
+    availability: "",
   });
   const [error, setError] = useState("");
 
@@ -155,6 +156,21 @@ const TherapistLogin = () => {
               />
               <label className="peer-focus:font-medium text-nowrap absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
                 Introduce about your occupation
+              </label>
+            </div>
+
+            <div className="relative z-0 w-full mb-5 group">
+              <input
+                type="text"
+                name="availability"
+                value={formData.availability}
+                onChange={handleChange}
+                className="text-center block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                placeholder=" "
+                required
+              />
+              <label className="peer-focus:font-medium text-nowrap absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
+                Availablity(ex: Mon - Wed)
               </label>
             </div>
 

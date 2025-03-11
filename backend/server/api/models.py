@@ -82,7 +82,9 @@ class Therapist(AbstractBaseUser, PermissionsMixin):
     password = models.CharField(max_length=255)
     specialization = models.CharField(max_length=255)
     experience = models.PositiveIntegerField()
-    desc = models.CharField(max_length=500, null=False, blank=False, default="No description provided")
+    desc = models.CharField(max_length=500, null=False, blank=False,
+                            default="No description provided")
+    availability = models.CharField(max_length=500, null=False, blank=False, default="N/A")
     phone_number = models.CharField(max_length=10, unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

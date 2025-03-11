@@ -73,7 +73,7 @@ class TherapistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Therapist
         fields = ['name', 'email', 'password', 'specialization',
-                  'experience', 'phone_number', 'desc']
+                  'experience', 'phone_number', 'desc', 'availability']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -318,7 +318,7 @@ class TherapistMembers(APIView):
                     "email": therapist.email,
                     "specialization": therapist.specialization,
                     "experience": therapist.experience,
-                    "desc": therapist.desc
+                    "desc": therapist.desc,
                 }
                 for therapist in therapists
             ]
