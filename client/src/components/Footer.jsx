@@ -57,7 +57,7 @@ export default function Footer() {
 
             {/* Copyright */}
             <Typography color="blue-gray" className="text-center font-normal">
-                &copy; {new Date().getFullYear()} TheraBot 
+                &copy; {new Date().getFullYear()} TheraBot
             </Typography>
         </footer>
     );

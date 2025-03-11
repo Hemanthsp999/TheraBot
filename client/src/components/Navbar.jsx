@@ -25,11 +25,14 @@ export default function Navbar() {
   const handleLogout = async (e) => {
     e.preventDefault();
 
+    // Clear local storage regardless of API call success
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+
     try {
       const refreshToken = localStorage.getItem("refreshToken");
       const access_token = localStorage.getItem("accessToken");
-      console.log(access_token);
-      console.log(refreshToken);
 
       if (!refreshToken || !access_token) {
         console.log("Refresh or access token is not found");
@@ -52,14 +55,10 @@ export default function Navbar() {
 
       console.log(response.data.message);
 
-      // Clear local storage
-      localStorage.clear();
-
       // Redirect to login page
       navigate("/login");
     } catch (error) {
-      console.error("Logout failed:", error.response.data );
-      localStorage.clear();
+      console.error("Logout failed:", error);
       navigate("/login");
     }
   };
@@ -96,16 +95,33 @@ export default function Navbar() {
 
         {/* Center Section (Navbar Links for Large Screens) */}
         <ul className="hidden md:flex gap-6">
-          {["Home", "About", "Services", "Contact"].map((item, index) => (
+          {["Home", "About", email ? "Chat" : "Services", "Contact"].map((item, index) => (
             <li key={index} className="py-2">
               <Link
-                to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+                to={
+                  item === "Home"
+                    ? "/"
+                    : item === "Chat"
+                      ? "/chat"
+                      : `/${item.toLowerCase()}`
+                }
                 className="hover:text-blue-500 transition"
               >
                 {item}
               </Link>
             </li>
           ))}
+          {/* Only show Patients link if user is logged in */}
+          {email && (
+            <li className="py-2">
+              <Link
+                to="/patients"
+                className="hover:text-blue-500 transition"
+              >
+                Patients
+              </Link>
+            </li>
+          )}
         </ul>
 
         {/* Right Section (User Profile & Mobile Menu) */}
@@ -122,10 +138,9 @@ export default function Navbar() {
               {dropdownOpen && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
                   <ul className="py-2">
-                    <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer ">
+                    <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer">
                       <b>{email}</b>
                     </li>
-                    {/* <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">Sign In</li> */}
                     <li
                       className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition cursor-pointer"
                       onClick={handleLogout}
@@ -157,10 +172,16 @@ export default function Navbar() {
             {/* Mobile Navbar Links (Appears Below Button) */}
             {isOpen && (
               <ul className="absolute right-0 top-full mt-2 w-40 bg-black text-white text-center p-4 rounded-lg shadow-lg z-50">
-                {["Home", "About", "Services", "Contact"].map((item, index) => (
+                {["Home", "About", email ? "Chat" : "Services", "Contact"].map((item, index) => (
                   <li key={index} className="py-2">
                     <Link
-                      to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+                      to={
+                        item === "Home"
+                          ? "/"
+                          : item === "Chat"
+                            ? "/chat"
+                            : `/${item.toLowerCase()}`
+                      }
                       className="hover:text-blue-500 transition"
                       onClick={() => setIsOpen(false)}
                     >
@@ -168,6 +189,18 @@ export default function Navbar() {
                     </Link>
                   </li>
                 ))}
+                {/* Only show Patients link if user is logged in */}
+                {email && (
+                  <li className="py-2">
+                    <Link
+                      to="/patients"
+                      className="hover:text-blue-500 transition"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Patients
+                    </Link>
+                  </li>
+                )}
               </ul>
             )}
           </div>
