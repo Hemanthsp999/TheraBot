@@ -32,12 +32,63 @@ import Protected from "./components/ProtectedRoute.jsx";
 import AccessAccount from "./components/AccessAccount";
 import TherapistLogin from "./components/TherapistLogin";
 import TherapistRegister from "./components/TherapistRegistration.jsx";
-import { BrowserRouter } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import PatientsPage from "./pages/PatientsPage";
+import PatientDetailPage from "./pages/PatientDetailPage";
+import TherapistChat from "./pages/TherapistChat";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+    children: [
+      { index: true, element: <Landingpage /> },
+      { path: "/access-account", element: <AccessAccount /> },
+      { path: "/login", element: <Login /> },
+      { path: "/therapist-login", element: <TherapistLogin /> },
+      { path: "/signup", element: <Register /> },
+      { path: "/about", element: <About /> },
+      { path: "/contact", element: <Contact /> },
+
+      {
+        path: "/therapist",
+        element: <Protected />,
+        children: [{ index: true, element: <Therapist /> }],
+      },
+
+      { path: "/register", element: <TherapistRegister /> },
+      { path: "/forget", element: <Forgetpassword /> },
+      { path: "/services", element: <Service /> },
+    ],
+  },
+  // Separate route for ChatBot without App wrapper
+  {
+    path: "/chatbot",
+    element: <Protected />,
+    children: [{ index: true, element: <ChatBot /> }],
+  },
+  // New routes for patients
+  {
+    path: "/patients",
+    element: <Protected />,
+    children: [{ index: true, element: <PatientsPage /> }],
+  },
+  {
+    path: "/patients/:id",
+    element: <Protected />,
+    children: [{ index: true, element: <PatientDetailPage /> }],
+  },
+  // New route for therapist chat
+  {
+    path: "/chat",
+    element: <Protected />,
+    children: [{ index: true, element: <TherapistChat /> }],
+  },
+]);
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <RouterProvider router={router} />
   </React.StrictMode>,
 );
