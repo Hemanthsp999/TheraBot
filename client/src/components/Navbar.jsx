@@ -16,7 +16,7 @@ export default function Navbar() {
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    const storeUser = localStorage.getItem("userEmail");
+    const storeUser = localStorage.getItem("name");
     if (storeUser) {
       setEmail(storeUser);
     }
@@ -33,6 +33,8 @@ export default function Navbar() {
     try {
       const refreshToken = localStorage.getItem("refreshToken");
       const access_token = localStorage.getItem("accessToken");
+      console.log("Access Token: ", access_token);
+      console.log("Refresh Token: ", refreshToken);
 
       if (!refreshToken || !access_token) {
         console.log("Refresh or access token is not found");
@@ -58,7 +60,8 @@ export default function Navbar() {
       // Redirect to login page
       navigate("/login");
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error("Logout failed:", error.response?.data || error);
+      localStorage.clear();
       navigate("/login");
     }
   };
@@ -138,8 +141,10 @@ export default function Navbar() {
               {dropdownOpen && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
                   <ul className="py-2">
-                    <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer">
-                      <b>{email}</b>
+                    <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer ">
+                      <span className="text-black ">
+                        Welcome <b className="text-indigo-800">{email}</b>
+                      </span>
                     </li>
                     <li
                       className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition cursor-pointer"
