@@ -27,7 +27,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 # from api.models import User
-from api.models import Therapist
+from api.models import Therapist, BookingModel
 from rest_framework import status
 from django.contrib.auth.hashers import check_password
 from rest_framework.response import Response
@@ -40,8 +40,6 @@ from datetime import datetime, timedelta, timezone
 from django.conf import settings
 import jwt
 import logging
-import secrets
-from django.contrib.auth import authenticate
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +59,8 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'email', 'phone_number', 'password']  # ✅ Remove `username`
+        fields = ['username', 'email', 'gender', 'age',
+                  'phone_number', 'password']  # ✅ Remove `username`
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -119,7 +118,7 @@ class TherapistLoginView(APIView):
             return Response({'error': 'Invalid credentials'}, status=401)
 
         # ✅ Define Expiry Times
-        access_token_expiry = now() + timedelta(minutes=1)
+        access_token_expiry = now() + timedelta(minutes=30)
         refresh_token_expiry = now() + timedelta(days=1)
 
         # ✅ Manually Generate JWT Tokens
@@ -138,15 +137,17 @@ class TherapistLoginView(APIView):
             "type": "refresh",
         }
         refresh_token = jwt.encode(refresh_token_payload, settings.SECRET_KEY, algorithm="HS256")
+        user_type = "Therapist"
 
         return Response({
-            "access_token": access_token,
-            "refresh_token": refresh_token,
+            "access_token": str(access_token),
+            "refresh_token": str(refresh_token),
             "expires_at": access_token_expiry.isoformat(),  # ✅ Include readable expiry
             "therapist_id": therapist.id,
             "email": therapist.email,
             "name": therapist.name,
             "redirect_url": "/",
+            "user_type": user_type
         }, status=200)
 
 
@@ -197,13 +198,15 @@ class LoginView(APIView):
 
         # Set token expiry (if using simple_jwt)
         refresh.access_token.set_exp(lifetime=timedelta(minutes=30))
+        user_type = "patient"
 
         return Response({
             'refresh': str(refresh),
             'access_token': str(refresh.access_token),
             'redirect_url': '/',
             'expires_at': access_token_expiry,
-            "name": str(user.email)
+            "name": str(user.username),
+            "user_type": user_type
         }, status=status.HTTP_200_OK)
 
 
@@ -327,6 +330,36 @@ class TherapistMembers(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        user = request.user
+        therapist_id = request.data.get("therapist_id")
+        session_type = request.data.get("session_type")
+        assign_date = request.data.get("assign_date")
+        assign_time = request.data.get("assign_time")
+        note = request.data.get("note", "")
+
+        if not therapist_id or not session_type or not assign_date or not assign_time:
+            return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            therapist = Therapist.objects.get(id=therapist_id)
+        except Therapist.DoesNotExist:
+            return Response({"error": "Therapist Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        booking = BookingModel.objects.create(
+            user=user,
+            therapist=therapist,
+            session_type=session_type,
+            assign_date=assign_date,
+            assign_time=assign_time,
+            note=note
+        )
+
+        return Response(
+            {"message": "Booking successful", "booking_id": booking.id},
+            status=status.HTTP_201_CREATED
+        )
 
 
 class ChatbotView(APIView):

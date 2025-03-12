@@ -37,6 +37,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=100, unique=True, blank=True, null=True)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
+    gender = models.CharField(max_length=30, choices=[
+        ("male", "Male"),
+        ("female", "Female")
+    ], default="N/A")
+    age = models.PositiveIntegerField(default=0)
     phone_number = models.CharField(max_length=10, unique=True,
                                     null=True, blank=True)  # ✅ Fix missing field
     is_active = models.BooleanField(default=True)
@@ -56,7 +61,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'phone_number']
+    REQUIRED_FIELDS = ['username', 'phone_number', 'gender', 'age']
 
     class Meta:
         db_table = 'user'
@@ -112,13 +117,19 @@ class Therapist(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
-class TherapistUserModel():
+class BookingModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     therapist = models.ForeignKey(Therapist, on_delete=models.CASCADE)
-    note = models.CharField(max_length=500)
-    session_type = models.CharField(max_length=255)
-    assigned_date = models.DateField()
-    assigned_time = models.DateTimeField()
+    note = models.TextField(blank=True, null=True)
+    session_type = models.CharField(max_length=255, choices=[
+        ("video", "Video Call"),
+        ("audio", "Audio Call"),
+        ("chat", "Chat Session"),
+    ])
+    assign_date = models.DateField()
+    assign_time = models.TimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.therapist
+        return f"Booking: {self.user.email} -> {self.therapist.name} on {self.assigned_date} at {self.assigned_time}"
+
