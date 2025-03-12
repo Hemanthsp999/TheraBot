@@ -36,6 +36,10 @@ const TherapistLogin = () => {
       localStorage.setItem("refreshToken", response.data.refresh_token);
       localStorage.setItem("name", response.data.name);
       localStorage.setItem("expiresAt", response.data.expires_at);
+      localStorage.setItem("user_type", response.data.user_type);
+
+      console.log(localStorage.getItem("accessToken"));
+      console.log(localStorage.getItem("refreshToken"));
 
       navigate(response.data.redirect_url);
     } catch (err) {

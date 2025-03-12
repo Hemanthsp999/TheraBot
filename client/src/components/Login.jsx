@@ -23,6 +23,7 @@ const Login = () => {
       );
       alert("Login successful!");
 
+      localStorage.setItem("user_type", response.data.user_type);
       localStorage.setItem("accessToken", response.data.access_token);
       localStorage.setItem("refreshToken", response.data.refresh);
       localStorage.setItem("userEmail", formData.email);
@@ -32,6 +33,8 @@ const Login = () => {
       console.log("Expires_at", response.data.expires_at);
       console.log("refresh token", response.data.refresh);
       console.log("name", response.data.name);
+      console.log("user type: ", localStorage.getItem("user_type"));
+
 
       navigate(response.data.redirect_url);
     } catch (error) {
@@ -44,7 +47,7 @@ const Login = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-gray-40 px-4"
+      className="min-h-screen mt-0 flex items-center justify-center bg-gray-40 px-4"
       data-aos="flip-left"
     >
       <div className="max-w-md w-full">

@@ -1,60 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import Bot from "./images/Bot.jpeg";
-
-/*
-const therapists = [
-  {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    specialization: "Anxiety & Depression",
-    experience: "15 years",
-    image: Bot, // Replace with actual therapist image
-    availability: "Mon, Wed, Fri",
-    rating: 4.9,
-    description:
-      "Specializes in cognitive behavioral therapy with extensive experience in treating anxiety and depression.",
-    languages: ["English", "Spanish"],
-  },
-  {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    specialization: "Anxiety & Depression",
-    experience: "15 years",
-    image: Bot, // Replace with actual therapist image
-    availability: "Mon, Wed, Fri",
-    rating: 4.9,
-    description:
-      "Specializes in cognitive behavioral therapy with extensive experience in treating anxiety and depression.",
-    languages: ["English", "Spanish"],
-  },
-  {
-    id: 2,
-    name: "Dr. Michael Chen",
-    specialization: "Relationship Counseling",
-    experience: "12 years",
-    image: "https://placekitten.com/201/201", // Replace with actual therapist image
-    availability: "Tue, Thu, Sat",
-    rating: 4.8,
-    description:
-      "Expert in couples therapy and relationship counseling with a focus on communication improvement.",
-    languages: ["English", "Mandarin"],
-  },
-  {
-    id: 3,
-    name: "Dr. Emily Rodriguez",
-    specialization: "Trauma & PTSD",
-    experience: "10 years",
-    image: "https://placekitten.com/202/202", // Replace with actual therapist image
-    availability: "Mon, Tue, Thu",
-    rating: 4.9,
-    description:
-      "Specialized in trauma therapy and PTSD treatment using evidence-based approaches.",
-    languages: ["English", "Spanish", "Portuguese"],
-  },
-  // Add more therapists as needed
-];
-*/
+// import Bot from "./images/Bot.jpeg";
 
 // New BookingModal Component
 const BookingModal = ({ therapist, isOpen, onClose }) => {
@@ -63,15 +9,49 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
     time: "",
     sessionType: "video",
     notes: "",
+    therapist_id: therapist.id,
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send the booking data to your backend
-    console.log("Booking submitted:", { therapist, ...bookingData });
-    alert("Booking request sent successfully!");
+
+    const api_url = "http://127.0.0.1:8000/api/therapist-members/";
+    const access_token = localStorage.getItem("accessToken");
+    try {
+      const post_data = await axios.post(
+        api_url,
+        {
+          therapist_id: bookingData.therapist_id,
+          session_type: bookingData.sessionType,
+          assign_date: bookingData.date,
+          assign_time: bookingData.time,
+          note: bookingData.notes,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      console.log("Data Posted: ", post_data.data.message);
+      alert(post_data.data.message);
+    } catch (error) {
+      console.error("Booking failed: ", error.response?.data || error.message);
+    }
+
     onClose();
   };
+
+  useEffect(() => {
+    if (therapist) {
+      setBookingData((prevData) => ({
+        ...prevData,
+        therapist_id: therapist.id, // ✅ Update therapist_id when therapist changes
+      }));
+    }
+  }, [therapist]);
 
   if (!isOpen) return null;
 

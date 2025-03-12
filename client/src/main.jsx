@@ -33,9 +33,9 @@ import AccessAccount from "./components/AccessAccount";
 import TherapistLogin from "./components/TherapistLogin";
 import TherapistRegister from "./components/TherapistRegistration.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import PatientsPage from "./pages/PatientsPage";
-import PatientDetailPage from "./pages/PatientDetailPage";
-import TherapistChat from "./pages/TherapistChat";
+import PatientsPage from "./components/PatientsPage";
+import PatientDetailPage from "./components/PatientDetailPage";
+import TherapistChat from "./components/TherapistChat";
 
 const router = createBrowserRouter([
   {
@@ -49,6 +49,25 @@ const router = createBrowserRouter([
       { path: "/signup", element: <Register /> },
       { path: "/about", element: <About /> },
       { path: "/contact", element: <Contact /> },
+      { path: "/register", element: <TherapistRegister /> },
+      { path: "/forget", element: <Forgetpassword /> },
+      { path: "/services", element: <Service /> },
+
+      {
+        path: "/chat",
+        element: <Protected />,
+        children: [
+          {
+            index: true,
+            element: <TherapistChat />,
+          },
+          {
+            path: "/chatbot",
+            element: <ChatBot />,
+            // children: [{ index: true, element: <ChatBot /> }],
+          },
+        ],
+      },
 
       {
         path: "/therapist",
@@ -56,33 +75,19 @@ const router = createBrowserRouter([
         children: [{ index: true, element: <Therapist /> }],
       },
 
-      { path: "/register", element: <TherapistRegister /> },
-      { path: "/forget", element: <Forgetpassword /> },
-      { path: "/services", element: <Service /> },
+      {
+        path: "/patients",
+        element: <Protected />,
+        children: [
+          { index: true, element: <PatientsPage /> },
+
+          {
+            path: "/patients/:id",
+            element: <PatientDetailPage />,
+          },
+        ],
+      },
     ],
-  },
-  // Separate route for ChatBot without App wrapper
-  {
-    path: "/chatbot",
-    element: <Protected />,
-    children: [{ index: true, element: <ChatBot /> }],
-  },
-  // New routes for patients
-  {
-    path: "/patients",
-    element: <Protected />,
-    children: [{ index: true, element: <PatientsPage /> }],
-  },
-  {
-    path: "/patients/:id",
-    element: <Protected />,
-    children: [{ index: true, element: <PatientDetailPage /> }],
-  },
-  // New route for therapist chat
-  {
-    path: "/chat",
-    element: <Protected />,
-    children: [{ index: true, element: <TherapistChat /> }],
   },
 ]);
 
@@ -92,5 +97,3 @@ root.render(
     <RouterProvider router={router} />
   </React.StrictMode>,
 );
-
-

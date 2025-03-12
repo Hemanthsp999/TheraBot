@@ -124,7 +124,7 @@ const PatientDetailPage = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <h2 className="text-lg font-medium text-gray-900 mb-2">Contact Information</h2>
-                                    <div className="bg-gray-50 p-4 rounded-md">
+                                    <div className="bg-gray-100 text-black p-4 rounded-md">
                                         <p className="mb-2"><span className="font-medium">Email:</span> {patient.email}</p>
                                         <p className="mb-2"><span className="font-medium">Phone:</span> {patient.phone}</p>
                                         <p><span className="font-medium">Address:</span> {patient.address}</p>
@@ -132,7 +132,7 @@ const PatientDetailPage = () => {
                                 </div>
                                 <div>
                                     <h2 className="text-lg font-medium text-gray-900 mb-2">Appointment Information</h2>
-                                    <div className="bg-gray-50 p-4 rounded-md">
+                                    <div className="bg-gray-100 text-black p-4 rounded-md">
                                         <p className="mb-2"><span className="font-medium">Last Visit:</span> {patient.lastVisit}</p>
                                         <p className="mb-2"><span className="font-medium">Next Appointment:</span> {patient.nextAppointment}</p>
                                         <p><span className="font-medium">Condition:</span> {patient.condition}</p>
@@ -140,7 +140,7 @@ const PatientDetailPage = () => {
                                 </div>
                                 <div className="md:col-span-2">
                                     <h2 className="text-lg font-medium text-gray-900 mb-2">Notes</h2>
-                                    <div className="bg-gray-50 p-4 rounded-md">
+                                    <div className="bg-gray-100 text-black p-4 rounded-md">
                                         <p>{patient.notes}</p>
                                     </div>
                                 </div>

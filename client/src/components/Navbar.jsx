@@ -14,11 +14,17 @@ export default function Navbar() {
   const topRef = useRef(null);
 
   const [email, setEmail] = useState("");
+  const [user_type, setUserType] = useState("");
 
   useEffect(() => {
     const storeUser = localStorage.getItem("name");
+    const store_user_type = localStorage.getItem("user_type");
     if (storeUser) {
       setEmail(storeUser);
+    }
+
+    if (store_user_type) {
+      setUserType(store_user_type);
     }
   }, []);
 
@@ -26,17 +32,21 @@ export default function Navbar() {
     e.preventDefault();
 
     // Clear local storage regardless of API call success
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    {
+      /*
+    localStorage.removeItem("name");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    */
+    }
 
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
+      const refresh_token = localStorage.getItem("refreshToken");
       const access_token = localStorage.getItem("accessToken");
       console.log("Access Token: ", access_token);
-      console.log("Refresh Token: ", refreshToken);
+      console.log("Refresh Token: ", refresh_token);
 
-      if (!refreshToken || !access_token) {
+      if (!refresh_token || !access_token) {
         console.log("Refresh or access token is not found");
         localStorage.clear();
         navigate("/login");
@@ -46,7 +56,7 @@ export default function Navbar() {
       // Send logout request
       const response = await axios.post(
         "http://127.0.0.1:8000/api/logout/",
-        { refreshToken: refreshToken },
+        { refreshToken: refresh_token },
         {
           headers: {
             Authorization: `Bearer ${access_token}`,
@@ -56,12 +66,14 @@ export default function Navbar() {
       );
 
       console.log(response.data.message);
+      localStorage.removeItem("name");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
 
       // Redirect to login page
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error.response?.data || error);
-      console.error("Logout failed:", error.response.data);
       localStorage.clear();
       navigate("/login");
     }
@@ -99,7 +111,12 @@ export default function Navbar() {
 
         {/* Center Section (Navbar Links for Large Screens) */}
         <ul className="hidden md:flex gap-6">
-          {["Home", "About", email ? "Chat" : "Services", "Contact"].map((item, index) => (
+          {[
+            "Home",
+            "About",
+            user_type == "Therapist" ? "Chat" : "Services",
+            "Contact",
+          ].map((item, index) => (
             <li key={index} className="py-2">
               <Link
                 to={
@@ -116,12 +133,9 @@ export default function Navbar() {
             </li>
           ))}
           {/* Only show Patients link if user is logged in */}
-          {email && (
+          {user_type == "Therapist" && (
             <li className="py-2">
-              <Link
-                to="/patients"
-                className="hover:text-blue-500 transition"
-              >
+              <Link to="/patients" className="hover:text-blue-500 transition">
                 Patients
               </Link>
             </li>
@@ -178,23 +192,25 @@ export default function Navbar() {
             {/* Mobile Navbar Links (Appears Below Button) */}
             {isOpen && (
               <ul className="absolute right-0 top-full mt-2 w-40 bg-black text-white text-center p-4 rounded-lg shadow-lg z-50">
-                {["Home", "About", email ? "Chat" : "Services", "Contact"].map((item, index) => (
-                  <li key={index} className="py-2">
-                    <Link
-                      to={
-                        item === "Home"
-                          ? "/"
-                          : item === "Chat"
-                            ? "/chat"
-                            : `/${item.toLowerCase()}`
-                      }
-                      className="hover:text-blue-500 transition"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {item}
-                    </Link>
-                  </li>
-                ))}
+                {["Home", "About", email ? "Chat" : "Services", "Contact"].map(
+                  (item, index) => (
+                    <li key={index} className="py-2">
+                      <Link
+                        to={
+                          item === "Home"
+                            ? "/"
+                            : item === "Chat"
+                              ? "/chat"
+                              : `/${item.toLowerCase()}`
+                        }
+                        className="hover:text-blue-500 transition"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {item}
+                      </Link>
+                    </li>
+                  ),
+                )}
                 {/* Only show Patients link if user is logged in */}
                 {email && (
                   <li className="py-2">

@@ -4,8 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 const Register = () => {
   const [formData, setFormData] = useState({
     username: "",
-    phone_number: "",
     email: "",
+    gender: "",
+    age: "",
+    phone_number: "",
     password: "",
     re_password: "",
   });
@@ -74,21 +76,7 @@ const Register = () => {
                 User Name
               </label>
             </div>
-            <div className="relative z-0 w-full mb-5 group">
-              <input
-                type="tel"
-                name="phone_number"
-                value={formData.phone_number}
-                onChange={handleChange}
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                placeholder=" "
-                required
-              />
 
-              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
-                Phone Number
-              </label>
-            </div>
             <div className="relative z-0 w-full mb-5 group">
               <input
                 type="email"
@@ -104,6 +92,57 @@ const Register = () => {
                 Email
               </label>
             </div>
+
+            <div className="relative z-0 w-full mb-2 group">
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className="block w-full text-center py-3 px-3 text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+                required
+              >
+                <option value="" disabled>
+                  Select Gender 
+                </option>
+                <option value="male">Male</option>
+                <option value="female">
+                 Female 
+                </option>
+              </select>
+            </div>
+
+            <div className="relative z-0 w-full mb-5 group">
+              <input
+                type="tel"
+                name="age"
+                value={formData.age}
+                onChange={handleChange}
+                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                placeholder=" "
+                required
+              />
+
+              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
+               Age 
+              </label>
+            </div>
+
+            <div className="relative z-0 w-full mb-5 group">
+              <input
+                type="tel"
+                name="phone_number"
+                value={formData.phone_number}
+                onChange={handleChange}
+                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                placeholder=" "
+                required
+              />
+
+              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
+                Phone Number
+              </label>
+            </div>
+
             <div className="relative z-0 w-full mb-5 group">
               <input
                 type="password"
