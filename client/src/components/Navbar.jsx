@@ -61,6 +61,7 @@ export default function Navbar() {
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error.response?.data || error);
+      console.error("Logout failed:", error.response.data);
       localStorage.clear();
       navigate("/login");
     }

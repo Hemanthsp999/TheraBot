@@ -1,6 +1,8 @@
-import  { useState, useMemo } from 'react';
-import Bot from './images/Bot.jpeg';
+import { useState, useEffect, useMemo } from "react";
+import axios from "axios";
+import Bot from "./images/Bot.jpeg";
 
+/*
 const therapists = [
   {
     id: 1,
@@ -10,8 +12,9 @@ const therapists = [
     image: Bot, // Replace with actual therapist image
     availability: "Mon, Wed, Fri",
     rating: 4.9,
-    description: "Specializes in cognitive behavioral therapy with extensive experience in treating anxiety and depression.",
-    languages: ["English", "Spanish"]
+    description:
+      "Specializes in cognitive behavioral therapy with extensive experience in treating anxiety and depression.",
+    languages: ["English", "Spanish"],
   },
   {
     id: 1,
@@ -21,8 +24,9 @@ const therapists = [
     image: Bot, // Replace with actual therapist image
     availability: "Mon, Wed, Fri",
     rating: 4.9,
-    description: "Specializes in cognitive behavioral therapy with extensive experience in treating anxiety and depression.",
-    languages: ["English", "Spanish"]
+    description:
+      "Specializes in cognitive behavioral therapy with extensive experience in treating anxiety and depression.",
+    languages: ["English", "Spanish"],
   },
   {
     id: 2,
@@ -32,8 +36,9 @@ const therapists = [
     image: "https://placekitten.com/201/201", // Replace with actual therapist image
     availability: "Tue, Thu, Sat",
     rating: 4.8,
-    description: "Expert in couples therapy and relationship counseling with a focus on communication improvement.",
-    languages: ["English", "Mandarin"]
+    description:
+      "Expert in couples therapy and relationship counseling with a focus on communication improvement.",
+    languages: ["English", "Mandarin"],
   },
   {
     id: 3,
@@ -43,26 +48,28 @@ const therapists = [
     image: "https://placekitten.com/202/202", // Replace with actual therapist image
     availability: "Mon, Tue, Thu",
     rating: 4.9,
-    description: "Specialized in trauma therapy and PTSD treatment using evidence-based approaches.",
-    languages: ["English", "Spanish", "Portuguese"]
+    description:
+      "Specialized in trauma therapy and PTSD treatment using evidence-based approaches.",
+    languages: ["English", "Spanish", "Portuguese"],
   },
   // Add more therapists as needed
 ];
+*/
 
 // New BookingModal Component
 const BookingModal = ({ therapist, isOpen, onClose }) => {
   const [bookingData, setBookingData] = useState({
-    date: '',
-    time: '',
-    sessionType: 'video',
-    notes: ''
+    date: "",
+    time: "",
+    sessionType: "video",
+    notes: "",
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     // Here you would typically send the booking data to your backend
-    console.log('Booking submitted:', { therapist, ...bookingData });
-    alert('Booking request sent successfully!');
+    console.log("Booking submitted:", { therapist, ...bookingData });
+    alert("Booking request sent successfully!");
     onClose();
   };
 
@@ -71,25 +78,29 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 bg-white z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-md w-full p-6 relative shadow-2xl border border-gray-200">
-        <button 
+        <button
           onClick={onClose}
           className="absolute -top-4 -right-4 bg-white w-8 h-8 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50"
         >
           <span className="text-white text-xl font-bold">×</span>
         </button>
-        
-        <h2 className="text-2xl font-bold text-black mb-4">Book Session with {therapist.name}</h2>
-        
+
+        <h2 className="text-2xl font-bold text-black mb-4">
+          Book Session with {therapist.name}
+        </h2>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-black font-medium mb-1">Date</label>
             <input
               type="date"
               required
-              min={new Date().toISOString().split('T')[0]}
+              min={new Date().toISOString().split("T")[0]}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-black"
               value={bookingData.date}
-              onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
+              onChange={(e) =>
+                setBookingData({ ...bookingData, date: e.target.value })
+              }
             />
           </div>
 
@@ -99,7 +110,9 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-black"
               value={bookingData.time}
-              onChange={(e) => setBookingData({ ...bookingData, time: e.target.value })}
+              onChange={(e) =>
+                setBookingData({ ...bookingData, time: e.target.value })
+              }
             >
               <option value="">Select a time</option>
               <option value="09:00">9:00 AM</option>
@@ -112,12 +125,16 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
           </div>
 
           <div>
-            <label className="block text-black font-medium mb-1">Session Type</label>
+            <label className="block text-black font-medium mb-1">
+              Session Type
+            </label>
             <select
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-black"
               value={bookingData.sessionType}
-              onChange={(e) => setBookingData({ ...bookingData, sessionType: e.target.value })}
+              onChange={(e) =>
+                setBookingData({ ...bookingData, sessionType: e.target.value })
+              }
             >
               <option value="video">Video Call</option>
               <option value="audio">Audio Call</option>
@@ -126,13 +143,17 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
           </div>
 
           <div>
-            <label className="block text-black font-medium mb-1">Notes (Optional)</label>
+            <label className="block text-black font-medium mb-1">
+              Notes (Optional)
+            </label>
             <textarea
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-black"
               rows="3"
               placeholder="Any specific concerns or topics you'd like to discuss..."
               value={bookingData.notes}
-              onChange={(e) => setBookingData({ ...bookingData, notes: e.target.value })}
+              onChange={(e) =>
+                setBookingData({ ...bookingData, notes: e.target.value })
+              }
             ></textarea>
           </div>
 
@@ -165,41 +186,45 @@ const TherapistCard = ({ therapist }) => {
     <>
       <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105">
         <div className="relative">
-          <img 
-            src={therapist.image} 
-            alt={therapist.name} 
+          <img
+            src={therapist.image}
+            alt={therapist.name}
             className="w-full h-48 object-cover"
           />
           <div className="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded-full text-sm font-semibold">
             ⭐ {therapist.rating}
           </div>
         </div>
-        
-        <div className="p-6">
-          <h3 className="text-xl font-semibold text-black mb-2">{therapist.name}</h3>
-          <p className="text-black font-medium mb-2">{therapist.specialization}</p>
+
+        <div className="p-8">
+          <h3 className="text-xl font-semibold text-black mb-2">
+            {therapist.name}
+          </h3>
+          <p className="text-black font-medium mb-2">
+            {therapist.specialization}
+          </p>
           <p className="text-black mb-2">Experience: {therapist.experience}</p>
           <p className="text-black mb-4">Available: {therapist.availability}</p>
-          
+
           <div className="mb-4">
-            <p className="text-black">{therapist.description}</p>
+            <p className="text-black">{therapist.desc}</p>
           </div>
-          
+
           <div className="mb-4">
             <p className="text-black font-medium text-center mb-2">Languages</p>
             <div className="flex justify-center gap-2">
-              {therapist.languages.map((language, index) => (
-                <span 
+              {/*{therapist.languages.map((language, index) => (
+                <span
                   key={index}
                   className="bg-gray-100 text-black px-3 py-1 rounded-full text-sm"
                 >
                   {language}
                 </span>
-              ))}
+              ))}*/}
             </div>
           </div>
-          
-          <button 
+
+          <button
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300"
             onClick={() => setIsBookingModalOpen(true)}
           >
@@ -208,7 +233,7 @@ const TherapistCard = ({ therapist }) => {
         </div>
       </div>
 
-      <BookingModal 
+      <BookingModal
         therapist={therapist}
         isOpen={isBookingModalOpen}
         onClose={() => setIsBookingModalOpen(false)}
@@ -218,26 +243,69 @@ const TherapistCard = ({ therapist }) => {
 };
 
 const Therapist = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [specialization, setSpecialization] = useState('');
-  const [language, setLanguage] = useState('');
+  const [therapists, setTherapists] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [specialization, setSpecialization] = useState("");
+  const [language, setLanguage] = useState("");
+
+  useEffect(() => {
+    const retrieve_therapists = async () => {
+      const api = "http://127.0.0.1:8000/api/therapist-members/";
+      const access_token = localStorage.getItem("accessToken");
+
+      try {
+        const response = await axios.get(api, {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        });
+        if (Array.isArray(response.data.therapists)) {
+          console.log(response.data.therapists);
+          setTherapists(response.data.therapists);
+        } else {
+          console.error(
+            "Expected an array but got: ",
+            response.data.therapists,
+          );
+        }
+      } catch (e) {
+        console.error(e);
+        setTherapists([]);
+      }
+    };
+
+    retrieve_therapists();
+  }, []);
 
   // Filter therapists based on search query and filters
   const filteredTherapists = useMemo(() => {
-    return therapists.filter(therapist => {
-      const matchesSearch = searchQuery === '' || 
+    return therapists.filter((therapist) => {
+      const matchesSearch =
+        searchQuery === "" ||
         therapist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        therapist.specialization.toLowerCase().includes(searchQuery.toLowerCase());
+        therapist.specialization
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
-      const matchesSpecialization = specialization === '' || 
-        therapist.specialization.toLowerCase().includes(specialization.toLowerCase());
+      const matchesSpecialization =
+        specialization === "" ||
+        therapist.specialization
+          .toLowerCase()
+          .includes(specialization.toLowerCase());
 
-      const matchesLanguage = language === '' || 
-        therapist.languages.some(lang => lang.toLowerCase() === language.toLowerCase());
+      {
+        /*
+      const matchesLanguage =
+        language === "" ||
+        therapist.languages.some(
+          (lang) => lang.toLowerCase() === language.toLowerCase(),
+        );
+        */
+      }
 
-      return matchesSearch && matchesSpecialization && matchesLanguage;
+      return matchesSearch && matchesSpecialization; // && matchesLanguage;
     });
-  }, [searchQuery, specialization, language]);
+  }, [therapists, searchQuery, specialization, language]);
 
   return (
     <div className="container mx-auto px-4 py-16 max-w-7xl">
@@ -246,8 +314,9 @@ const Therapist = () => {
           Our Professional Therapists
         </h1>
         <p className="text-black max-w-2xl mx-auto">
-          Connect with licensed therapists who specialize in various areas of mental health. 
-          Book a session with a professional who best matches your needs.
+          Connect with licensed therapists who specialize in various areas of
+          mental health. Book a session with a professional who best matches
+          your needs.
         </p>
       </div>
 
@@ -266,7 +335,7 @@ const Therapist = () => {
             {searchQuery && (
               <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
                 {filteredTherapists.length > 0 ? (
-                  filteredTherapists.map(therapist => (
+                  filteredTherapists.map((therapist) => (
                     <div
                       key={therapist.id}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black text-left"
@@ -275,43 +344,63 @@ const Therapist = () => {
                       }}
                     >
                       <div className="font-medium">{therapist.name}</div>
-                      <div className="text-sm text-black">{therapist.specialization}</div>
+                      <div className="text-sm text-black">
+                        {therapist.specialization}
+                      </div>
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-2 text-black text-left">No therapists found</div>
+                  <div className="px-4 py-2 text-black text-left">
+                    No therapists found
+                  </div>
                 )}
               </div>
             )}
           </div>
 
-          <select 
+          <select
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-black"
             value={specialization}
             onChange={(e) => setSpecialization(e.target.value)}
           >
-            <option value="" className="text-black">Specialization</option>
-            <option value="anxiety" className="text-black">Anxiety & Depression</option>
-            <option value="relationships" className="text-black">Relationship Counseling</option>
-            <option value="trauma" className="text-black">Trauma & PTSD</option>
+            <option value="" className="text-black">
+              Specialization
+            </option>
+            <option value="anxiety" className="text-black">
+              Anxiety & Depression
+            </option>
+            <option value="relationships" className="text-black">
+              Relationship Counseling
+            </option>
+            <option value="trauma" className="text-black">
+              Trauma & PTSD
+            </option>
           </select>
 
-          <select 
+          <select
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-black"
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
           >
-            <option value="" className="text-black">Language</option>
-            <option value="english" className="text-black">English</option>
-            <option value="spanish" className="text-black">Spanish</option>
-            <option value="mandarin" className="text-black">Mandarin</option>
+            <option value="" className="text-black">
+              Language
+            </option>
+            <option value="english" className="text-black">
+              English
+            </option>
+            <option value="spanish" className="text-black">
+              Spanish
+            </option>
+            <option value="mandarin" className="text-black">
+              Mandarin
+            </option>
           </select>
         </div>
       </div>
 
       {/* Therapists Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredTherapists.map(therapist => (
+        {filteredTherapists.map((therapist) => (
           <TherapistCard key={therapist.id} therapist={therapist} />
         ))}
       </div>
@@ -326,4 +415,4 @@ const Therapist = () => {
   );
 };
 
-export default Therapist; 
+export default Therapist;

@@ -101,7 +101,29 @@ body, html {
         flex-direction: column; 
         width: 100%; /* Prevents any overflow */
     }
+
+    .Service{
+        margin-bottom: 30vh;
+        flex-direction: column;
+    }
+
+    .btn{
+        margin: 10px;
+    }
+
+    .TherapistUser{
+        flex-direction: column;
+        margin-bottom: 30vh;
+    }
+
+    .register{
+        align-items: center;
+        margin-bottom: 30vh;
+        margin-left: auto;
+        margin-right: auto;
+    }
 }
+
 
 .chatbot {
     width: 500px;

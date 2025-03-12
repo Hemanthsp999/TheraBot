@@ -13,31 +13,35 @@
 # limitations under the License.
 
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.output_parsers import StrOutputParser
+# from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import create_retrieval_chain
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import ChatOllama
-from datetime import timedelta
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 # from api.models import User
+from api.models import Therapist
 from rest_framework import status
+from django.contrib.auth.hashers import check_password
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.mail import send_mail
 import random
-from django.core.cache import cache
-from rest_framework_simplejwt.authentication import JWTAuthentication
 import time
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from datetime import datetime, timedelta, timezone
 from django.conf import settings
 import jwt
 import logging
+import secrets
+from django.contrib.auth import authenticate
 
 logger = logging.getLogger(__name__)
 
@@ -57,12 +61,93 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'phone_number', 'email', 'password']
+        fields = ['username', 'email', 'phone_number', 'password']  # ✅ Remove `username`
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data['password'])
+        validated_data['password'] = make_password(validated_data['password'])  # ✅ Hash password
         return User.objects.create(**validated_data)
+
+
+class TherapistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Therapist
+        fields = ['name', 'email', 'password', 'specialization',
+                  'experience', 'phone_number', 'desc', 'availability']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        validated_data['password'] = make_password(validated_data['password'])  # Hash password
+        return Therapist.objects.create(**validated_data)
+
+
+class TherapistRegisterView(APIView):
+    permission_classes = [AllowAny]  # Open for registration
+
+    def post(self, request):
+        print("📩 Received Therapist Registration Data:", request.data)  # Debugging
+
+        serializer = TherapistSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            print("✅ Therapist Registered Successfully!")
+            return Response(
+                {'message': 'Therapist registered successfully'},
+                status=201
+            )
+
+        print("❌ Serializer Errors:", serializer.errors)  # Debugging errors
+        return Response(serializer.errors, status=400)
+
+
+class TherapistLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, format=None):
+        email = request.data.get('therapist_email')
+        password = request.data.get('password')
+
+        if not email or not password:
+            return Response({'error': 'Both email and password are required'}, status=400)
+
+        try:
+            therapist = Therapist.objects.get(email=email)
+            if not check_password(password, therapist.password):  # ✅ Hash check
+                raise Therapist.DoesNotExist
+        except Therapist.DoesNotExist:
+            time.sleep(random.uniform(0.1, 0.3))  # ✅ Prevent timing attacks
+            return Response({'error': 'Invalid credentials'}, status=401)
+
+        # ✅ Define Expiry Times
+        access_token_expiry = now() + timedelta(minutes=1)
+        refresh_token_expiry = now() + timedelta(days=1)
+
+        # ✅ Manually Generate JWT Tokens
+        access_token_payload = {
+            "therapist_id": therapist.id,
+            "email": therapist.email,
+            "exp": access_token_expiry.timestamp(),  # ✅ Convert to UNIX timestamp
+            "type": "access",
+        }
+        access_token = jwt.encode(access_token_payload, settings.SECRET_KEY, algorithm="HS256")
+
+        refresh_token_payload = {
+            "therapist_id": therapist.id,
+            "email": therapist.email,
+            "exp": refresh_token_expiry.timestamp(),
+            "type": "refresh",
+        }
+        refresh_token = jwt.encode(refresh_token_payload, settings.SECRET_KEY, algorithm="HS256")
+
+        return Response({
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "expires_at": access_token_expiry.isoformat(),  # ✅ Include readable expiry
+            "therapist_id": therapist.id,
+            "email": therapist.email,
+            "name": therapist.name,
+            "redirect_url": "/",
+        }, status=200)
 
 
 class RegisterView(APIView):
@@ -96,7 +181,7 @@ class LoginView(APIView):
 
         try:
             user = User.objects.get(email=email)
-            if not check_password(password, user.password):
+            if not user.check_password(password):
                 raise User.DoesNotExist  # Use same exception for security
         except User.DoesNotExist:
             # Consider adding a small delay here to prevent timing attacks
@@ -117,7 +202,8 @@ class LoginView(APIView):
             'refresh': str(refresh),
             'access_token': str(refresh.access_token),
             'redirect_url': '/',
-            'expires_at': access_token_expiry
+            'expires_at': access_token_expiry,
+            "name": str(user.email)
         }, status=status.HTTP_200_OK)
 
 
@@ -200,6 +286,47 @@ class ResetPasswordView(APIView):
 
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TherapistMembers(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        print("Full Request Headers:", request.headers)
+        print("Authorization Header:", request.headers.get("Authorization"))
+
+        # ✅ Check for authorization token
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            return Response(
+                {"error": "No authorization header", "code": "no_auth_header"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        try:
+            # ✅ Fetch all therapists
+            therapists = Therapist.objects.all()
+            if not therapists.exists():
+                return Response({"message": "No therapists available"}, status=status.HTTP_404_NOT_FOUND)
+
+            # ✅ Serialize therapist data
+            therapist_list = [
+                {
+                    "id": therapist.id,
+                    "name": therapist.name,
+                    "email": therapist.email,
+                    "specialization": therapist.specialization,
+                    "experience": therapist.experience,
+                    "desc": therapist.desc,
+                }
+                for therapist in therapists
+            ]
+
+            return Response({"therapists": therapist_list}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ChatbotView(APIView):

@@ -43,7 +43,7 @@ const Register = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-gray-40 px-4"
+      className="min-h-screen register flex items-center justify-center bg-gray-40 px-4"
       data-aos="flip-right"
     >
       <div className="max-w-md w-full">
@@ -57,7 +57,7 @@ const Register = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl  duration-100 transform hover:scale-100">
+        <div className="bg-white text-nowrap rounded-2xl shadow-lg p-8 hover:shadow-2xl  duration-100 transform hover:scale-100">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="relative z-0 w-full mb-5 group">
               <input

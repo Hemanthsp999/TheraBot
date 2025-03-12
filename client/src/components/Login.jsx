@@ -26,10 +26,12 @@ const Login = () => {
       localStorage.setItem("accessToken", response.data.access_token);
       localStorage.setItem("refreshToken", response.data.refresh);
       localStorage.setItem("userEmail", formData.email);
+      localStorage.setItem("name", response.data.name);
       localStorage.setItem("expiresAt", response.data.expires_at);
       console.log("Access_Token: ", response.data.access_token);
       console.log("Expires_at", response.data.expires_at);
       console.log("refresh token", response.data.refresh);
+      console.log("name", response.data.name);
 
       navigate(response.data.redirect_url);
     } catch (error) {
