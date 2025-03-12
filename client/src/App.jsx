@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import "./components/css/App.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import AutoLogout from "./components/AutoLogout"; // Fixed import name
+import AutoLogout from "./components/AutoLogout";
 
 function App() {
   const [scrollingUp, setScrollingUp] = useState(false);
@@ -40,18 +40,10 @@ function App() {
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden overflow-y-hidden">
       <Navbar />
-      {/*
-      <AnimateIn
-        from="opacity-0 scale-70"
-        to="opacity-100 scale-100"
-        duration={1000}
-      >
-      */}
       <main className="flex-1">
-        <AutoLogout /> {/* Fixed component casing */}
+        <AutoLogout />
         <Outlet />
       </main>
-      {/* </AnimateIn>*/}
       <Footer />
     </div>
   );

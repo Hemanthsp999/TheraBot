@@ -33,6 +33,9 @@ import AccessAccount from "./components/AccessAccount";
 import TherapistLogin from "./components/TherapistLogin";
 import TherapistRegister from "./components/TherapistRegistration.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import PatientsPage from "./pages/PatientsPage";
+import PatientDetailPage from "./pages/PatientDetailPage";
+import TherapistChat from "./pages/TherapistChat";
 
 const router = createBrowserRouter([
   {
@@ -52,7 +55,6 @@ const router = createBrowserRouter([
         element: <Protected />,
         children: [{ index: true, element: <Therapist /> }],
       },
-      //{ path: "/therapist", element: <Therapist /> },
 
       { path: "/register", element: <TherapistRegister /> },
       { path: "/forget", element: <Forgetpassword /> },
@@ -61,10 +63,26 @@ const router = createBrowserRouter([
   },
   // Separate route for ChatBot without App wrapper
   {
-    // Add Protected Route
     path: "/chatbot",
     element: <Protected />,
     children: [{ index: true, element: <ChatBot /> }],
+  },
+  // New routes for patients
+  {
+    path: "/patients",
+    element: <Protected />,
+    children: [{ index: true, element: <PatientsPage /> }],
+  },
+  {
+    path: "/patients/:id",
+    element: <Protected />,
+    children: [{ index: true, element: <PatientDetailPage /> }],
+  },
+  // New route for therapist chat
+  {
+    path: "/chat",
+    element: <Protected />,
+    children: [{ index: true, element: <TherapistChat /> }],
   },
 ]);
 
@@ -74,3 +92,5 @@ root.render(
     <RouterProvider router={router} />
   </React.StrictMode>,
 );
+
+
