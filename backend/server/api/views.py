@@ -36,7 +36,7 @@ from django.core.mail import send_mail
 import random
 import time
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from django.conf import settings
 import jwt
 import logging
