@@ -150,7 +150,7 @@ const PatientsPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <Link
-                          to={`/patients/${patient.id}`}
+                          to={`/therapist/patients/:${patient.id}`}
                           className="text-blue-600 hover:text-blue-900 mr-3"
                         >
                           View

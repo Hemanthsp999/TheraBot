@@ -56,39 +56,63 @@ const router = createBrowserRouter([
       {
         path: "/chat",
         element: <Protected />,
-        children: [
-          {
-            index: true,
-            element: <TherapistChat />,
-          },
-          {
-            path: "/chatbot",
-            element: <ChatBot />,
-            // children: [{ index: true, element: <ChatBot /> }],
-          },
-        ],
+        children: [{ index: true, element: <TherapistChat /> }],
       },
 
       {
-        path: "/therapist",
-        element: <Protected />,
-        children: [{ index: true, element: <Therapist /> }],
-      },
-
-      {
-        path: "/patients",
+        path: "therapist",
         element: <Protected />,
         children: [
-          { index: true, element: <PatientsPage /> },
-
+          { index: true, element: <Therapist /> },
           {
-            path: "/patients/:id",
+            path: "patients",
+            element: <PatientsPage />,
+          },
+          {
+            path: "patients/:id",
             element: <PatientDetailPage />,
           },
         ],
       },
     ],
   },
+  {
+    path: "/chatbot",
+    element: <Protected />,
+    children: [{ index: true, element: <ChatBot /> }],
+  },
+
+  /*
+   *  Don't change the route structre and function
+   *  If you want to add a new route
+   *  then simply use this strucutre
+   *  {
+   *  path: "<your relative_path>",
+   *  element: "<component/>"
+   *  }
+   *  Or if you want protected route:
+   *  1. for relative path, i.e /therapist/patients like this ?
+   *  then
+   *  {
+   *        path: "partent_route_name",
+   *        element: <Protected_route/>,
+   *        children:[
+   *            {index: true, element: <Parent_Component/>},
+   *            {path: "child_route_name", element: "<child_component/>" }
+   *        ]
+   *  }
+   *
+   *  2. for absolute path, i.e /chatbot
+   *  {
+   *    path: 'chatbot',
+   *    element: <Protected/>,
+   *    children: [
+   *        {index: true, element: <ChatBot/>}
+   *    ]
+   *  }
+   *
+   *  3. How to use ? for relative_path: /partent_route/children and for absolute_path: /children_path
+   */
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

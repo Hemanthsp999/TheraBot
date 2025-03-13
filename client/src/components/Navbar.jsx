@@ -135,7 +135,7 @@ export default function Navbar() {
           {/* Only show Patients link if user is logged in */}
           {user_type == "Therapist" && (
             <li className="py-2">
-              <Link to="/patients" className="hover:text-blue-500 transition">
+              <Link to="/therapist/patients" className="hover:text-blue-500 transition">
                 Patients
               </Link>
             </li>
@@ -215,7 +215,7 @@ export default function Navbar() {
                 {email && (
                   <li className="py-2">
                     <Link
-                      to="/patients"
+                      to="therapist/patients"
                       className="hover:text-blue-500 transition"
                       onClick={() => setIsOpen(false)}
                     >
