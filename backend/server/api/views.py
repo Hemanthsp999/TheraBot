@@ -15,7 +15,9 @@
 from langchain.chains.combine_documents import create_stuff_documents_chain
 # from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
-from langchain.chains import create_retrieval_chain
+# from langchain.chains import create_retrieval_chain
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import ChatOllama
@@ -377,22 +379,36 @@ class ChatbotView(APIView):
         self.vector_db = vector_db
 
         # self.memory = ConversationBufferMemory()
+        self.str_out_put_parser = StrOutputParser()
 
         self.rag_chain = self.setup_rag_chain()
+
+    def format_docs(self, docs):
+        return "\n\n".join(doc.page_content for doc in docs)
 
     def setup_rag_chain(self):
         retriever = self.vector_db.as_retriever()
 
-        prompt = PromptTemplate(
-            input_variables=["context", "input"],
-            template="You are a helpful AI assistant. Based on the following retrieved documents:\n{context}\n\nAnswer the user's question:\n{question}"
+        template = """
+            Use the following pieces of context to answer the question at the end. If you don't know the answer or if the question is not related to the given context, please respond with "I'm sorry, but I don't have enough information to answer that question based on the provided context."
+
+            Context: {context}
+
+            Question: {question}
+
+            """
+        prompt = PromptTemplate.from_template(
+            template=template
         )
 
-        document_chain = create_stuff_documents_chain(self.llm, prompt)
+        rag_chain = ({
+            "context": retriever | self.format_docs, "question": RunnablePassthrough()}
+            | prompt
+            | self.llm
+            | self.str_out_put_parser
+        )
 
-        retrieval_chain = create_retrieval_chain(retriever, document_chain)
-
-        return retrieval_chain
+        return rag_chain
 
     def conversation(self, request):
 
@@ -401,9 +417,9 @@ class ChatbotView(APIView):
         if query.lower() == "exit":
             return Response({"Message": "Conversation endend"})
 
-        response = self.rag_chain.invoke({"question": query})
+        response = self.rag_chain.invoke(query)
 
-        return Response({"response": response["output"]})
+        return Response({"response": response})
 
     def post(self, request):
         # Add extensive logging
