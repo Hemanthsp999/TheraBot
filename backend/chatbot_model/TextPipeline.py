@@ -1,12 +1,9 @@
 # NOTE still wrok in progress
 from tqdm.auto import tqdm
+import re
 import fitz
-# import pandas as pd
 from spacy.lang.en import English
 
-# English data
-nlp = English()
-nlp.add_pipe("sentencizer")
 
 # df = pd.read_json(
 # "hf://datasets/Amod/mental_health_counseling_conversations/combined_dataset.json", lines = True)
@@ -17,6 +14,8 @@ path = "/home/hexa/ai_bhrtya/backend/mental_health_dataset.pdf"
 
 class pdf_handler():
     def __init__(self):
+        self.nlp = English()
+        self.nlp.add_pipe("sentencizer")
         pass
 
     def text_formater(self, text: str) -> str:
@@ -25,8 +24,12 @@ class pdf_handler():
         clean_txt = clean_txt.replace("mental_health_dataset", "").strip()
         return clean_txt
 
-    def open_and_process(self, pdf: str) -> list[dict]:
-        open_pdf = fitz.open(pdf)
+    def open_and_process(self, pdf: str) -> dict[str]:
+        try:
+            open_pdf = fitz.open(pdf)
+        except Exception as e:
+            print(f"Error while opening file. More details: {e}")
+            return []
 
         pdf_to_dict = []
 
@@ -38,7 +41,7 @@ class pdf_handler():
                 "char_count": len(string),
                 "word_count": len(string.split(" ")),
                 "sentence_count": len(string.strip(". ")),
-                "Token_size": len(string) / 4,
+                "Token_size": len(string) // 4,
                 "Text": string
             })
 
@@ -47,13 +50,13 @@ class pdf_handler():
     def _to_sentence(self, string: list[dict]) -> list[str]:
 
         for page in tqdm(string, desc="Processing data..."):
-            page['sentence'] = list(nlp(page['Text']).sents)
+            page['sentence'] = list(self.nlp(page['Text']).sents)
             page['sentence'] = [str(sentence) for sentence in page['sentence']]
             page['str_sentence_count'] = len(page['sentence'])
 
         return string
 
-    def custom_text_splitter(self, input_str: list[str], split_size: int, over_lap_chunks: int) -> list[list[str]]:
+    def custom_text_slicer(self, input_str: list[str], split_size: int, over_lap_chunks: int) -> list[list[str]]:
         # NOTE: Custom text splitter, I hope it works as expected!
         step_size = split_size - over_lap_chunks
         chunks = []
@@ -61,28 +64,43 @@ class pdf_handler():
         for i in range(0, len(input_str), step_size):
             chunk = input_str[i: i + split_size]
 
-            if len(chunk) > 0:
+            if len(chunk) == split_size:
                 chunks.append(chunk)
-            else:
-                return "No chunks"
 
-        return chunk
+        return chunks
 
-    def _to_chunks(self, page_content: list[str], split_size: int, chunk_overlap: int) -> list[str]:
+    def custom_text_splitter(self, page_content: list[str], split_size: int, chunk_overlap: int) -> list[str]:
 
         for page in tqdm(page_content, desc="Processing chunks ..."):
-            page['sentence_chunks'] = self.custom_text_splitter(
+            page['sentence_chunks'] = self.__custom_text_slicer(
                 page['sentence'], split_size=split_size, over_lap_chunks=chunk_overlap)
 
             page['no_sentence_chunks'] = len(page['sentence_chunks'])
 
         return page_content
 
+    def structure_chunks(self, chunks: list[str]) -> list[str]:
+        refactored_chunks = []
 
-txt_process = pdf_handler()
-res = txt_process.open_and_process(pdf=path)
+        for sentence in tqdm(chunks, desc="Processing structure_to_chunks ..."):
+            for word in sentence['sentence_chunks']:
+                chunk_list = {}
+                chunk_list['page_no'] = sentence.get('page_no')
+                joined_chunks = " ".join(word).strip()
 
-sen = txt_process._to_sentence(res)
-chunks = txt_process._to_chunks(sen, split_size=150, chunk_overlap=50)
+                joined_chunks = re.sub(r'\.([A-Z|0-9])', r'. \1', joined_chunks)
 
-print(chunks)
+                chunk_list['sentence_chunks'] = joined_chunks
+                chunk_list['chunk_char_count'] = len(joined_chunks)
+                chunk_list['chunk_word_count'] = len(joined_chunks.split(" "))
+                chunk_list['chunk_token_count'] = len(joined_chunks) // 4
+
+                refactored_chunks.append(chunk_list)
+
+        return refactored_chunks
+
+
+txt = pdf_handler()
+split = txt.custom_text_slicer(
+    ["sentence1", "sentence2", "sentence3", "sentence4", "sentence5", "sentence6", "sentence7", "sentence8", "sentence9", "sentence10"], split_size=4, over_lap_chunks=3)
+print(split)
