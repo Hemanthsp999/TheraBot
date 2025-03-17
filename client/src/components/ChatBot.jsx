@@ -56,7 +56,7 @@ const ChatBot = () => {
         { query: userMessage }, // Correct: Send only query in body
         {
           headers: {
-            "Authorization": `Bearer ${accessToken}`, // Ensure correct format
+            Authorization: `Bearer ${accessToken}`, // Ensure correct format
             "Content-Type": "application/json",
           },
         },
@@ -64,7 +64,24 @@ const ChatBot = () => {
       const botResponse =
         (await response.data.response) || "Sorry, I couldn't understand that.";
 
-      setMessages((prev) => [...prev, { type: "bot", content: botResponse }]);
+      // setMessages((prev) => [...prev, { type: "bot", content: botResponse }]);
+
+      let currentMessage = "";
+      setMessages((prev) => [...prev, { type: "bot", content: "" }]); // Add empty message slot
+
+      botResponse.split("").forEach((char, index) => {
+        setTimeout(() => {
+          currentMessage += char;
+          setMessages((prev) => {
+            const updatedMessages = [...prev];
+            updatedMessages[updatedMessages.length - 1] = {
+              type: "bot",
+              content: currentMessage,
+            };
+            return updatedMessages;
+          });
+        }, index * 50); // Adjust typing speed (50ms per character)
+      });
     } catch (error) {
       console.error("Error:", error.response?.data || error.message);
 
