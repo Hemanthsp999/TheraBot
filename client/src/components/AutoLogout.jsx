@@ -51,7 +51,7 @@ const AutoLogout = () => {
     sessionExpired && (
       <div role="alert">
         <div className="bg-red-500 mt-8 text-white font-bold rounded-t-md px-4 py-2">
-          Danger
+          Session Expired
         </div>
         <div className="border border-t-0 border-red-400 rounded-b-md bg-red-100 px-4 py-3 text-red-700">
           <p>Session Expired. Please Login again...</p>

@@ -9,13 +9,14 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
     time: "",
     sessionType: "video",
     notes: "",
+    is_active: "",
     therapist_id: therapist.id,
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const api_url = "http://127.0.0.1:8000/api/therapist-members/";
+    const api_url = "http://127.0.0.1:8000/api/book_clients/";
     const access_token = localStorage.getItem("accessToken");
     try {
       const post_data = await axios.post(
@@ -26,6 +27,7 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
           assign_date: bookingData.date,
           assign_time: bookingData.time,
           note: bookingData.notes,
+          is_valid: "true",
         },
         {
           headers: {
@@ -230,7 +232,7 @@ const Therapist = () => {
 
   useEffect(() => {
     const retrieve_therapists = async () => {
-      const api = "http://127.0.0.1:8000/api/therapist-members/";
+      const api = "http://127.0.0.1:8000/api/fetchTherapist/";
       const access_token = localStorage.getItem("accessToken");
 
       try {

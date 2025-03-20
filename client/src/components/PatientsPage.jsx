@@ -1,51 +1,44 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 const PatientsPage = () => {
-  // Sample patient data (would come from API in a real implementation)
-  const [patients, setPatients] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      age: 32,
-      gender: "Male",
-      lastVisit: "2023-11-15",
-      condition: "Anxiety",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      age: 28,
-      gender: "Female",
-      lastVisit: "2023-11-10",
-      condition: "Depression",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Robert Johnson",
-      age: 45,
-      gender: "Male",
-      lastVisit: "2023-10-30",
-      condition: "PTSD",
-      status: "Inactive",
-    },
-    {
-      id: 4,
-      name: "Emily Davis",
-      age: 22,
-      gender: "Female",
-      lastVisit: "2023-11-05",
-      condition: "Stress",
-      status: "Active",
-    },
-  ]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [patients, setPatients] = useState([]);
+
+  useEffect(() => {
+    const getPatients = async () => {
+      const access_token = localStorage.getItem("accessToken");
+      const therapist_id = localStorage.getItem("therapist_id");
+      console.log("therapist id:", therapist_id);
+
+      if (!access_token) {
+        console.error("No token found. Redirecting...");
+        window.location.href = "/login";
+      }
+
+      const api_url = "http://127.0.0.1:8000/api/fetchClients/";
+
+      try {
+        console.log("Access Token: ", access_token);
+        const resp = await axios.get(api_url, {
+          headers: {
+            Authorization: `Bearer ${access_token}`, // Trim any spaces
+            "Content-Type": "application/json",
+          },
+          params: { therapist_id: therapist_id },
+        });
+        console.log("Response", resp.data.bookings);
+      } catch (e) {
+        console.error("Axios Error:", e.response?.data || e.message);
+      }
+    };
+
+    getPatients();
+  }, []);
 
   // Filter patients based on search term and status
   const filteredPatients = patients.filter((patient) => {

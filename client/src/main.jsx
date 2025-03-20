@@ -53,17 +53,23 @@ const router = createBrowserRouter([
       { path: "/forget", element: <Forgetpassword /> },
       { path: "/services", element: <Service /> },
 
+      /*
       {
         path: "/chat",
         element: <Protected />,
         children: [{ index: true, element: <TherapistChat /> }],
       },
+      */
 
       {
         path: "therapist",
         element: <Protected />,
         children: [
           { index: true, element: <Therapist /> },
+          {
+            path: "chat",
+            element: <TherapistChat />,
+          },
           {
             path: "patients",
             element: <PatientsPage />,
@@ -77,7 +83,7 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/chatbot",
+    path: "/user/chatbot",
     element: <Protected />,
     children: [{ index: true, element: <ChatBot /> }],
   },

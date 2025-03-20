@@ -368,7 +368,7 @@ const TherapistChat = () => {
               </div>
 
               {/* Message Input */}
-              <div className="p-4 border-t border-gray-300 bg-white">
+              <div className="p-4 border-t border-gray-300 mb-30 bg-white">
                 <form
                   onSubmit={handleSendMessage}
                   className="flex items-center"

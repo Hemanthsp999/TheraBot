@@ -5,9 +5,10 @@ import { useNavigate } from "react-router-dom";
 
 const TherapistLogin = () => {
   const [formData, setFormData] = useState({
-    therapist_email: "",
+    email: "",
     password: "",
     licenseNumber: "", // Additional field for therapists
+    user_type: "therapist",
   });
   const [error, setError] = useState("");
 
@@ -24,7 +25,7 @@ const TherapistLogin = () => {
     setError("");
 
     try {
-      const api = "http://127.0.0.1:8000/api/login-therapist/";
+      const api = "http://127.0.0.1:8000/api/login/";
       console.log("Sending Request Data:", formData); // ✅ Log request data
 
       const response = await axios.post(api, formData);
@@ -37,9 +38,11 @@ const TherapistLogin = () => {
       localStorage.setItem("name", response.data.name);
       localStorage.setItem("expiresAt", response.data.expires_at);
       localStorage.setItem("user_type", response.data.user_type);
+      localStorage.setItem("therapist_id", response.data.therapist_id);
 
       console.log(localStorage.getItem("accessToken"));
       console.log(localStorage.getItem("refreshToken"));
+      console.log(localStorage.getItem("therapist_id"));
 
       navigate(response.data.redirect_url);
     } catch (err) {
@@ -68,7 +71,7 @@ const TherapistLogin = () => {
             <div className="relative z-0 w-full mb-5 group">
               <input
                 type="email"
-                name="therapist_email"
+                name="email"
                 value={formData.therapist_email}
                 onChange={handleChange}
                 className="text-center block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"

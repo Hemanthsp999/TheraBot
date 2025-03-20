@@ -227,7 +227,7 @@ const LandingPage = () => {
               style={{ fontSize: "15px" }}
             >
               <button
-                onClick={() => navigate("/chatbot")}
+                onClick={() => navigate("/user/chatbot")}
                 className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base rounded-lg shadow-md transition"
                 data-aos="fade-right"
               >

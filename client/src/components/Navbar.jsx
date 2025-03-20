@@ -123,7 +123,7 @@ export default function Navbar() {
                   item === "Home"
                     ? "/"
                     : item === "Chat"
-                      ? "/chat"
+                      ? "/therapist/chat"
                       : `/${item.toLowerCase()}`
                 }
                 className="hover:text-blue-500 transition"
@@ -135,7 +135,10 @@ export default function Navbar() {
           {/* Only show Patients link if user is logged in */}
           {user_type == "Therapist" && (
             <li className="py-2">
-              <Link to="/therapist/patients" className="hover:text-blue-500 transition">
+              <Link
+                to="/therapist/patients"
+                className="hover:text-blue-500 transition"
+              >
                 Patients
               </Link>
             </li>

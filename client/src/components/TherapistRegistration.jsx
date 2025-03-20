@@ -14,6 +14,7 @@ const TherapistLogin = () => {
     re_password: "",
     phone_number: "",
     availability: "",
+    user_type: "therapist"
   });
   const [error, setError] = useState("");
 
@@ -28,7 +29,7 @@ const TherapistLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const api = "http://127.0.0.1:8000/api/register-therapist/";
+    const api = "http://127.0.0.1:8000/api/register/";
     console.log(formData);
 
     try {

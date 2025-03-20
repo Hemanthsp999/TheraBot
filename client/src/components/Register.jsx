@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 
 const Register = () => {
@@ -10,6 +11,7 @@ const Register = () => {
     phone_number: "",
     password: "",
     re_password: "",
+    user_type: "user",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -25,15 +27,15 @@ const Register = () => {
     setSuccess("");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/register/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/register/",
+        formData,
+      );
 
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data.error || "Registration failed");
+      console.log("User Registration: ", response.data.message);
+
+      if (!response.data.message) {
+        setError(response.data.error || "Registration failed");
       } else {
         setSuccess("Registration successful! Redirecting to login...");
         setTimeout(() => navigate("/login"), 2000);
@@ -102,12 +104,10 @@ const Register = () => {
                 required
               >
                 <option value="" disabled>
-                  Select Gender 
+                  Select Gender
                 </option>
                 <option value="male">Male</option>
-                <option value="female">
-                 Female 
-                </option>
+                <option value="female">Female</option>
               </select>
             </div>
 
@@ -123,7 +123,7 @@ const Register = () => {
               />
 
               <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
-               Age 
+                Age
               </label>
             </div>
 

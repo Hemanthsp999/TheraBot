@@ -51,6 +51,10 @@ const ChatBot = () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
       console.log("Access: ", accessToken);
+      if (!accessToken) {
+        localStorage.clear();
+        return;
+      }
       const response = await axios.post(
         API_URL,
         { query: userMessage }, // Correct: Send only query in body
