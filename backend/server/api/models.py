@@ -119,7 +119,7 @@ class Therapist(AbstractBaseUser, PermissionsMixin):
 
 class BookingModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    therapist = models.ForeignKey(Therapist, on_delete=models.CASCADE)
+    therapist_id = models.ForeignKey(Therapist, on_delete=models.CASCADE)
     note = models.TextField(blank=True, null=True)
     session_type = models.CharField(max_length=255, choices=[
         ("video", "Video Call"),
@@ -128,6 +128,7 @@ class BookingModel(models.Model):
     ])
     assign_date = models.DateField()
     assign_time = models.TimeField()
+    is_valid = models.CharField(max_length=10, default="false", null=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

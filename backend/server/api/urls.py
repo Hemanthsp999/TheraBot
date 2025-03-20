@@ -16,17 +16,20 @@
 # api/urls.py
 
 from django.urls import path
-from .views import RegisterView, LoginView, LogoutView, SendOTPView, ResetPasswordView, ChatbotView, TherapistRegisterView, TherapistLoginView, TherapistMembers
+# from rest_framework.routers import DefaultRouter
+from .views import Register_Login_View, LogoutView, ChatbotView, User_View, Therapist_View
 
 urlpatterns = [
-    path("register/", RegisterView.as_view(), name="register"),
-    path("login/", LoginView.as_view(), name="login"),
+    path("register/",
+         Register_Login_View.as_view({'post': 'user_therapist_register'}), name="register"),
+    path("login/", Register_Login_View.as_view({'post': 'user_therapist_login'}), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
-    path('send-otp/', SendOTPView.as_view(), name='send-otp'),
-    path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
     path('chatbot/', ChatbotView.as_view(), name='chatbot'),
-    path('register-therapist/', TherapistRegisterView.as_view(), name='register-therapist'),
-    path('login-therapist/', TherapistLoginView.as_view(), name='login-therapist'),
-    path('therapist-members/', TherapistMembers.as_view(), name='therapist-memebers')
+    path('fetchTherapist/',
+         User_View.as_view({'get': 'get_therapist'}), name='fetchTherapist'),
+    path('book_clients/',
+         User_View.as_view({'post': 'book_therapist'}), name='book_clients'),
+    path('fetchClients/', Therapist_View.as_view({'get': 'get_clients'}), name='fetchClients')
+
 ]
 

@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from langchain.chains.combine_documents import create_stuff_documents_chain
+# from langchain.chains.combine_documents import create_stuff_documents_chain
 # from langchain_core.output_parsers import StrOutputParser
+from rest_framework.decorators import action
 from langchain_core.prompts import PromptTemplate
 # from langchain.chains import create_retrieval_chain
 from langchain_core.runnables import RunnablePassthrough
@@ -35,15 +36,13 @@ from django.contrib.auth.hashers import check_password
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.mail import send_mail
+from rest_framework import viewsets
 import random
 import time
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import timedelta
 from django.conf import settings
 import jwt
-import logging
-
-logger = logging.getLogger(__name__)
 
 # from langchain.memory import ConversationBufferMemory
 
@@ -51,130 +50,85 @@ transformer_model_name = "sentence-transformers/all-miniLM-L6-v2"
 embedding_model = HuggingFaceEmbeddings(model_name=transformer_model_name)
 
 # Load FAISS directory
-folder_path = "/home/hexa/ai_bhrtya/backend/mental_health_faiss_index/"
+folder_path = "/home/hexa/ai_bhrtya/backend/chatbot_model/faiss/"
 vector_db = FAISS.load_local(folder_path=folder_path,
                              embeddings=embedding_model, allow_dangerous_deserialization=True)
 
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'gender', 'age',
-                  'phone_number', 'password']  # ✅ Remove `username`
-        extra_kwargs = {'password': {'write_only': True}}
+class UserTherapistSerializer(serializers.Serializer):
+    user_type = serializers.ChoiceField(choices=['user', 'therapist'], write_only=True)
+
+    # Common fields
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+    phone_number = serializers.CharField(max_length=15)
+
+    # User-specific fields
+    username = serializers.CharField(required=False)
+    gender = serializers.CharField(required=False)
+    age = serializers.IntegerField(required=False)
+
+    # Therapist-specific fields
+    name = serializers.CharField(required=False)
+    specialization = serializers.CharField(required=False)
+    experience = serializers.IntegerField(required=False)
+    desc = serializers.CharField(required=False)
+    availability = serializers.CharField(required=False)
 
     def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data['password'])  # ✅ Hash password
-        return User.objects.create(**validated_data)
+        user_type = validated_data.pop('user_type')
 
-
-class TherapistSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Therapist
-        fields = ['name', 'email', 'password', 'specialization',
-                  'experience', 'phone_number', 'desc', 'availability']
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def create(self, validated_data):
         validated_data['password'] = make_password(validated_data['password'])  # Hash password
-        return Therapist.objects.create(**validated_data)
+
+        if user_type == 'user':
+            return User.objects.create(**validated_data)
+
+        if user_type == 'therapist':
+            return Therapist.objects.create(**validated_data)
+
+        raise serializers.ValidationError("Invalid user type selected")
 
 
-class TherapistRegisterView(APIView):
+class Register_Login_View(viewsets.ViewSet):
     permission_classes = [AllowAny]  # Open for registration
 
-    def post(self, request):
-        print("📩 Received Therapist Registration Data:", request.data)  # Debugging
+    @action(detail=False, methods=['post'])
+    def user_therapist_register(self, request):
+        data = request.data.copy()
+        print(f"Received {request.data.get('user_type')} Registration Data:",
+              request.data)  # Debugging
 
-        serializer = TherapistSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            print("✅ Therapist Registered Successfully!")
-            return Response(
-                {'message': 'Therapist registered successfully'},
-                status=201
-            )
+        if data['user_type'] == "therapist":
 
-        print("❌ Serializer Errors:", serializer.errors)  # Debugging errors
-        return Response(serializer.errors, status=400)
+            serializer = UserTherapistSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                print("Therapist Registered Successfully!")
+                return Response(
+                    {'message': 'Therapist registered successfully'},
+                    status=201
+                )
+            print("Serializer Errors:", serializer.errors)  # Debugging errors
+            return Response(serializer.errors, status=400)
 
+        elif data['user_type'] == "user":
 
-class TherapistLoginView(APIView):
-    permission_classes = [AllowAny]
+            serializer = UserTherapistSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                print("User Registration Successful!")
+                return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
 
-    def post(self, request, format=None):
-        email = request.data.get('therapist_email')
-        password = request.data.get('password')
+            print("Serializer Errors:", serializer.errors)  # Debugging errors
+            return Response(serializer.errors, status=400)
 
-        if not email or not password:
-            return Response({'error': 'Both email and password are required'}, status=400)
-
-        try:
-            therapist = Therapist.objects.get(email=email)
-            if not check_password(password, therapist.password):  # ✅ Hash check
-                raise Therapist.DoesNotExist
-        except Therapist.DoesNotExist:
-            time.sleep(random.uniform(0.1, 0.3))  # ✅ Prevent timing attacks
-            return Response({'error': 'Invalid credentials'}, status=401)
-
-        # ✅ Define Expiry Times
-        access_token_expiry = now() + timedelta(minutes=30)
-        refresh_token_expiry = now() + timedelta(days=1)
-
-        # ✅ Manually Generate JWT Tokens
-        access_token_payload = {
-            "therapist_id": therapist.id,
-            "email": therapist.email,
-            "exp": access_token_expiry.timestamp(),  # ✅ Convert to UNIX timestamp
-            "type": "access",
-        }
-        access_token = jwt.encode(access_token_payload, settings.SECRET_KEY, algorithm="HS256")
-
-        refresh_token_payload = {
-            "therapist_id": therapist.id,
-            "email": therapist.email,
-            "exp": refresh_token_expiry.timestamp(),
-            "type": "refresh",
-        }
-        refresh_token = jwt.encode(refresh_token_payload, settings.SECRET_KEY, algorithm="HS256")
-        user_type = "Therapist"
-
-        return Response({
-            "access_token": str(access_token),
-            "refresh_token": str(refresh_token),
-            "expires_at": access_token_expiry.isoformat(),  # ✅ Include readable expiry
-            "therapist_id": therapist.id,
-            "email": therapist.email,
-            "name": therapist.name,
-            "redirect_url": "/",
-            "user_type": user_type
-        }, status=200)
-
-
-class RegisterView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request, format=None):
-        print("📩 Received Data:", request.data)  # ✅ Print incoming request data
-        serializer = UserSerializer(data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-            print("✅ Registration Successful!")
-            return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
-
-        print("❌ Serializer Errors:", serializer.errors)  # ✅ Print validation errors
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class LoginView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request, format=None):
+    @action(detail=False, methods=['post'])
+    def user_therapist_login(self, request, format=None):
         email = request.data.get('email')
         password = request.data.get('password')
+        user_type = request.data.get('user_type')
 
         if not email or not password:
             return Response(
@@ -182,34 +136,78 @@ class LoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            user = User.objects.get(email=email)
-            if not user.check_password(password):
-                raise User.DoesNotExist  # Use same exception for security
-        except User.DoesNotExist:
-            # Consider adding a small delay here to prevent timing attacks
-            time.sleep(random.uniform(0.1, 0.3))  # Add 'import time, random' at the top
-            return Response(
-                {'error': 'Invalid credentials'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+        if user_type == "user":
+            try:
+                user = User.objects.get(email=email)
+                if not user.check_password(password):
+                    raise User.DoesNotExist  # Use same exception for security
+            except User.DoesNotExist:
+                # Consider adding a small delay here to prevent timing attacks
+                time.sleep(random.uniform(0.1, 0.3))  # Add 'import time, random' at the top
+                return Response(
+                    {'error': 'Invalid credentials'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
 
-        # Create token with explicit expiry
-        refresh = RefreshToken.for_user(user)
-        access_token_expiry = now() + timedelta(minutes=30)
+            # Create token with explicit expiry
+            refresh = RefreshToken.for_user(user)
+            access_token_expiry = now() + timedelta(minutes=30)
 
-        # Set token expiry (if using simple_jwt)
-        refresh.access_token.set_exp(lifetime=timedelta(minutes=30))
-        user_type = "patient"
+            # Set token expiry (if using simple_jwt)
+            refresh.access_token.set_exp(lifetime=timedelta(minutes=30))
+            user_type = "patient"
 
-        return Response({
-            'refresh': str(refresh),
-            'access_token': str(refresh.access_token),
-            'redirect_url': '/',
-            'expires_at': access_token_expiry,
-            "name": str(user.username),
-            "user_type": user_type
-        }, status=status.HTTP_200_OK)
+            return Response({
+                'refresh': str(refresh),
+                'access_token': str(refresh.access_token),
+                'redirect_url': '/',
+                'expires_at': access_token_expiry,
+                "name": str(user.username),
+                "user_type": user_type
+            }, status=status.HTTP_200_OK)
+
+        elif user_type == "therapist":
+            try:
+                therapist = Therapist.objects.get(email=email)
+                if not check_password(password, therapist.password):  # Hash check
+                    raise Therapist.DoesNotExist
+            except Therapist.DoesNotExist:
+                time.sleep(random.uniform(0.1, 0.3))  # Prevent timing attacks
+                return Response({'error': 'Invalid credentials'}, status=401)
+
+            #  Define Expiry Times
+            access_token_expiry = now() + timedelta(minutes=60)
+            refresh_token_expiry = now() + timedelta(days=1)
+
+            #  Manually Generate JWT Tokens
+            access_token_payload = {
+                "therapist_id": therapist.id,
+                "email": therapist.email,
+                "exp": access_token_expiry.timestamp(),  # Convert to UNIX timestamp
+                "type": "access",
+            }
+            access_token = jwt.encode(access_token_payload, settings.SECRET_KEY, algorithm="HS256")
+
+            refresh_token_payload = {
+                "therapist_id": therapist.id,
+                "email": therapist.email,
+                "exp": refresh_token_expiry.timestamp(),
+                "type": "refresh",
+            }
+            refresh_token = jwt.encode(refresh_token_payload,
+                                       settings.SECRET_KEY, algorithm="HS256")
+            user_type = "Therapist"
+
+            return Response({
+                "access_token": str(access_token),
+                "refresh_token": str(refresh_token),
+                "expires_at": access_token_expiry.isoformat(),  # Include readable expiry
+                "therapist_id": therapist.id,
+                "email": therapist.email,
+                "name": therapist.name,
+                "redirect_url": "/",
+                "user_type": user_type
+            }, status=200)
 
 
 class LogoutView(APIView):
@@ -242,62 +240,12 @@ class LogoutView(APIView):
             return Response({"error": str(e)}, status=400)
 
 
-class SendOTPView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        email = request.data.get('email')
-
-        try:
-            user = User.objects.get(email=email)
-            print(f"Email: {user}")
-        except User.DoesNotExist:
-            return Response({'error': 'User with this email does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-
-        otp = random.randint(100000, 999999)
-        cache.set(email, otp, timeout=300)  # Store OTP in cache for 5 minutes
-
-        send_mail(
-            subject="Password Reset OTP",
-            message=f"Your OTP for password reset is {otp}. It will expire in 5 minutes.",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False
-        )
-
-        return Response({'message': 'OTP sent to email'}, status=status.HTTP_200_OK)
-
-
-class ResetPasswordView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        email = request.data.get('email')
-        otp = request.data.get('otp')
-        new_password = request.data.get('new_password')
-
-        cached_otp = cache.get(email)
-
-        if not cached_otp or str(cached_otp) != str(otp):
-            return Response({'error': 'Invalid or expired OTP'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            user = User.objects.get(email=email)
-            user.password = make_password(new_password)
-            user.save()
-
-            cache.delete(email)  # Remove OTP after successful reset
-            return Response({'message': 'Password reset successfully'}, status=status.HTTP_200_OK)
-
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class TherapistMembers(APIView):
+class User_View(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    @action(detail=False, methods=['get'])
+    def get_therapist(self, request):
         print("Full Request Headers:", request.headers)
         print("Authorization Header:", request.headers.get("Authorization"))
 
@@ -323,6 +271,7 @@ class TherapistMembers(APIView):
                     "email": therapist.email,
                     "specialization": therapist.specialization,
                     "experience": therapist.experience,
+                    "availability": therapist.availability,
                     "desc": therapist.desc,
                 }
                 for therapist in therapists
@@ -333,35 +282,85 @@ class TherapistMembers(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def post(self, request):
-        user = request.user
-        therapist_id = request.data.get("therapist_id")
-        session_type = request.data.get("session_type")
-        assign_date = request.data.get("assign_date")
-        assign_time = request.data.get("assign_time")
-        note = request.data.get("note", "")
+    @action(detail=False, methods=['post'])
+    def book_therapist(self, request):
+        print(f"Full Headers: {request.headers}")
+        auth_header = request.headers.get('Authorization')
+        print(f'Authorization header: {auth_header}')
 
-        if not therapist_id or not session_type or not assign_date or not assign_time:
-            return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not auth_header:
+            return Response({"error": "Need Acces token."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user = request.user
+        therapist_id = request.data.get('therapist_id')
+        assign_date = request.data.get('assign_date')
+        session_type = request.data.get('session_type')
+        assign_time = request.data.get('assign_time')
+        note = request.data.get('note', '')
+        is_valid = request.data.get('is_valid')
 
         try:
-            therapist = Therapist.objects.get(id=therapist_id)
-        except Therapist.DoesNotExist:
-            return Response({"error": "Therapist Not Found"}, status=status.HTTP_404_NOT_FOUND)
+            booking = BookingModel.objects.all()
+            try:
+                therapist = Therapist.objects.get(id=therapist_id)
+            except Therapist.DoesNotExist:
+                return Response({"error": "Therapist Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
-        booking = BookingModel.objects.create(
-            user=user,
-            therapist=therapist,
-            session_type=session_type,
-            assign_date=assign_date,
-            assign_time=assign_time,
-            note=note
-        )
+            if not booking.exists():
+                return Response({"message": "There's no data to fetch, Verify database"}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response(
-            {"message": "Booking successful", "booking_id": booking.id},
-            status=status.HTTP_201_CREATED
-        )
+            booking = BookingModel.objects.create(
+                user=user,
+                therapist=therapist,
+                assign_date=assign_date,
+                assign_time=assign_time,
+                note=note,
+                session_type=session_type,
+                is_valid=is_valid
+            )
+
+            return Response({"message": "Booking successfull", "booking_id": booking.id}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class Therapist_View(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    @action(detail=False, methods=['get'])
+    def get_clients(self, request):
+
+        print(f"Full Headers: {request.headers}")
+        auth_header = request.headers.get("Authorization")
+
+        print(f"Authorization: {auth_header}")
+
+        if not auth_header:
+            return Response({"error": "No Access Key found"}, status=status.HTTP_401_UNAUTHORIZED)
+        therapist_id = request.query_params.get("therapist_id")
+
+        if not therapist_id:
+            return Response({"error": "Therapist id required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            get_bookings = BookingModel.objects.filter(therapist_id=therapist_id)
+            if not get_bookings.exists():
+                return Response({"error": "There's no Appointment sessions to fetch."}, status=status.HTTP_404_NOT_FOUND)
+
+            booking_list = [{
+                "user_id": booking.user.id,
+                "therapist_id": booking.therapist.id,
+                "age": booking.user.age,
+                "gender": booking.user.gender,
+                "is_valid": booking.is_valid
+            } for booking in get_bookings]
+
+            return Response({"bookings": booking_list}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ChatbotView(APIView):
@@ -372,7 +371,7 @@ class ChatbotView(APIView):
         super().__init__(**kwargs)
 
         self.model_name = "llama3.2"
-        self.temperature = 0
+        self.temperature = 0.5
 
         self.llm = ChatOllama(model=self.model_name, temperature=self.temperature)
 
