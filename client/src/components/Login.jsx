@@ -4,7 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 const Login = () => {
-  const [formData, setFormData] = useState({ email: "", password: "", user_type: "user" });
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    role: "user",
+  });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -34,7 +38,6 @@ const Login = () => {
       console.log("refresh token", response.data.refresh);
       console.log("name", response.data.name);
       console.log("user type: ", localStorage.getItem("user_type"));
-
 
       navigate(response.data.redirect_url);
     } catch (error) {

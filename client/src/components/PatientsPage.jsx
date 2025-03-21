@@ -26,7 +26,7 @@ const PatientsPage = () => {
         console.log("Access Token: ", access_token);
         const resp = await axios.get(api_url, {
           headers: {
-            Authorization: `Bearer ${access_token}`, // Trim any spaces
+            Authorization: `Bearer ${access_token.trim()}`, // Trim any spaces
             "Content-Type": "application/json",
           },
           params: { therapist_id: therapist_id },

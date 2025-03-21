@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./css/App.css";
 
 const AutoLogout = () => {
   const navigate = useNavigate();
@@ -49,12 +50,10 @@ const AutoLogout = () => {
 
   return (
     sessionExpired && (
-      <div role="alert">
-        <div className="bg-red-500 mt-8 text-white font-bold rounded-t-md px-4 py-2">
-          Session Expired
-        </div>
-        <div className="border border-t-0 border-red-400 rounded-b-md bg-red-100 px-4 py-3 text-red-700">
-          <p>Session Expired. Please Login again...</p>
+      <div className="static inset-0 flex items-start justify-center pt-10 z-50">
+        <div className="w-full max-w-md bg-red-500 text-white text-center rounded-md shadow-lg p-4">
+          <strong>Session Expired</strong>
+          <p>Please log in again...</p>
         </div>
       </div>
     )

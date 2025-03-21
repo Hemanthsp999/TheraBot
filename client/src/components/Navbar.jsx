@@ -114,7 +114,7 @@ export default function Navbar() {
           {[
             "Home",
             "About",
-            user_type == "Therapist" ? "Chat" : "Services",
+            user_type == "therapist" ? "Chat" : "Services",
             "Contact",
           ].map((item, index) => (
             <li key={index} className="py-2">
@@ -133,7 +133,7 @@ export default function Navbar() {
             </li>
           ))}
           {/* Only show Patients link if user is logged in */}
-          {user_type == "Therapist" && (
+          {user_type == "therapist" && (
             <li className="py-2">
               <Link
                 to="/therapist/patients"

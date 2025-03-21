@@ -8,7 +8,7 @@ const TherapistLogin = () => {
     email: "",
     password: "",
     licenseNumber: "", // Additional field for therapists
-    user_type: "therapist",
+    role: "therapist",
   });
   const [error, setError] = useState("");
 
@@ -33,16 +33,18 @@ const TherapistLogin = () => {
 
       alert("Therapist logged in");
 
+      localStorage.setItem("user_type", response.data.user_type);
       localStorage.setItem("accessToken", response.data.access_token);
-      localStorage.setItem("refreshToken", response.data.refresh_token);
+      localStorage.setItem("refreshToken", response.data.refresh);
+      localStorage.setItem("email", response.data.email);
       localStorage.setItem("name", response.data.name);
       localStorage.setItem("expiresAt", response.data.expires_at);
-      localStorage.setItem("user_type", response.data.user_type);
-      localStorage.setItem("therapist_id", response.data.therapist_id);
+      localStorage.setItem("therapist_id", response.data.id);
 
       console.log(localStorage.getItem("accessToken"));
       console.log(localStorage.getItem("refreshToken"));
       console.log(localStorage.getItem("therapist_id"));
+      console.log(localStorage.getItem("user_type"));
 
       navigate(response.data.redirect_url);
     } catch (err) {
