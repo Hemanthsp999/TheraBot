@@ -14,6 +14,7 @@
 
 # from langchain.chains.combine_documents import create_stuff_documents_chain
 # from langchain_core.output_parsers import StrOutputParser
+
 from rest_framework.decorators import action
 from langchain_core.prompts import PromptTemplate
 # from langchain.chains import create_retrieval_chain
@@ -28,14 +29,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 # from api.models import User
-from api.models import Therapist, BookingModel
+from api.models import BookingModel
 from rest_framework import status
 from django.contrib.auth.hashers import check_password
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.core.mail import send_mail
 from rest_framework import viewsets
 import random
 import time
@@ -57,38 +56,47 @@ vector_db = FAISS.load_local(folder_path=folder_path,
 User = get_user_model()
 
 
-class UserTherapistSerializer(serializers.Serializer):
-    user_type = serializers.ChoiceField(choices=['user', 'therapist'], write_only=True)
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id', 'email', 'password', 'role', 'name', 'phone_number',
+            'gender', 'age', 'specialization', 'experience', 'desc', 'availability'
+        ]
+        extra_kwargs = {'password': {'write_only': True}}
 
-    # Common fields
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-    phone_number = serializers.CharField(max_length=15)
+    def validate(self, data):
+        role = data.get("role")
 
-    # User-specific fields
-    username = serializers.CharField(required=False)
-    gender = serializers.CharField(required=False)
-    age = serializers.IntegerField(required=False)
+        if role == "user":
+            # Remove therapist-specific fields if role is "user"
+            data.pop("specialization", None)
+            data.pop("experience", None)
+            data.pop("desc", None)
+            data.pop("availability", None)
+        elif role == "therapist":
+            # Ensure required therapist fields are provided
+            missing_fields = []
+            for field in ["specialization", "experience", "desc", "availability"]:
+                if not data.get(field):
+                    missing_fields.append(field)
 
-    # Therapist-specific fields
-    name = serializers.CharField(required=False)
-    specialization = serializers.CharField(required=False)
-    experience = serializers.IntegerField(required=False)
-    desc = serializers.CharField(required=False)
-    availability = serializers.CharField(required=False)
+            if missing_fields:
+                raise serializers.ValidationError(
+                    {field: "This field is required for therapists." for field in missing_fields})
+
+        return data
 
     def create(self, validated_data):
-        user_type = validated_data.pop('user_type')
+        user = User.objects.create_user(**validated_data)
+        validated_data['password'] = make_password(validated_data['password'])
+        return user
 
-        validated_data['password'] = make_password(validated_data['password'])  # Hash password
 
-        if user_type == 'user':
-            return User.objects.create(**validated_data)
-
-        if user_type == 'therapist':
-            return Therapist.objects.create(**validated_data)
-
-        raise serializers.ValidationError("Invalid user type selected")
+class BookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookingModel
+        fields = '__all__'  # Include all fields in the response
 
 
 class Register_Login_View(viewsets.ViewSet):
@@ -97,25 +105,30 @@ class Register_Login_View(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def user_therapist_register(self, request):
         data = request.data.copy()
-        print(f"Received {request.data.get('user_type')} Registration Data:",
-              request.data)  # Debugging
+        role = data.get('role', 'user')
+        print(f"Received {request.data.get('role')} Registration Data:",
+              request.data)  # DebugginUserg
+        print(f"role: {role}")
+        if role not in ['user', 'therapist']:
+            return Response({"error": "Invalid role. Choose 'user' or 'therapist'."}, status=400)
 
-        if data['user_type'] == "therapist":
+        # if data['role'] == "therapist":
+        if data['role'] == "therapist":
 
-            serializer = UserTherapistSerializer(data=data)
+            serializer = UserSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
                 print("Therapist Registered Successfully!")
                 return Response(
-                    {'message': 'Therapist registered successfully'},
+                    {'message': 'Therapist registered successfully', 'redirect_url': '/therapist-login'},
                     status=201
                 )
             print("Serializer Errors:", serializer.errors)  # Debugging errors
             return Response(serializer.errors, status=400)
 
-        elif data['user_type'] == "user":
+        elif data['role'] == "user":
 
-            serializer = UserTherapistSerializer(data=data)
+            serializer = UserSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
                 print("User Registration Successful!")
@@ -124,11 +137,13 @@ class Register_Login_View(viewsets.ViewSet):
             print("Serializer Errors:", serializer.errors)  # Debugging errors
             return Response(serializer.errors, status=400)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def user_therapist_login(self, request, format=None):
         email = request.data.get('email')
         password = request.data.get('password')
-        user_type = request.data.get('user_type')
+
+        user_type = request.data.get('role')
+        print(user_type)
 
         if not email or not password:
             return Response(
@@ -136,84 +151,39 @@ class Register_Login_View(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if user_type == "user":
-            try:
-                user = User.objects.get(email=email)
-                if not user.check_password(password):
-                    raise User.DoesNotExist  # Use same exception for security
-            except User.DoesNotExist:
-                # Consider adding a small delay here to prevent timing attacks
-                time.sleep(random.uniform(0.1, 0.3))  # Add 'import time, random' at the top
-                return Response(
-                    {'error': 'Invalid credentials'},
-                    status=status.HTTP_401_UNAUTHORIZED
-                )
+        try:
+            user = User.objects.get(email=email)
+
+            if not user.check_password(password):
+                raise User.DoesNotExist
+        except User.DoesNotExist:
+            # Consider adding a small delay here to prevent timing attacks
+            time.sleep(random.uniform(0.1, 0.3))  # Add 'import time, random' at the top
+            return Response(
+                {'error': 'Invalid credentials'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
             # Create token with explicit expiry
-            refresh = RefreshToken.for_user(user)
-            access_token_expiry = now() + timedelta(minutes=30)
+        refresh = RefreshToken.for_user(user)
+        access_token_expiry = now() + timedelta(minutes=30)
 
-            # Set token expiry (if using simple_jwt)
-            refresh.access_token.set_exp(lifetime=timedelta(minutes=30))
-            user_type = "patient"
+        # Set token expiry (if using simple_jwt)
+        refresh.access_token.set_exp(lifetime=timedelta(minutes=30))
 
-            return Response({
-                'refresh': str(refresh),
-                'access_token': str(refresh.access_token),
-                'redirect_url': '/',
-                'expires_at': access_token_expiry,
-                "name": str(user.username),
-                "user_type": user_type
-            }, status=status.HTTP_200_OK)
+        return Response({
+            'refresh': str(refresh),
+            'access_token': str(refresh.access_token),
+            'redirect_url': '/' if user_type == "user" else "/therapist",
+            'expires_at': access_token_expiry,
+            "name": user.name,
+            "id": user.id,
+            "email": user.email,
+            "user_type": user.role,
+        }, status=status.HTTP_200_OK)
 
-        elif user_type == "therapist":
-            try:
-                therapist = Therapist.objects.get(email=email)
-                if not check_password(password, therapist.password):  # Hash check
-                    raise Therapist.DoesNotExist
-            except Therapist.DoesNotExist:
-                time.sleep(random.uniform(0.1, 0.3))  # Prevent timing attacks
-                return Response({'error': 'Invalid credentials'}, status=401)
-
-            #  Define Expiry Times
-            access_token_expiry = now() + timedelta(minutes=60)
-            refresh_token_expiry = now() + timedelta(days=1)
-
-            #  Manually Generate JWT Tokens
-            access_token_payload = {
-                "therapist_id": therapist.id,
-                "email": therapist.email,
-                "exp": access_token_expiry.timestamp(),  # Convert to UNIX timestamp
-                "type": "access",
-            }
-            access_token = jwt.encode(access_token_payload, settings.SECRET_KEY, algorithm="HS256")
-
-            refresh_token_payload = {
-                "therapist_id": therapist.id,
-                "email": therapist.email,
-                "exp": refresh_token_expiry.timestamp(),
-                "type": "refresh",
-            }
-            refresh_token = jwt.encode(refresh_token_payload,
-                                       settings.SECRET_KEY, algorithm="HS256")
-            user_type = "Therapist"
-
-            return Response({
-                "access_token": str(access_token),
-                "refresh_token": str(refresh_token),
-                "expires_at": access_token_expiry.isoformat(),  # Include readable expiry
-                "therapist_id": therapist.id,
-                "email": therapist.email,
-                "name": therapist.name,
-                "redirect_url": "/",
-                "user_type": user_type
-            }, status=200)
-
-
-class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def logout(self, request):
         try:
             # Debugging: Print authentication headers
             print("Authorization Header:", request.headers.get("Authorization"))
@@ -249,7 +219,7 @@ class User_View(viewsets.ViewSet):
         print("Full Request Headers:", request.headers)
         print("Authorization Header:", request.headers.get("Authorization"))
 
-        # ✅ Check for authorization token
+        # Check for authorization token
         auth_header = request.headers.get("Authorization")
         if not auth_header:
             return Response(
@@ -258,12 +228,12 @@ class User_View(viewsets.ViewSet):
             )
 
         try:
-            # ✅ Fetch all therapists
-            therapists = Therapist.objects.all()
+            # Fetch all therapists
+            therapists = User.objects.filter(role="therapist")
             if not therapists.exists():
                 return Response({"message": "No therapists available"}, status=status.HTTP_404_NOT_FOUND)
 
-            # ✅ Serialize therapist data
+            # Serialize therapist data
             therapist_list = [
                 {
                     "id": therapist.id,
@@ -292,22 +262,29 @@ class User_View(viewsets.ViewSet):
             return Response({"error": "Need Acces token."}, status=status.HTTP_401_UNAUTHORIZED)
 
         user = request.user
-        therapist_id = request.data.get('therapist_id')
+        id = request.data.get('therapist_id')
+        role = request.data.get('role', '').lower()
         assign_date = request.data.get('assign_date')
         session_type = request.data.get('session_type')
         assign_time = request.data.get('assign_time')
         note = request.data.get('note', '')
         is_valid = request.data.get('is_valid')
 
-        try:
-            booking = BookingModel.objects.all()
-            try:
-                therapist = Therapist.objects.get(id=therapist_id)
-            except Therapist.DoesNotExist:
-                return Response({"error": "Therapist Not Found"}, status=status.HTTP_404_NOT_FOUND)
+        if not id:
+            return Response({"error": "Therapist ID is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-            if not booking.exists():
-                return Response({"message": "There's no data to fetch, Verify database"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            id = int(id)
+        except ValueError:
+            return Response({"error": "Invalid therapist ID format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if role != "therapist":
+            return Response({"error": "Invalid role provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            therapist = User.objects.filter(role="therapist", id=id).first()
+            if not therapist:
+                return Response({"error": "Therapist Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
             booking = BookingModel.objects.create(
                 user=user,
@@ -319,7 +296,9 @@ class User_View(viewsets.ViewSet):
                 is_valid=is_valid
             )
 
-            return Response({"message": "Booking successfull", "booking_id": booking.id}, status=status.HTTP_200_OK)
+            serialized_booking = BookingSerializer(booking).data
+
+            return Response({"message": "Booking successful", "booking": serialized_booking}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -331,36 +310,30 @@ class Therapist_View(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def get_clients(self, request):
-
-        print(f"Full Headers: {request.headers}")
         auth_header = request.headers.get("Authorization")
-
-        print(f"Authorization: {auth_header}")
-
-        if not auth_header:
+        if not auth_header or "Bearer " not in auth_header:
             return Response({"error": "No Access Key found"}, status=status.HTTP_401_UNAUTHORIZED)
+
         therapist_id = request.query_params.get("therapist_id")
 
-        if not therapist_id:
-            return Response({"error": "Therapist id required"}, status=status.HTTP_400_BAD_REQUEST)
-
         try:
-            get_bookings = BookingModel.objects.filter(therapist_id=therapist_id)
-            if not get_bookings.exists():
-                return Response({"error": "There's no Appointment sessions to fetch."}, status=status.HTTP_404_NOT_FOUND)
+            clients = BookingModel.objects.filter(therapist=therapist_id)
+
+            if not clients.exists:
+                return Response({"message": "Not found"}, status=status.HTTP_404_NOT_FOUND)
 
             booking_list = [{
-                "user_id": booking.user.id,
-                "therapist_id": booking.therapist.id,
-                "age": booking.user.age,
-                "gender": booking.user.gender,
-                "is_valid": booking.is_valid
-            } for booking in get_bookings]
+                "id": client.id,
+                "name": client.user.name,
+                "age": client.user.age,
+                "gender": client.user.gender,
+                "notes": client.note,
+                "status": client.is_valid,
+            } for client in clients]
 
-            return Response({"bookings": booking_list}, status=status.HTTP_200_OK)
-
+            return Response({"message": booking_list}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ChatbotView(APIView):
