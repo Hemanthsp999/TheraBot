@@ -4,12 +4,7 @@ import re
 import fitz
 from spacy.lang.en import English
 
-
-# df = pd.read_json(
-# "hf://datasets/Amod/mental_health_counseling_conversations/combined_dataset.json", lines = True)
-
-# df = pd.read_csv("/home/hexa/ai_bhrtya/backend/mental_health_dataset.csv")
-path = "/home/hexa/ai_bhrtya/backend/mental_health_dataset.pdf"
+file_path = "/home/hexa/ai_bhrtya/backend/chatbot_model/mental_dataset.pdf"  # dataset path
 
 
 class pdf_handler():
@@ -33,7 +28,7 @@ class pdf_handler():
 
         pdf_to_dict = []
 
-        for page_no, context in tqdm(enumerate(open_pdf), desc="Processing pdf ..."):
+        for page_no, context in tqdm(enumerate(open_pdf), total=len(open_pdf), desc="Processing pdf ..."):
             string = context.get_text()
             string = self.text_formater(string)
             pdf_to_dict.append({
@@ -56,7 +51,7 @@ class pdf_handler():
 
         return string
 
-    def custom_text_slicer(self, input_str: list[str], split_size: int, over_lap_chunks: int) -> list[list[str]]:
+    def __custom_text_slicer(self, input_str: list[str], split_size: int, over_lap_chunks: int) -> list[list[str]]:
         # NOTE: Custom text splitter, I hope it works as expected!
         step_size = split_size - over_lap_chunks
         chunks = []
@@ -72,14 +67,16 @@ class pdf_handler():
     def custom_text_splitter(self, page_content: list[str], split_size: int, chunk_overlap: int) -> list[str]:
 
         for page in tqdm(page_content, desc="Processing chunks ..."):
-            page['sentence_chunks'] = self.__custom_text_slicer(
-                page['sentence'], split_size=split_size, over_lap_chunks=chunk_overlap)
-
-            page['no_sentence_chunks'] = len(page['sentence_chunks'])
+            if "sentence" in page and len(page) > 0:
+                page['sentence_chunks'] = self.__custom_text_slicer(
+                    page['sentence'], split_size=split_size, over_lap_chunks=chunk_overlap)
+                page['no_sentence_chunks'] = len(page['sentence_chunks'])
+            else:
+                page['sentence_chunks'] = []
 
         return page_content
 
-    def structure_chunks(self, chunks: list[str]) -> list[str]:
+    def structure_chunks(self, chunks: list[str]) -> str:
         refactored_chunks = []
 
         for sentence in tqdm(chunks, desc="Processing structure_to_chunks ..."):
@@ -100,7 +97,3 @@ class pdf_handler():
         return refactored_chunks
 
 
-txt = pdf_handler()
-split = txt.custom_text_slicer(
-    ["sentence1", "sentence2", "sentence3", "sentence4", "sentence5", "sentence6", "sentence7", "sentence8", "sentence9", "sentence10"], split_size=4, over_lap_chunks=3)
-print(split)
