@@ -112,7 +112,7 @@ export default function Navbar() {
         {/* Center Section (Navbar Links for Large Screens) */}
         <ul className="hidden md:flex gap-6">
           {[
-            "Home",
+            user_type == "therapist" ? "Dashboard" : "Home",
             "About",
             user_type == "therapist" ? "Chat" : "Services",
             "Contact",
@@ -124,7 +124,11 @@ export default function Navbar() {
                     ? "/"
                     : item === "Chat"
                       ? "/therapist/chat"
-                      : `/${item.toLowerCase()}`
+                      : item === "Services"
+                        ? "/user/services"
+                        : item === "Dashboard"
+                          ? "/therapist"
+                          : `/${item.toLowerCase()}`
                 }
                 className="hover:text-blue-500 transition"
               >
@@ -138,9 +142,7 @@ export default function Navbar() {
               <Link
                 to="/therapist/patients"
                 className="hover:text-blue-500 transition"
-              >
-                Patients
-              </Link>
+              ></Link>
             </li>
           )}
         </ul>
@@ -195,25 +197,23 @@ export default function Navbar() {
             {/* Mobile Navbar Links (Appears Below Button) */}
             {isOpen && (
               <ul className="absolute right-0 top-full mt-2 w-40 bg-black text-white text-center p-4 rounded-lg shadow-lg z-50">
-                {["Home", "About", email ? "Chat" : "Services", "Contact"].map(
-                  (item, index) => (
-                    <li key={index} className="py-2">
-                      <Link
-                        to={
-                          item === "Home"
-                            ? "/"
-                            : item === "Chat"
-                              ? "/chat"
-                              : `/${item.toLowerCase()}`
-                        }
-                        className="hover:text-blue-500 transition"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {item}
-                      </Link>
-                    </li>
-                  ),
-                )}
+                {["Home", "About", "Services", "Contact"].map((item, index) => (
+                  <li key={index} className="py-2">
+                    <Link
+                      to={
+                        item === "Home"
+                          ? "/"
+                          : item === "Chat"
+                            ? "/chat"
+                            : `/${item.toLowerCase()}`
+                      }
+                      className="hover:text-blue-500 transition"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {item}
+                    </Link>
+                  </li>
+                ))}
                 {/* Only show Patients link if user is logged in */}
                 {email && (
                   <li className="py-2">
@@ -221,9 +221,7 @@ export default function Navbar() {
                       to="therapist/patients"
                       className="hover:text-blue-500 transition"
                       onClick={() => setIsOpen(false)}
-                    >
-                      Patients
-                    </Link>
+                    ></Link>
                   </li>
                 )}
               </ul>

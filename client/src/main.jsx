@@ -32,6 +32,7 @@ import Protected from "./components/ProtectedRoute.jsx";
 import AccessAccount from "./components/AccessAccount";
 import TherapistLogin from "./components/TherapistLogin";
 import TherapistRegister from "./components/TherapistRegistration.jsx";
+import TherapistLanding from "./components/TherapistLanding.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import PatientsPage from "./components/PatientsPage";
 import PatientDetailPage from "./components/PatientDetailPage";
@@ -46,26 +47,34 @@ const router = createBrowserRouter([
       { path: "/access-account", element: <AccessAccount /> },
       { path: "/login", element: <Login /> },
       { path: "/therapist-login", element: <TherapistLogin /> },
-      { path: "/signup", element: <Register /> },
+      { path: "user/signup", element: <Register /> },
       { path: "/about", element: <About /> },
       { path: "/contact", element: <Contact /> },
-      { path: "/register", element: <TherapistRegister /> },
+      { path: "register", element: <TherapistRegister /> },
       { path: "/forget", element: <Forgetpassword /> },
-      { path: "/services", element: <Service /> },
-
-      /*
       {
-        path: "/chat",
+        path: "/user",
         element: <Protected />,
-        children: [{ index: true, element: <TherapistChat /> }],
+        children: [
+          {
+            path: "therapist",
+            element: <Therapist />,
+          },
+          {
+            path: "services",
+            element: <Service />,
+          },
+        ],
       },
-      */
 
       {
         path: "therapist",
         element: <Protected />,
         children: [
-          { index: true, element: <Therapist /> },
+          {
+            index: true,
+            element: <TherapistLanding />,
+          },
           {
             path: "chat",
             element: <TherapistChat />,
@@ -86,6 +95,28 @@ const router = createBrowserRouter([
     path: "/user/chatbot",
     element: <Protected />,
     children: [{ index: true, element: <ChatBot /> }],
+  },
+  {
+    path: "therapist",
+    element: <Protected />,
+    children: [
+      {
+        index: true,
+        element: <TherapistLanding />,
+      },
+      {
+        path: "chat",
+        element: <TherapistChat />,
+      },
+      {
+        path: "patients",
+        element: <PatientsPage />,
+      },
+      {
+        path: "patients/:id",
+        element: <PatientDetailPage />,
+      },
+    ],
   },
 
   /*
