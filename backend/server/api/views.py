@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# from langchain.chains.combine_documents import create_stuff_documents_chain
-# from langchain_core.output_parsers import StrOutputParser
-
 from rest_framework.decorators import action
 from langchain_core.prompts import PromptTemplate
 # from langchain.chains import create_retrieval_chain
@@ -29,10 +26,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
-# from api.models import User
 from api.models import BookingModel
 from rest_framework import status
-from django.contrib.auth.hashers import check_password
+# from django.contrib.auth.hashers import check_password
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import viewsets
@@ -96,7 +92,7 @@ class UserSerializer(serializers.ModelSerializer):
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookingModel
-        fields = '__all__'  # Include all fields in the response
+        fields = '__all__'
 
 
 class Register_Login_View(viewsets.ViewSet):
@@ -286,6 +282,7 @@ class User_View(viewsets.ViewSet):
             if not therapist:
                 return Response({"error": "Therapist Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
+            # Insert into Database
             booking = BookingModel.objects.create(
                 user=user,
                 therapist=therapist,
@@ -317,19 +314,24 @@ class Therapist_View(viewsets.ViewSet):
         therapist_id = request.query_params.get("therapist_id")
 
         try:
-            clients = BookingModel.objects.filter(therapist=therapist_id)
+            # Retrieve clients from the database
+            get_clients = BookingModel.objects.filter(therapist=therapist_id)
 
-            if not clients.exists:
-                return Response({"message": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+            if not get_clients.exists:
+                return Response({"message": "Clients not found"}, status=status.HTTP_404_NOT_FOUND)
 
+            # make a list of clients who have appointment for particular therapist and send response
             booking_list = [{
                 "id": client.id,
                 "name": client.user.name,
                 "age": client.user.age,
+                "email": client.user.email,
+                "phone": client.user.phone_number,
                 "gender": client.user.gender,
                 "notes": client.note,
+                "appointment": client.assign_date,
                 "status": client.is_valid,
-            } for client in clients]
+            } for client in get_clients]
 
             return Response({"message": booking_list}, status=status.HTTP_200_OK)
         except Exception as e:

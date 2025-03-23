@@ -13,23 +13,21 @@
 # limitations under the License.
 
 
-# api/urls.py
-
 from django.urls import path
-# from rest_framework.routers import DefaultRouter
-from .views import Register_Login_View, LogoutView, ChatbotView, User_View, Therapist_View
+from .views import Register_Login_View, ChatbotView, User_View, Therapist_View
 
 urlpatterns = [
     path("register/",
          Register_Login_View.as_view({'post': 'user_therapist_register'}), name="register"),
     path("login/", Register_Login_View.as_view({'post': 'user_therapist_login'}), name="login"),
-    path("logout/", LogoutView.as_view(), name="logout"),
+    path("logout/", Register_Login_View.as_view({'post': 'logout'}), name="logout"),
     path('chatbot/', ChatbotView.as_view(), name='chatbot'),
     path('fetchTherapist/',
          User_View.as_view({'get': 'get_therapist'}), name='fetchTherapist'),
     path('book_clients/',
          User_View.as_view({'post': 'book_therapist'}), name='book_clients'),
-    path('fetchClients/', Therapist_View.as_view({'get': 'get_clients'}), name='fetchClients')
+    path('fetchClients/',
+         Therapist_View.as_view({'get': 'get_clients'}), name='fetchClients')
 
 ]
 
