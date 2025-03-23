@@ -63,36 +63,38 @@ const Register = () => {
 
         <div className="bg-white text-nowrap rounded-2xl shadow-lg p-8 hover:shadow-2xl  duration-100 transform hover:scale-100">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="relative z-0 w-full mb-5 group">
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                placeholder=" "
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="relative z-0 w-full mb-5 group">
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  placeholder=" "
+                  required
+                />
 
-              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
-                User Name
-              </label>
-            </div>
+                <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
+                  User Name
+                </label>
+              </div>
 
-            <div className="relative z-0 w-full mb-5 group">
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                placeholder=" "
-                required
-              />
+              <div className="relative z-0 w-full mb-5 group">
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  placeholder=" "
+                  required
+                />
 
-              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
-                Email
-              </label>
+                <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
+                  Email
+                </label>
+              </div>
             </div>
 
             <div className="relative z-0 w-full mb-2 group">
@@ -111,67 +113,69 @@ const Register = () => {
               </select>
             </div>
 
-            <div className="relative z-0 w-full mb-5 group">
-              <input
-                type="tel"
-                name="age"
-                value={formData.age}
-                onChange={handleChange}
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                placeholder=" "
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="relative z-0 w-full mb-5 group">
+                <input
+                  type="tel"
+                  name="age"
+                  value={formData.age}
+                  onChange={handleChange}
+                  className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  placeholder=" "
+                  required
+                />
 
-              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
-                Age
-              </label>
-            </div>
+                <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
+                  Age
+                </label>
+              </div>
 
-            <div className="relative z-0 w-full mb-5 group">
-              <input
-                type="tel"
-                name="phone_number"
-                value={formData.phone_number}
-                onChange={handleChange}
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                placeholder=" "
-                required
-              />
+              <div className="relative z-0 w-full mb-5 group">
+                <input
+                  type="tel"
+                  name="phone_number"
+                  value={formData.phone_number}
+                  onChange={handleChange}
+                  className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  placeholder=" "
+                  required
+                />
 
-              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
-                Phone Number
-              </label>
-            </div>
+                <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
+                  Phone Number
+                </label>
+              </div>
 
-            <div className="relative z-0 w-full mb-5 group">
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                placeholder=" "
-                required
-              />
+              <div className="relative z-0 w-full mb-5 group">
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  placeholder=" "
+                  required
+                />
 
-              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
-                Password
-              </label>
-            </div>
-            <div className="relative z-0 w-full mb-5 group">
-              <input
-                type="password"
-                name="re_password"
-                value={formData.re_password}
-                onChange={handleChange}
-                className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                placeholder=" "
-                required
-              />
+                <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
+                  Password
+                </label>
+              </div>
+              <div className="relative z-0 w-full mb-5 group">
+                <input
+                  type="password"
+                  name="re_password"
+                  value={formData.re_password}
+                  onChange={handleChange}
+                  className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  placeholder=" "
+                  required
+                />
 
-              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
-                Re-Enter Password
-              </label>
+                <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
+                  Re-Enter Password
+                </label>
+              </div>
             </div>
             {error && <p className="text-red-500">{error}</p>}
             {success && <p className="text-green-500">{success}</p>}

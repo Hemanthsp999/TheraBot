@@ -9,6 +9,10 @@ const PatientsPage = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [patients, setPatients] = useState([]);
 
+  function make_upper_case(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
   useEffect(() => {
     const getPatients = async () => {
       const access_token = localStorage.getItem("accessToken");
@@ -20,6 +24,7 @@ const PatientsPage = () => {
         window.location.href = "/login";
       }
 
+      /* This api calls the get_client() func */
       const api_url = "http://127.0.0.1:8000/api/fetchClients/";
 
       try {
@@ -31,7 +36,11 @@ const PatientsPage = () => {
           },
           params: { therapist_id: therapist_id },
         });
-        console.log("Response", resp.data.bookings);
+        console.log("Response", resp.data.message);
+
+        if (Array.isArray(resp.data.message)) {
+          setPatients(resp.data.message);
+        }
       } catch (e) {
         console.error("Axios Error:", e.response?.data || e.message);
       }
@@ -122,7 +131,7 @@ const PatientsPage = () => {
                         {patient.age}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                        {patient.gender}
+                        {make_upper_case(patient.gender)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                         {patient.lastVisit}
@@ -138,12 +147,22 @@ const PatientsPage = () => {
                               : "bg-red-100 text-red-800"
                           }`}
                         >
-                          {patient.status}
+                          {make_upper_case(patient.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <Link
-                          to={`/therapist/patients/:${patient.id}`}
+                          to={`/therapist/patients/${patient.id}`}
+                          state={{
+                            name: patient.name,
+                            age: patient.age,
+                            gender: patient.gender,
+                            email: patient.email,
+                            status: patient.status,
+                            phone: patient.phone,
+                            note: patient.notes,
+                            appointment: patient.appointment,
+                          }}
                           className="text-blue-600 hover:text-blue-900 mr-3"
                         >
                           View

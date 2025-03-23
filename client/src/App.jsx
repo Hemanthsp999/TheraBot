@@ -2,7 +2,6 @@ import "aos/dist/aos.css";
 import AOS from "aos";
 import { Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
-//import AnimateIn from "./components/AnimateIn.tsx";
 import "./components/css/App.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -12,7 +11,7 @@ function App() {
   const [scrollingUp, setScrollingUp] = useState(false);
 
   useEffect(() => {
-    // Initialize AOS
+    /* Initialize AOS */
     AOS.init({
       duration: 1000,
       easing: "ease-out",
