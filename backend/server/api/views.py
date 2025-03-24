@@ -13,12 +13,13 @@
 # limitations under the License.
 
 from rest_framework.decorators import action
-from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 # from langchain.chains import create_retrieval_chain
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_huggingface.llms import HuggingFacePipeline
 from langchain_ollama import ChatOllama
 from django.utils.timezone import now
 from rest_framework import serializers
@@ -38,6 +39,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import timedelta
 from django.conf import settings
 import jwt
+from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
 
 # from langchain.memory import ConversationBufferMemory
 
@@ -200,7 +202,7 @@ class Register_Login_View(viewsets.ViewSet):
             token = RefreshToken(refresh_token)
             token.blacklist()
 
-            return Response({"message": "Logout successful"}, status=200)
+            return Response({"message": "Logout successful", "redirect_url": "/login"}, status=200)
 
         except Exception as e:
             return Response({"error": str(e)}, status=400)
@@ -338,9 +340,7 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class ChatbotView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+class ChatbotView(viewsets.ViewSet):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -352,7 +352,6 @@ class ChatbotView(APIView):
 
         self.vector_db = vector_db
 
-        # self.memory = ConversationBufferMemory()
         self.str_out_put_parser = StrOutputParser()
 
         self.rag_chain = self.setup_rag_chain()
@@ -363,6 +362,7 @@ class ChatbotView(APIView):
     def setup_rag_chain(self):
         retriever = self.vector_db.as_retriever()
 
+        '''
         template = """
             Use the following pieces of context to answer the question at the end. If you don't know the answer or if the question is not related to the given context, please respond with "I'm sorry, but I don't have enough information to answer that question based on the provided context."
 
@@ -374,6 +374,13 @@ class ChatbotView(APIView):
         prompt = PromptTemplate.from_template(
             template=template
         )
+        '''
+        prompt = ChatPromptTemplate.from_messages([
+
+            ("system", "You are a helpful assistant. Please respond to the questions"),
+            ("user", "Question:{question}")
+
+        ])
 
         rag_chain = ({
             "context": retriever | self.format_docs, "question": RunnablePassthrough()}
@@ -395,59 +402,17 @@ class ChatbotView(APIView):
 
         return Response({"response": response})
 
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], Authentication=[JWTAuthentication])
     def post(self, request):
         # Add extensive logging
         print("Full Request Headers:", request.headers)
         print("Authorization Header:", request.headers.get("Authorization"))
 
-        # Manual token extraction and validation
-        auth_header = request.headers.get("Authorization")
-        if not auth_header:
-            return Response(
-                {"error": "No authorization header", "code": "no_auth_header"},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
         try:
-            # Extract token (remove 'Bearer ' prefix)
-            token = auth_header.split(' ')[1] if len(auth_header.split(' ')) > 1 else None
-
-            if not token:
+            auth_header = request.headers.get("Authorization")
+            if not auth_header:
                 return Response(
-                    {"error": "Invalid token format", "code": "invalid_token_format"},
-                    status=status.HTTP_401_UNAUTHORIZED
-                )
-
-            # Manually decode the token
-            try:
-                decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-                print("Decoded Token:", decoded_token)
-
-                # Manually check user existence
-                user_id = decoded_token.get('user_id')
-                if not user_id:
-                    return Response(
-                        {"error": "No user_id in token", "code": "no_user_id"},
-                        status=status.HTTP_401_UNAUTHORIZED
-                    )
-
-                try:
-                    user = User.objects.get(id=user_id)
-                    print(f"User found: {user.email}")
-                except User.DoesNotExist:
-                    return Response(
-                        {"error": "User not found", "code": "user_not_found"},
-                        status=status.HTTP_401_UNAUTHORIZED
-                    )
-
-            except jwt.ExpiredSignatureError:
-                return Response(
-                    {"error": "Token has expired", "code": "token_expired"},
-                    status=status.HTTP_401_UNAUTHORIZED
-                )
-            except jwt.InvalidTokenError:
-                return Response(
-                    {"error": "Invalid token", "code": "invalid_token"},
+                    {"error": "No authorization header", "code": "no_auth_header"},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
 
@@ -460,4 +425,3 @@ class ChatbotView(APIView):
 
         # If all checks pass, proceed with the conversation
         return self.conversation(request)
-

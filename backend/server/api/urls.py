@@ -21,7 +21,7 @@ urlpatterns = [
          Register_Login_View.as_view({'post': 'user_therapist_register'}), name="register"),
     path("login/", Register_Login_View.as_view({'post': 'user_therapist_login'}), name="login"),
     path("logout/", Register_Login_View.as_view({'post': 'logout'}), name="logout"),
-    path('chatbot/', ChatbotView.as_view(), name='chatbot'),
+    path('chatbot/', ChatbotView.as_view({'post': 'post'}), name='chatbot'),
     path('fetchTherapist/',
          User_View.as_view({'get': 'get_therapist'}), name='fetchTherapist'),
     path('book_clients/',
