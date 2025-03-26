@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./css/App.css";
 
@@ -6,17 +7,21 @@ const AutoLogout = () => {
   const navigate = useNavigate();
   const [sessionExpired, setSessionExpired] = useState(false);
 
+  const logout_api = "http://127.0.0.1:8000/api/logout/";
+  const access_token = localStorage.getItem("accessToken");
+  const refresh_token = localStorage.getItem("refreshToken");
+
   console.log("✅ AutoLogout component mounted!"); // Ensure it's mounted
 
   useEffect(() => {
     console.log("🔄 AutoLogout useEffect running..."); // Ensure effect runs
 
-    const checkSession = () => {
+    const checkSession = async () => {
       const expiresAt = localStorage.getItem("expiresAt");
 
       if (!expiresAt) {
         console.log(
-          "❌ No expiresAt found in localStorage. Please Login to track session!.",
+          " No expiresAt found in localStorage. Please Login to track session!.",
         );
         return;
       }
@@ -33,8 +38,24 @@ const AutoLogout = () => {
       if (currentTime >= expiryTime) {
         setSessionExpired(true);
         // alert("Session expired. Please log in again.");
+        try {
+          const logout = await axios.post(
+            logout_api,
+            { refreshToken: refresh_token },
+            {
+              headers: {
+                Authorization: `Bearer ${access_token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
+          setTimeout(() => navigate(logout.data.redirect_url), 3000);
+          navigate(logout.data.redirect_url);
+          localStorage.clear();
+        } catch (e) {
+          console.error(e);
+        }
         localStorage.clear();
-        setTimeout(() => navigate("/login"), 3000);
       }
     };
 
@@ -46,7 +67,7 @@ const AutoLogout = () => {
       console.log("⛔ AutoLogout component unmounted!");
       clearInterval(interval);
     };
-  }, [navigate]);
+  }, [navigate, access_token, refresh_token]);
 
   return (
     sessionExpired && (

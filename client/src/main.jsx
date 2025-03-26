@@ -34,6 +34,7 @@ import TherapistLogin from "./components/TherapistLogin";
 import TherapistRegister from "./components/TherapistRegistration.jsx";
 import TherapistLanding from "./components/TherapistLanding.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import ProfileSettings from "./components/ProfileSettings.jsx";
 import PatientsPage from "./components/PatientsPage";
 import PatientDetailPage from "./components/PatientDetailPage";
 import TherapistChat from "./components/TherapistChat";
@@ -74,6 +75,10 @@ const router = createBrowserRouter([
           {
             index: true,
             element: <TherapistLanding />,
+          },
+          {
+            path: "profile",
+            element: <ProfileSettings />,
           },
           {
             path: "chat",

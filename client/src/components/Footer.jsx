@@ -25,7 +25,7 @@ export default function Footer() {
                     <img
                         src={Bot}
                         alt="logo"
-                        className="w-12 h-12 rounded-full"
+                        className="w-12 h-12 rounded-lg"
                     />
                     <Typography
                         as="span"

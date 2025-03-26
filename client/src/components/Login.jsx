@@ -32,12 +32,14 @@ const Login = () => {
       localStorage.setItem("refreshToken", response.data.refresh);
       localStorage.setItem("userEmail", formData.email);
       localStorage.setItem("name", response.data.name);
+      localStorage.setItem("user_id", response.data.id);
       localStorage.setItem("expiresAt", response.data.expires_at);
       console.log("Access_Token: ", response.data.access_token);
       console.log("Expires_at", response.data.expires_at);
       console.log("refresh token", response.data.refresh);
       console.log("name", response.data.name);
       console.log("user type: ", localStorage.getItem("user_type"));
+      console.log(" User ID: ", localStorage.getItem("user_id"));
 
       navigate(response.data.redirect_url);
     } catch (error) {
@@ -102,7 +104,7 @@ const Login = () => {
               </button>
               <p className="text-gray-900 py-2">
                 Don't have an Account?{" "}
-                <Link to="/signup">
+                <Link to="/user/signup">
                   <u> Register here </u>
                 </Link>
               </p>

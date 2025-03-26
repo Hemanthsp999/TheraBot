@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
+import "./css/App.css";
 import axios from "axios";
 import { useState, useRef, useEffect } from "react";
-import { Send, ArrowLeft, Mic, AudioLines } from "lucide-react";
+import { Send, ArrowLeft, Volume2, AudioLines } from "lucide-react";
 import Bot from "./images/Bot.jpeg";
 import { useReactMediaRecorder } from "react-media-recorder";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AutoLogout from './AutoLogout.jsx';
 
 const ChatBot = () => {
   const [messages, setMessages] = useState([
@@ -17,12 +19,15 @@ const ChatBot = () => {
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [storedAudio, setStoredAudio] = useState(null);
+  const [recordedAudio, setRecordedAudio] = useState(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Audio handler
   const { status, startRecording, stopRecording, mediaBlobUrl } =
     useReactMediaRecorder({
       audio: true,
@@ -42,8 +47,7 @@ const ChatBot = () => {
       },
     });
 
-  const [recordedAudio, setRecordedAudio] = useState(null);
-
+  // True when user clicks and false if get clicked again
   const toggleButton = () => {
     if (status !== "recording") {
       console.log("Start recording...");
@@ -81,9 +85,9 @@ const ChatBot = () => {
   const requestMicPermission = async () => {
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log("✅ Microphone access granted.");
+      console.log(" Microphone access granted.");
     } catch (error) {
-      console.error("❌ Microphone access denied:", error);
+      console.error(" Microphone access denied:", error);
       alert("Please allow microphone access for recording to work.");
     }
   };
@@ -95,33 +99,6 @@ const ChatBot = () => {
       }
     });
   }, []);
-
-  /*
-  const handleSaveAudio = async () => {
-    if (!mediaBlobUrl) {
-      console.log("No audio recorded.");
-      return;
-    }
-
-    // Convert mediaBlobUrl to an actual Blob object
-    const response = await fetch(mediaBlobUrl);
-    const audioBlob = await response.blob();
-    const audioFile = new File([audioBlob], "recorded_audio.wav", {
-      type: "audio/wav",
-    });
-
-    setRecordedAudio(audioFile); // Store in state
-
-    console.log(" Stored Audio:", audioFile);
-  };
-  useEffect(() => {
-    if (status === "stopped" && mediaBlobUrl && !recordedAudio) {
-      // Automatically save the audio after recording stopped
-      handleSaveAudio();
-    }
-    console.log("Is Recording?? :", status);
-  }, [status, mediaBlobUrl, recordedAudio]);
-  */
 
   useEffect(() => {
     scrollToBottom();
@@ -136,14 +113,13 @@ const ChatBot = () => {
     setIsLoading(true);
 
     const API_URL = "http://127.0.0.1:8000/api/chatbot/";
-    //console.log(accessToken);
 
     setMessages((prev) => [...prev, { type: "user", content: userMessage }]);
 
     try {
-      const accessToken = localStorage.getItem("accessToken");
-      console.log("Access: ", accessToken);
-      if (!accessToken) {
+      const access_token = localStorage.getItem("accessToken");
+      console.log("Access: ", localStorage.getItem("accessToken"));
+      if (!access_token) {
         setMessages((prev) => [
           ...prev,
           {
@@ -152,7 +128,6 @@ const ChatBot = () => {
           },
         ]);
         setIsLoading(false);
-        localStorage.clear();
         return;
       }
       const response = await axios.post(
@@ -160,7 +135,7 @@ const ChatBot = () => {
         { query: userMessage }, // Correct: Send only query in body
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`, // Ensure correct format
+            Authorization: `Bearer ${access_token}`, // Ensure correct format
             "Content-Type": "application/json",
           },
         },
@@ -168,7 +143,7 @@ const ChatBot = () => {
       const botResponse =
         (await response.data.response) || "Sorry, I couldn't understand that.";
 
-      // setMessages((prev) => [...prev, { type: "bot", content: botResponse }]);
+      setStoredAudio(response.data.response);
 
       let currentMessage = "";
       setMessages((prev) => [...prev, { type: "bot", content: "" }]); // Add empty message slot
@@ -189,16 +164,37 @@ const ChatBot = () => {
     } catch (error) {
       console.error("Error:", error.response?.data || error.message);
 
-      if (error.response?.status === 401) {
+      if (error.response?.status > 399 || error.response?.status < 500) {
         setMessages((prev) => [
           ...prev,
           { type: "bot", content: "Session expired. Please log in again." },
         ]);
-        // localStorage.removeItem("accessToken"); // Clear invalid token
       }
     }
 
     setIsLoading(false);
+  };
+
+  // Text to speech
+  const speakBotResponse = (text) => {
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    // Choose a specific voice: need some catchy voice ?
+    const voices = synth.getVoices();
+    const selectedVoice = voices.find(
+      (voice) => voice.name === "Google UK English Female",
+    ); // Example voice
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
+    utterance.pitch = 1; //  Set pitch (0 = deep, 2 = high)
+    utterance.rate = 1; //  Set speed (0.5 = slow, 2 = fast)
+    utterance.volume = 1; //  Set volume (0 = mute, 1 = full)
+
+    synth.speak(utterance);
   };
 
   return (
@@ -228,10 +224,11 @@ const ChatBot = () => {
         {messages.map((message, index) => (
           <div
             key={index}
-            className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
+            className={`flex flex-col ${message.type === "user" ? "items-end" : "items-start"}`}
           >
+            {/* Bot/User Message Container */}
             <div
-              className={`max-w-[70%] p-3 rounded-2xl text-white ${
+              className={`max-w-[70%] p-3 rounded-2xl text-white mt-2 break-words ${
                 message.type === "user"
                   ? "bg-purple-500 text-sm rounded-br-none"
                   : "bg-blue-400 rounded-bl-none text-sm"
@@ -239,8 +236,22 @@ const ChatBot = () => {
             >
               {message.content}
             </div>
+
+            {/* Volume Button (Only for Bot Messages) */}
+            {message.type === "bot" && (
+              <button
+                className="mt-1 flex items-center text-white hover:text-gray-400"
+                onClick={(e) => {
+                  e.preventDefault;
+                  speakBotResponse(storedAudio);
+                }}
+              >
+                <Volume2 size={20} />
+              </button>
+            )}
           </div>
         ))}
+
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-blue-400 text-white p-3 rounded-lg rounded-bl-none">
@@ -265,8 +276,12 @@ const ChatBot = () => {
             disabled={isLoading}
           />
           <button
+            type="button"
             className={`p-2 bg-teal-400 ${status === "recording" ? "hover:bg-red " : "hover:bg-teal-500 rounded-lg text-white"}`}
-            onClick={toggleButton}
+            onClick={(e) => {
+              e.preventDefault();
+              toggleButton();
+            }}
           >
             <AudioLines size={30} />
           </button>
@@ -286,9 +301,13 @@ const ChatBot = () => {
             <Send size={20} />
           </button>
         </div>
+      <main className="flex-1">
+        <AutoLogout />
+      </main>
       </form>
     </div>
   );
 };
+
 
 export default ChatBot;

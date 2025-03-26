@@ -11,6 +11,7 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
     notes: "",
     is_active: "",
     therapist_id: therapist.id,
+    role: "therapist",
   });
 
   const handleSubmit = async (e) => {
@@ -28,6 +29,7 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
           assign_time: bookingData.time,
           note: bookingData.notes,
           is_valid: "true",
+          role: "therapist",
         },
         {
           headers: {
