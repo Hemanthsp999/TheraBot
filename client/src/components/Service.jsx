@@ -13,10 +13,10 @@ const Service = () => {
         </p>
         <div className="mt-6">
           <button className="bg-white btn text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">
-            <Link to={"/chatbot"}>Try TheraBot Now</Link>
+            <Link to={"/user/chatbot"}>Try TheraBot Now</Link>
           </button>
           <button className="bg-white text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">
-            <Link to={"/therapist"}>Meet Our Therapists</Link>
+            <Link to={"/user/therapist"}>Meet Our Therapists</Link>
           </button>
         </div>
       </section>
@@ -151,12 +151,18 @@ const Service = () => {
           Ready to start your journey to better mental health?
         </h2>
         <div className="mt-6">
-          <button className="bg-white btn text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">
+          <Link
+            className="bg-white btn text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2"
+            to={"/user/chatbot"}
+          >
             Try TheraBot Now
-          </button>
-          <button className="bg-white text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2">
+          </Link>
+          <Link
+            className="bg-black text-blue-500 px-6 py-2 rounded-lg font-semibold mx-2"
+            to={"/user/chatbot"}
+          >
             Book a Session
-          </button>
+          </Link>
         </div>
       </section>
     </div>

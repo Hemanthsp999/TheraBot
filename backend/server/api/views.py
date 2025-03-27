@@ -13,13 +13,12 @@
 # limitations under the License.
 
 from rest_framework.decorators import action
-from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 # from langchain.chains import create_retrieval_chain
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_huggingface.llms import HuggingFacePipeline
 from langchain_ollama import ChatOllama
 from django.utils.timezone import now
 from rest_framework import serializers
@@ -31,15 +30,15 @@ from api.models import BookingModel
 from rest_framework import status
 # from django.contrib.auth.hashers import check_password
 from rest_framework.response import Response
-from rest_framework.views import APIView
+# from rest_framework.views import APIView
 from rest_framework import viewsets
 import random
 import time
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import timedelta
-from django.conf import settings
-import jwt
-from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
+# from django.conf import settings
+# import jwt
+# from transformers import pipeline, AutoTokenizer
 
 # from langchain.memory import ConversationBufferMemory
 
@@ -54,6 +53,7 @@ vector_db = FAISS.load_local(folder_path=folder_path,
 User = get_user_model()
 
 
+# return db
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -208,10 +208,12 @@ class Register_Login_View(viewsets.ViewSet):
             return Response({"error": str(e)}, status=400)
 
 
+# returns user_component
 class User_View(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    # returns list of therapist
     @action(detail=False, methods=['get'])
     def get_therapist(self, request):
         print("Full Request Headers:", request.headers)
@@ -250,6 +252,34 @@ class User_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # returns the therapist sessions for users
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    def get_therapist_sessions(self, request):
+        print(f"Headers: {request.headers}")
+        auth_header = request.headers.get('Authorization')
+        user_id = request.query_params.get('user_id')
+
+        if not auth_header:
+            return Response({"error": "User not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            sessions = BookingModel.objects.filter(user=user_id)
+
+            if not sessions.exists():
+                return Response({"error": "Therapist Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            session_list = [{
+                "name": session.therapist.name,
+                "session_type": session.session_type,
+            } for session in sessions]
+            print(f"Session: {session_list}")
+
+            return Response({"response": session_list}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # returns the success if the session booked successfully
     @action(detail=False, methods=['post'])
     def book_therapist(self, request):
         print(f"Full Headers: {request.headers}")
@@ -303,10 +333,12 @@ class User_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# returns the therapist_components
 class Therapist_View(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    # returns the client(patient) list
     @action(detail=False, methods=['get'])
     def get_clients(self, request):
         auth_header = request.headers.get("Authorization")
@@ -340,6 +372,7 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# returns the bot response
 class ChatbotView(viewsets.ViewSet):
 
     def __init__(self, **kwargs):

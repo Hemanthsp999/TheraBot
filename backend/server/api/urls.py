@@ -26,6 +26,8 @@ urlpatterns = [
          User_View.as_view({'get': 'get_therapist'}), name='fetchTherapist'),
     path('book_clients/',
          User_View.as_view({'post': 'book_therapist'}), name='book_clients'),
+    path('get_therapist_session/',
+         User_View.as_view({'get': 'get_therapist_sessions'}), name="get_therapist_session/"),
     path('fetchClients/',
          Therapist_View.as_view({'get': 'get_clients'}), name='fetchClients')
 

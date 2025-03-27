@@ -31,15 +31,6 @@ export default function Navbar() {
   const handleLogout = async (e) => {
     e.preventDefault();
 
-    // Clear local storage regardless of API call success
-    {
-      /*
-    localStorage.removeItem("name");
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    */
-    }
-
     try {
       const refresh_token = localStorage.getItem("refreshToken");
       const access_token = localStorage.getItem("accessToken");
@@ -66,12 +57,16 @@ export default function Navbar() {
       );
 
       console.log(response.data.message);
-      localStorage.removeItem("name");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
+      localStorage.clear();
 
       // Redirect to login page
-      navigate("/login");
+      navigate(response.data.redirect_url);
+      // check if the data is remove or not ?
+      if (localStorage.length > 0) {
+        console.log("Still data is there...");
+      } else {
+        console.log("Removed Storage");
+      }
     } catch (error) {
       console.error("Logout failed:", error.response?.data || error);
       localStorage.clear();
@@ -92,11 +87,11 @@ export default function Navbar() {
       <div className="container mx-auto flex justify-between items-center px-4 md:px-8">
         {/* Left Section (Logo & Name) */}
         <div className="flex items-center space-x-2 mt-1">
-          <Link to={"/"}>
+          <Link to={user_type === "therapist" ? "/therapist" : "/"}>
             <img
               src={Bot}
               onClick={scrollToTop}
-              className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover"
+              className="w-8 h-8 md:w-10 md:h-10 rounded-lg object-cover"
               alt="Logo"
             />
           </Link>
