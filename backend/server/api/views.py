@@ -28,17 +28,17 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 from api.models import BookingModel
 from rest_framework import status
-# from django.contrib.auth.hashers import check_password
 from rest_framework.response import Response
-# from rest_framework.views import APIView
+import whisper
 from rest_framework import viewsets
 import random
 import time
+import librosa
+import numpy as np
+from io import BytesIO
+import soundfile as sf
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import timedelta
-# from django.conf import settings
-# import jwt
-# from transformers import pipeline, AutoTokenizer
 
 # from langchain.memory import ConversationBufferMemory
 
@@ -380,6 +380,7 @@ class ChatbotView(viewsets.ViewSet):
 
         self.model_name = "llama3.2"
         self.temperature = 0.5
+        self.whisper_model = whisper.load_model("tiny")
 
         self.llm = ChatOllama(model=self.model_name, temperature=self.temperature)
 
@@ -426,10 +427,34 @@ class ChatbotView(viewsets.ViewSet):
 
     def conversation(self, request):
 
-        query = request.data.get('query', '')
+        query = request.data.get('query', "").strip()
+        audio_file = request.FILES.get("audio", None)
+        print(f"audio file is recieved: {audio_file}")
+
+        # 1 1: 1 | 1 0: 1 | 0 1: 1 | 0 0: 0 -> OR GATE
+        if not (query or audio_file):
+            return Response({"error": "Query is missing"}, status=status.HTTP_400_BAD_REQUEST)
 
         if query.lower() == "exit":
             return Response({"Message": "Conversation endend"})
+
+        if audio_file:
+            audio_bytes = audio_file.read()
+            audio_stream = BytesIO(audio_bytes)
+
+            # Load the audio file into a NumPy array
+            audio, sr = librosa.load(audio_stream, sr=16000)  # Whisper expects 16kHz audio
+            # convert into array
+            audio = np.array(audio, dtype=np.float32)
+
+            audio = whisper.pad_or_trim(audio)
+
+            result = self.whisper_model.transcribe(audio)
+            print(f"Result: {result['text']}")
+
+            response = self.rag_chain.invoke(result['text'])
+
+            return Response({"response": response})
 
         response = self.rag_chain.invoke(query)
 

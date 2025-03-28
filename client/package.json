@@ -26,6 +26,7 @@
     "react-parallax-tilt": "^1.7.284",
     "react-router-dom": "^7.1.5",
     "react-slick": "^0.30.3",
+    "react-text-to-speech": "^1.4.2",
     "react-toastify": "^11.0.5",
     "slick-carousel": "^1.8.1",
     "tailwindcss-animate": "^1.0.7"
