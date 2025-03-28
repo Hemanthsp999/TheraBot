@@ -21,9 +21,12 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.4.0",
+    "react-media-recorder": "^1.7.1",
+    "react-mic": "^12.4.6",
     "react-parallax-tilt": "^1.7.284",
     "react-router-dom": "^7.1.5",
     "react-slick": "^0.30.3",
+    "react-toastify": "^11.0.5",
     "slick-carousel": "^1.8.1",
     "tailwindcss-animate": "^1.0.7"
   },

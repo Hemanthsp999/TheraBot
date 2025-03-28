@@ -49,6 +49,7 @@ const AutoLogout = () => {
               },
             },
           );
+          console.log("Logout response: ", logout.data);
           setTimeout(() => navigate(logout.data.redirect_url), 3000);
           navigate(logout.data.redirect_url);
           localStorage.clear();

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import axios from "axios";
 
 const TherapistChat = () => {
   const [activeClient, setActiveClient] = useState(null);
@@ -10,6 +11,32 @@ const TherapistChat = () => {
   const messagesEndRef = useRef(null);
 
   // Sample client data (would come from API in a real implementation)
+  //
+  /*
+  useEffect(() => {
+    const access_token = localStorage.getItem("accessToken");
+    const id = localStorage.getItem("therapist_id");
+    const api = "http://127.0.0.1:8000/api/fetchClients/";
+
+    const get_clients = async () => {
+      try {
+        const response = await axios.get(api, {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            "Content-Type": "application/json",
+          },
+
+          params: { therapist_id: id },
+        });
+
+        console.log(response.data.message);
+      } catch (e) {
+        console.error("Error: ", e.response?.message);
+      }
+    };
+    get_clients();
+  }, []);
+  */
   const [clients, setClients] = useState([
     {
       id: 1,
