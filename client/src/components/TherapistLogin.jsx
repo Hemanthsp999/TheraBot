@@ -51,6 +51,7 @@ const TherapistLogin = () => {
       console.error("Login Failed:", err.response?.data || err.message); // ✅ Log backend error
       setError("Login failed. Please check your credentials.");
     }
+
   };
 
   return (

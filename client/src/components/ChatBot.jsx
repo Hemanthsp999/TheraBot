@@ -248,7 +248,13 @@ const ChatBot = () => {
                   }}
                 >
                   {/*<Volume2 size={20} />*/}
-                  <Speech text={storedAudio} />
+                  <Speech
+                    text={storedAudio}
+                    voice="Google UK English Male"
+                    pitch="0.5"
+                    rate="0.9"
+                    volume="0.7"
+                  />
                 </button>
               )}
             </div>
