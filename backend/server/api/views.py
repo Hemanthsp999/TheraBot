@@ -12,14 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from langchain.schema.runnable import RunnablePassthrough  # Import this if not already imported
+from operator import itemgetter
 from rest_framework.decorators import action
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import HumanMessage, AIMessage
 # from langchain.chains import create_retrieval_chain
-from langchain_core.runnables import RunnablePassthrough
+# from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_ollama import ChatOllama
+# from langchain_ollama import ChatOllama
+from langchain_community.llms import Ollama
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -164,7 +169,7 @@ class Register_Login_View(viewsets.ViewSet):
 
             # Create token with explicit expiry
         refresh = RefreshToken.for_user(user)
-        access_token_expiry = now() + timedelta(minutes=30)
+        access_token_expiry = now() + timedelta(minutes=60)
 
         # Set token expiry (if using simple_jwt)
         refresh.access_token.set_exp(lifetime=timedelta(minutes=30))
@@ -372,23 +377,22 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# returns the bot response
+# return responses from bot
 class ChatbotView(viewsets.ViewSet):
+
+    # track the history of the sessions
+    conversation_memories = {}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
         self.model_name = "llama3.2"
         self.temperature = 0.5
         self.whisper_model = whisper.load_model("tiny")
-
-        self.llm = ChatOllama(model=self.model_name, temperature=self.temperature)
-
+        self.llm = Ollama(model=self.model_name, temperature=self.temperature)
         self.vector_db = vector_db
-
         self.str_out_put_parser = StrOutputParser()
-
         self.rag_chain = self.setup_rag_chain()
+        self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
     def format_docs(self, docs):
         return "\n\n".join(doc.page_content for doc in docs)
@@ -396,28 +400,32 @@ class ChatbotView(viewsets.ViewSet):
     def setup_rag_chain(self):
         retriever = self.vector_db.as_retriever()
 
-        '''
         template = """
-            Use the following pieces of context to answer the question at the end. If you don't know the answer or if the question is not related to the given context, please respond with "I'm sorry, but I don't have enough information to answer that question based on the provided context."
+        You are an AI Therapist named TheraBot. You provide efficient solution for users mental health issues.
 
-            Context: {context}
+        Context information is below.
+        {context}
 
-            Question: {question}
+        Chat history:
+            {chat_history}
 
-            """
-        prompt = PromptTemplate.from_template(
-            template=template
+        Human: {input}
+        AI:"""
+
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", template),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("human", "{input}"),
+            ]
         )
-        '''
-        prompt = ChatPromptTemplate.from_messages([
 
-            ("system", "You are a helpful assistant. Please respond to the questions"),
-            ("user", "Question:{question}")
-
-        ])
-
-        rag_chain = ({
-            "context": retriever | self.format_docs, "question": RunnablePassthrough()}
+        rag_chain = (
+            {
+                "context": itemgetter("input") | retriever | self.format_docs,
+                "input": lambda x: x["input"],
+                "chat_history": lambda x: x.get("chat_history", []),
+            }
             | prompt
             | self.llm
             | self.str_out_put_parser
@@ -425,47 +433,62 @@ class ChatbotView(viewsets.ViewSet):
 
         return rag_chain
 
-    def conversation(self, request):
+    def get_memory_for_user(self, user_id):
+        """Get or create a memory instance for a specific user"""
+        if user_id not in self.conversation_memories:
+            self.conversation_memories[user_id] = ConversationBufferMemory(return_messages=True)
+            print(f"Session history: {self.conversation_memories[user_id]}")
+        return self.conversation_memories[user_id]
 
+    def conversation(self, request):
         query = request.data.get('query', "").strip()
         audio_file = request.FILES.get("audio", None)
-        print(f"audio file is recieved: {audio_file}")
+        print(f"audio file is received: {audio_file}")
 
-        # 1 1: 1 | 1 0: 1 | 0 1: 1 | 0 0: 0 -> OR GATE
+        user_id = request.user.id if request.user.is_authenticated else request.session.session_key
+
+        # Get memory for this specific user
+        memory = self.get_memory_for_user(user_id)
+
+        # Retrieve chat history from memory
+        chat_history = memory.load_memory_variables({}).get("history", [])
+
         if not (query or audio_file):
             return Response({"error": "Query is missing"}, status=status.HTTP_400_BAD_REQUEST)
 
         if query.lower() == "exit":
-            return Response({"Message": "Conversation endend"})
+            # the memories get erased after the user logsout
+            if user_id in self.conversation_memories:
+                del self.conversation_memories[user_id]
+            return Response({"Message": "Conversation ended"})
 
+        # Process audio if provided
         if audio_file:
             audio_bytes = audio_file.read()
             audio_stream = BytesIO(audio_bytes)
-
             # Load the audio file into a NumPy array
             audio, sr = librosa.load(audio_stream, sr=16000)  # Whisper expects 16kHz audio
             # convert into array
             audio = np.array(audio, dtype=np.float32)
-
             audio = whisper.pad_or_trim(audio)
-
             result = self.whisper_model.transcribe(audio)
-            print(f"Result: {result['text']}")
+            print(f"Decoded Audio: {result['text']}")
+            query = result['text']
 
-            response = self.rag_chain.invoke(result['text'])
+        # Use the RAG chain with proper input structure
+        response = self.rag_chain.invoke({"input": query, "chat_history": chat_history})
 
-            return Response({"response": response})
-
-        response = self.rag_chain.invoke(query)
+        # add user_question and bot_response into chat_memory
+        memory.chat_memory.add_user_message(query)
+        memory.chat_memory.add_ai_message(response)
 
         return Response({"response": response})
 
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], Authentication=[JWTAuthentication])
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def post(self, request):
         # Add extensive logging
         print("Full Request Headers:", request.headers)
         print("Authorization Header:", request.headers.get("Authorization"))
-
         try:
             auth_header = request.headers.get("Authorization")
             if not auth_header:
@@ -473,13 +496,11 @@ class ChatbotView(viewsets.ViewSet):
                     {"error": "No authorization header", "code": "no_auth_header"},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
-
         except Exception as e:
             print(f"Unexpected error: {str(e)}")
             return Response(
                 {"error": f"Authentication error: {str(e)}", "code": "auth_error"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-
         # If all checks pass, proceed with the conversation
         return self.conversation(request)
