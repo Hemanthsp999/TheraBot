@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from langchain.schema.runnable import RunnablePassthrough  # Import this if not already imported
 from operator import itemgetter
 from rest_framework.decorators import action
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -24,7 +23,6 @@ from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import ChatOllama
-from langchain_community.llms import Ollama
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -41,7 +39,6 @@ import time
 import librosa
 import numpy as np
 from io import BytesIO
-import soundfile as sf
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import timedelta
 
