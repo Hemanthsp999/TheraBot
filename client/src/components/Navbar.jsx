@@ -161,6 +161,17 @@ export default function Navbar() {
                         Welcome <b className="text-indigo-800">{email}</b>
                       </span>
                     </li>
+                    <li className="px-4 py-2 hover:bg-gray-200 text-blue-900 cursor-pointer ">
+                      <Link
+                        to={
+                          user_type === "user"
+                            ? "user/profile"
+                            : "therapist/profile"
+                        }
+                      >
+                        <b>Profile Settings</b>
+                      </Link>
+                    </li>
                     <li
                       className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition cursor-pointer"
                       onClick={handleLogout}
