@@ -170,8 +170,13 @@ const PatientsPage = () => {
                         <button className="text-indigo-600 hover:text-indigo-900 mr-3">
                           Edit
                         </button>
+                        {/*
                         <button className="text-red-600 hover:text-red-900">
                           Delete
+                        </button>
+                        */}
+                        <button className="text-red-400 hover:text-red-600">
+                          Summarize
                         </button>
                       </td>
                     </tr>

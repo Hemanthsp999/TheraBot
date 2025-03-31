@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -119,7 +120,9 @@ const ProfileSettings = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Profile Section */}
             <div>
-              <h3 className="text-lg font-semibold mb-3 bg-black rounded-lg">Profile</h3>
+              <h3 className="text-lg font-semibold mb-3 bg-black rounded-lg">
+                Profile
+              </h3>
               <div className="space-y-3 p-4 border rounded-lg shadow-sm bg-gray-900">
                 <p>
                   <strong>Name:</strong> {get_name}
@@ -135,7 +138,9 @@ const ProfileSettings = () => {
 
             {/* Password Section */}
             <div>
-              <h3 className="text-lg bg-black font-semibold mb-3 rounded-lg">Password</h3>
+              <h3 className="text-lg bg-black font-semibold mb-3 rounded-lg">
+                Password
+              </h3>
               <div className="space-y-3 p-4 border rounded-lg shadow-sm bg-gray-900">
                 <input
                   type="password"

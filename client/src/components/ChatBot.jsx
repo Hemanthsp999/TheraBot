@@ -120,10 +120,10 @@ const ChatBot = () => {
     const API_URL = "http://127.0.0.1:8000/api/chatbot/";
 
     setMessages((prev) => [...prev, { type: "user", content: userMessage }]);
+    const access_token = localStorage.getItem("accessToken");
+    console.log("Access: ", localStorage.getItem("accessToken"));
 
     try {
-      const access_token = localStorage.getItem("accessToken");
-      console.log("Access: ", localStorage.getItem("accessToken"));
       if (!access_token) {
         setMessages((prev) => [
           ...prev,
@@ -251,9 +251,9 @@ const ChatBot = () => {
                   <Speech
                     text={storedAudio}
                     voice="Google UK English Male"
-                    pitch="0.5"
-                    rate="0.9"
-                    volume="0.7"
+                    pitch="0.2"
+                    rate="0.8"
+                    volume="0.5"
                   />
                 </button>
               )}

@@ -16,14 +16,14 @@ from langchain.schema.runnable import RunnablePassthrough  # Import this if not 
 from operator import itemgetter
 from rest_framework.decorators import action
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import HumanMessage, AIMessage
+# from langchain_core.messages import HumanMessage, AIMessage
 # from langchain.chains import create_retrieval_chain
 # from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
-# from langchain_ollama import ChatOllama
+from langchain_ollama import ChatOllama
 from langchain_community.llms import Ollama
 from django.utils.timezone import now
 from rest_framework import serializers
@@ -49,6 +49,7 @@ from datetime import timedelta
 
 transformer_model_name = "sentence-transformers/all-miniLM-L6-v2"
 embedding_model = HuggingFaceEmbeddings(model_name=transformer_model_name)
+# conversation_memories = {}
 
 # Load FAISS directory
 folder_path = "/home/hexa/ai_bhrtya/backend/chatbot_model/faiss/"
@@ -197,6 +198,13 @@ class Register_Login_View(viewsets.ViewSet):
 
             if not user:
                 return Response({"error": "User not authenticated"}, status=401)
+
+            '''
+            self.conversation_memories = conversation_memories
+            user_id = request.user.id if request.user.is_authenticated else request.session.session_key
+            if user_id in self.conversation_memories:
+                del self.conversation_memories[user_id]
+            '''
 
             print("User Found:", user.email)
 
@@ -388,11 +396,12 @@ class ChatbotView(viewsets.ViewSet):
         self.model_name = "llama3.2"
         self.temperature = 0.5
         self.whisper_model = whisper.load_model("tiny")
-        self.llm = Ollama(model=self.model_name, temperature=self.temperature)
+        self.llm = ChatOllama(model=self.model_name, temperature=self.temperature)
         self.vector_db = vector_db
         self.str_out_put_parser = StrOutputParser()
         self.rag_chain = self.setup_rag_chain()
         self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+        # self.conversation_memories = conversation_memo
 
     def format_docs(self, docs):
         return "\n\n".join(doc.page_content for doc in docs)
@@ -456,11 +465,13 @@ class ChatbotView(viewsets.ViewSet):
         if not (query or audio_file):
             return Response({"error": "Query is missing"}, status=status.HTTP_400_BAD_REQUEST)
 
+        '''
         if query.lower() == "exit":
             # the memories get erased after the user logsout
             if user_id in self.conversation_memories:
                 del self.conversation_memories[user_id]
             return Response({"Message": "Conversation ended"})
+        '''
 
         # Process audio if provided
         if audio_file:
