@@ -15,9 +15,6 @@
 from operator import itemgetter
 from rest_framework.decorators import action
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-# from langchain_core.messages import HumanMessage, AIMessage
-# from langchain.chains import create_retrieval_chain
-# from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain_community.vectorstores import FAISS
@@ -29,7 +26,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
-from api.models import BookingModel
+from api.models import BookingModel, UserTherapistChatModel
 from rest_framework import status
 from rest_framework.response import Response
 import whisper
@@ -42,7 +39,6 @@ from io import BytesIO
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import timedelta
 
-# from langchain.memory import ConversationBufferMemory
 
 transformer_model_name = "sentence-transformers/all-miniLM-L6-v2"
 embedding_model = HuggingFaceEmbeddings(model_name=transformer_model_name)
@@ -98,6 +94,13 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookingModel
         fields = '__all__'
+
+
+class ChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserTherapistChatModel
+        fields = '__all__'
+        db_table = "user_therapist_chat"
 
 
 class Register_Login_View(viewsets.ViewSet):
@@ -264,27 +267,37 @@ class User_View(viewsets.ViewSet):
 
     # returns the therapist sessions for users
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    def get_therapist_sessions(self, request):
+    def get_therapist_user_chat_sessions(self, request):
         print(f"Headers: {request.headers}")
         auth_header = request.headers.get('Authorization')
-        user_id = request.query_params.get('user_id')
+        user_id = int(request.query_params.get('user_id'))
 
         if not auth_header:
             return Response({"error": "User not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # NOTE: need to work on this function
+
         try:
-            sessions = BookingModel.objects.filter(user=user_id)
+            if request.method == "GET":
+                sessions = UserTherapistChatModel.objects.filter(
+                    user=user_id).order_by('created_at')
 
-            if not sessions.exists():
-                return Response({"error": "Therapist Not found"}, status=status.HTTP_404_NOT_FOUND)
+                if not sessions.exists():
+                    return Response({"error": "Session is not registered"}, status=status.HTTP_404_NOT_FOUND)
 
-            session_list = [{
-                "name": session.therapist.name,
-                "session_type": session.session_type,
-            } for session in sessions]
-            print(f"Session: {session_list}")
+                session_list = [{
+                    "id": session.id,  # correcty way to get ID: session.id and not session.session_id
+                    "name": session.therapist.name,
+                    "user name": session.user.name,
+                    "message": session.message,
+                    "created_at": session.created_at
+                } for session in sessions]
+                print(f"Session: {session_list}")
 
-            return Response({"response": session_list}, status=status.HTTP_200_OK)
+                return Response({"response": session_list}, status=status.HTTP_200_OK)
+
+            else:
+                return Response({"error": "Only get method allowd"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
         except Exception as e:
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

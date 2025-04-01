@@ -103,6 +103,33 @@ class BookingModel(models.Model):
     is_valid = models.CharField(max_length=10, default="false", null=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new:
+            UserTherapistChatModel.objects.create(
+                session_id=self,
+                user=self.user,
+                therapist=self.therapist,
+                message="session initiated"
+            )
+
     def __str__(self):
         return f"Booking: {self.user.email} -> {self.therapist.name} on {self.assigned_date} at {self.assigned_time}"
+
+
+class UserTherapistChatModel(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name="user_chat")
+    therapist = models.ForeignKey(User, on_delete=models.CASCADE,
+                                  related_name="therapist_chat", limit_choices_to={'role': 'therapist'})
+    session_id = models.ForeignKey(BookingModel, on_delete=models.CASCADE, related_name="chat")
+    message = models.TextField(blank=False, null=False, default="N/A")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Chat: {self.user.email} -> {self.therapist.name} at {self.created_at}"
+
 
