@@ -456,8 +456,7 @@ class Therapist_View(viewsets.ViewSet):
 
             session_creds = [{
                 "user_message": get_session.user_message,
-                "therapist_message": get_session.therapist_message,
-                "name": get_session.user.name
+                "therapist_message": get_session.therapist_message
             }]
             return Response({"response": session_creds}, status=status.HTTP_200_OK)
 
