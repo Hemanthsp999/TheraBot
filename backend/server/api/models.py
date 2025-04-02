@@ -112,7 +112,8 @@ class BookingModel(models.Model):
                 session_id=self,
                 user=self.user,
                 therapist=self.therapist,
-                message="session initiated"
+                user_message="session initiated",
+                therapist_message="session initiated"
             )
 
     def __str__(self):
@@ -125,7 +126,8 @@ class UserTherapistChatModel(models.Model):
     therapist = models.ForeignKey(User, on_delete=models.CASCADE,
                                   related_name="therapist_chat", limit_choices_to={'role': 'therapist'})
     session_id = models.ForeignKey(BookingModel, on_delete=models.CASCADE, related_name="chat")
-    message = models.TextField(blank=False, null=False, default="N/A")
+    user_message = models.TextField(blank=False, null=False, default="N/A")
+    therapist_message = models.TextField(blank=False, null=False, default="N/A")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

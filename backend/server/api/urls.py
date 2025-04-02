@@ -26,8 +26,10 @@ urlpatterns = [
          User_View.as_view({'get': 'get_therapist'}), name='fetchTherapist'),
     path('book_clients/',
          User_View.as_view({'post': 'book_therapist'}), name='book_clients'),
-    path('get_therapist_session/',
-         User_View.as_view({'get': 'get_therapist_user_chat_sessions'}), name="get_therapist_session/"),
+    path('get_session/',
+         Therapist_View.as_view({'get': 'get_user_therapist_chat_id'}), name="get_session/"),
+    path('get_chat_messages/',
+         Therapist_View.as_view({'get': 'get_by_session_id'}), name="get_chat_messages/"),
     path('fetchClients/',
          Therapist_View.as_view({'get': 'get_clients'}), name='fetchClients')
 
