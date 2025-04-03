@@ -26,6 +26,7 @@ const PatientsPage = () => {
 
       /* This api calls the get_client() func */
       const api_url = "http://127.0.0.1:8000/api/fetchClients/";
+    
 
       try {
         console.log("Access Token: ", access_token);

@@ -40,6 +40,8 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
       );
 
       console.log("Data Posted: ", post_data.data.message);
+      console.log("Data Posted: ", post_data.data.booking.id);
+      localStorage.setItem("session_id", post_data.data.booking.id);
       alert(post_data.data.message);
     } catch (error) {
       console.error("Booking failed: ", error.response?.data || error.message);
