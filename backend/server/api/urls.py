@@ -29,7 +29,8 @@ urlpatterns = [
     path('get_session/',
          Therapist_View.as_view({'get': 'get_user_therapist_chat_id'}), name="get_session/"),
     path('get_chat_messages/',
-         Therapist_View.as_view({'get': 'get_by_session_id'}), name="get_chat_messages/"),
+         Therapist_View.as_view({'get': 'get_chat_messages'}), name="get_chat_messages/"),
+    path('post_chat/', Therapist_View.as_view({'post': 'make_chat_to_db'}), name="post_chat/"),
     path('fetchClients/',
          Therapist_View.as_view({'get': 'get_clients'}), name='fetchClients')
 

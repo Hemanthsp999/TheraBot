@@ -112,8 +112,8 @@ class BookingModel(models.Model):
                 session_id=self,
                 user=self.user,
                 therapist=self.therapist,
-                user_message="session initiated",
-                therapist_message="session initiated"
+                messages=[{"sender": "user", "message": "session Initaied", "date": "", "time": "00:00:00"},
+                          {"sender": "therapist", "message": "Session Initiated", "date": "", "time": "00:00:00"}]
             )
 
     def __str__(self):
@@ -121,13 +121,13 @@ class BookingModel(models.Model):
 
 
 class UserTherapistChatModel(models.Model):
+    session_id = models.ForeignKey(BookingModel, on_delete=models.CASCADE, related_name="chat")
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              related_name="user_chat")
     therapist = models.ForeignKey(User, on_delete=models.CASCADE,
                                   related_name="therapist_chat", limit_choices_to={'role': 'therapist'})
-    session_id = models.ForeignKey(BookingModel, on_delete=models.CASCADE, related_name="chat")
-    user_message = models.TextField(blank=False, null=False, default="N/A")
-    therapist_message = models.TextField(blank=False, null=False, default="N/A")
+    # use list of messages
+    messages = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

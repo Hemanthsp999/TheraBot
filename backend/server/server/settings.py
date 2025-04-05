@@ -52,12 +52,14 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'daphne',
     'django.contrib.staticfiles',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
-    'api'
+    'api',
+    'channels'
 ]
 
 AUTH_USER_MODEL = 'api.User'  # ✅ Tell Django to use your custom User model
@@ -66,6 +68,17 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Default for User
     'api.backends.TherapistBackend',  # Custom backend for Therapist
 ]
+
+ASGI_APPLICATION = 'server.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 MIDDLEWARE = [

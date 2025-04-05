@@ -100,7 +100,6 @@ class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserTherapistChatModel
         fields = '__all__'
-        db_table = "user_therapist_chat"
 
 
 class Register_Login_View(viewsets.ViewSet):
@@ -265,59 +264,8 @@ class User_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # returns the therapist sessions for users
-    '''
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    def get_therapist_user_chat_sessions(self, request):
-        print(f"Headers: {request.headers}")
-        auth_header = request.headers.get('Authorization')
-
-        if not auth_header:
-            return Response({"error": "User not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # NOTE: need to work on this function
-
-        try:
-            if request.method == "GET":
-                user_role = request.query_params.get('role', '')
-                if "user" in user_role:
-                    user_id = request.query_params.get('user_id')
-
-                    sessions = UserTherapistChatModel.objects.filter(
-                        user=user_id).order_by('created_at')
-
-                    if not sessions.exists():
-                        return Response({"error": "Session is not registered"}, status=status.HTTP_404_NOT_FOUND)
-
-                elif "therapist" in user_role:
-                    therapist_id = request.query_params.get('therapist_id')
-
-                    sessions = UserTherapistChatModel.objects.filter(
-                        therapist=therapist_id).order_by('created_at')
-
-                    if not sessions.exists():
-                        return Response({"error": "There is no sessions booked"}, status=status.HTTP_404_NOT_FOUND)
-                else:
-                    return Response({"error": "Bad request"}, status=status.HTTP_400_BAD_REQUEST)
-
-                session_list = [{
-                    "id": session.id,  # correcty way to get ID: session.id and not session.session_id
-                    "name": session.user.name if "user" in user_role else session.therapist.name,
-                    "message": session.message,
-                    "created_at": session.created_at
-                } for session in sessions]
-                print(f"Session: {session_list}")
-
-                return Response({"response": session_list}, status=status.HTTP_200_OK)
-
-            else:
-                return Response({"error": "Only get method allowd"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-        except Exception as e:
-            return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        '''
-
     # returns the success if the session booked successfully
+
     @action(detail=False, methods=['post'])
     def book_therapist(self, request):
         print(f"Full Headers: {request.headers}")
@@ -437,8 +385,8 @@ class Therapist_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['post', 'get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    def get_by_session_id(self, request):
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    def get_chat_messages(self, request):
         print(f"Header: {request.headers}")
         auth_header = request.headers.get('Authorization')
 
@@ -448,20 +396,51 @@ class Therapist_View(viewsets.ViewSet):
 
         try:
             session_id = request.query_params.get('session_id')
-
-            get_session = UserTherapistChatModel.objects.get(session_id=session_id)
+            get_session = UserTherapistChatModel.objects.get(id=session_id)
 
             if not get_session:
                 return Response({"error": "Session is not registered"}, status=status.HTTP_404_NOT_FOUND)
 
-            session_creds = [{
-                "user_message": get_session.user_message,
-                "therapist_message": get_session.therapist_message
-            }]
-            return Response({"response": session_creds}, status=status.HTTP_200_OK)
+            return Response({"response": [get_session.messages]}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @ action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    def make_chat_to_db(self, request):
+        print(f"Full header: {request.headers}")
+        auth_header = request.headers.get('Authorization')
+
+        # NOTE need to work on this
+        if not auth_header:
+            return Response({"error": "User in not authorized to use this func"}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            session_id = request.query_params.get('session_id')
+            get_session = UserTherapistChatModel.objects.filter(
+                session_id=session_id).order_by('-id').first()
+            print(f"Session ID: {get_session}")
+
+            user_role = request.query_params.get('role', None)
+
+            if "therapist" in user_role:
+                therapist_message = request.data.get('therapist_message', None)
+                therapist_id = request.data.get('therapist_id')
+
+                therapist = User.objects.get(id=therapist_id)
+                UserTherapistChatModel.objects.create(
+                    session_id=get_session.session_id, user=get_session.user, therapist_message=therapist_message, therapist=therapist)
+            elif "user" in user_role:
+                user_message = request.data.get('user_message', None)
+                user_id = request.data.get('user_id')
+
+                user = User.objects.get(id=user_id)
+
+                UserTherapistChatModel.objects.create(
+                    session_id=get_session.session_id, user_message=user_message, user=user, therapist=get_session.therapist)
+
+            return Response({"response": "Data updated successfully"}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": f"Internal server error: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # return responses from bot
@@ -574,7 +553,7 @@ class ChatbotView(viewsets.ViewSet):
 
         return Response({"response": response})
 
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def post(self, request):
         # Add extensive logging
         print("Full Request Headers:", request.headers)
