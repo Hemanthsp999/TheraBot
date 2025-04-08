@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import Footer from "../components/Footer";
 import User from "../components/images/user.png";
 import axios from "axios";
+import AutoLogout from "./AutoLogout.jsx";
+import { toast, ToastContainer } from "react-toastify";
 
 // Add WebSocket connection setup
 const useWebSocket = (sessionId, accessToken, onMessageReceived) => {
@@ -30,6 +32,7 @@ const useWebSocket = (sessionId, accessToken, onMessageReceived) => {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("WebSocket message received:", data);
+      //setMessage((prevMessages) => [...prevMessages, data]);
       onMessageReceived(data);
     };
 
@@ -130,7 +133,7 @@ const ClientListItem = ({ client, isActive, onClick }) => {
   );
 };
 
-// Header component for the chat area
+// Updated ChatHeader component
 const ChatHeader = ({ client }) => {
   const getStatusColor = (status) => {
     switch (status) {
@@ -145,13 +148,15 @@ const ChatHeader = ({ client }) => {
     }
   };
 
+  // updated message header
   return (
-    <div className="p-4 border-b border-gray-300 bg-white flex items-center">
+    <div className="p-3 bg-green-600 text-white flex items-center shadow-md">
+      <IconButton icon={<BackIcon />} className="md:hidden text-white" />
       <div className="relative">
         <img
           src={User}
           alt={client.name}
-          className="w-10 h-10 rounded-full object-cover"
+          className="w-10 h-10 rounded-full object-cover border-2 border-white"
         />
         <span
           className={`absolute bottom-0 right-0 w-3 h-3 ${getStatusColor(
@@ -159,33 +164,41 @@ const ChatHeader = ({ client }) => {
           )} rounded-full border-2 border-white`}
         ></span>
       </div>
-      <div className="ml-3">
-        <h3 className="text-lg font-medium text-gray-900">{client.name}</h3>
-        <p className="text-sm text-gray-500 capitalize">
-          {client.status || "offline"}
+      <div className="ml-3 flex-1">
+        <h3 className="text-lg font-medium">{client.name}</h3>
+        <p className="text-xs opacity-80 capitalize">
+          {client.status === "online"
+            ? "online"
+            : client.status === "away"
+              ? "away"
+              : "last seen recently"}
         </p>
       </div>
-      <div className="ml-auto flex space-x-2">
-        <IconButton icon={<PhoneIcon />} />
-        <IconButton icon={<VideoIcon />} />
-        <IconButton icon={<MoreIcon />} />
+      <div className="flex space-x-1">
+        <IconButton icon={<PhoneIcon />} className="text-white" />
+        <IconButton icon={<VideoIcon />} className="text-white" />
+        <IconButton icon={<MoreIcon />} className="text-white" />
       </div>
     </div>
   );
 };
 
 // Icon button component
-const IconButton = ({ icon, onClick }) => (
-  <button className="p-2 rounded-full hover:bg-gray-100" onClick={onClick}>
+// Updated IconButton component
+const IconButton = ({ icon, onClick, className = "" }) => (
+  <button
+    className={`p-2 rounded-full hover:bg-opacity-20 hover:bg-black ${className}`}
+    onClick={onClick}
+  >
     {icon}
   </button>
 );
 
-// Icons as components
+// Updated icons for WhatsApp style
 const PhoneIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5 text-gray-600"
+    className="h-5 w-5"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
@@ -198,11 +211,10 @@ const PhoneIcon = () => (
     />
   </svg>
 );
-
 const VideoIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5 text-gray-600"
+    className="h-5 w-5 text-white"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
@@ -219,7 +231,7 @@ const VideoIcon = () => (
 const MoreIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5 text-gray-600"
+    className="h-5 w-5 text-white"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
@@ -294,38 +306,63 @@ const LoadingMessages = () => (
   </div>
 );
 
-// Client message bubble
+// Updated UserMessageBubble - WhatsApp style
 const UserMessageBubble = ({ message, time }) => (
-  <div className="flex justify-start">
-    <img
-      src={User}
-      alt="Client"
-      className="w-8 h-8 rounded-full object-cover mr-2 self-end"
-    />
-    <div className="max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg bg-white text-gray-800 rounded-bl-none shadow">
-      <p>{message}</p>
-      {time && <p className="text-xs mt-1 text-gray-500">{time}</p>}
+  <div className="flex justify-start mb-3">
+    <div className="flex items-end">
+      <img
+        src={User}
+        alt="Client"
+        className="w-8 h-8 rounded-full object-cover mr-2 self-end mb-1"
+      />
+      <div className="max-w-xs md:max-w-md lg:max-w-lg px-3 py-2 bg-white rounded-lg rounded-bl-none shadow text-gray-800 relative">
+        <p className="pr-12">{message}</p>
+        {time && (
+          <span className="text-xs text-gray-500 absolute bottom-1 right-2">
+            {time}
+          </span>
+        )}
+        {/* Tail for user message */}
+        <div className="absolute left-[-8px] bottom-0 w-3 h-3 overflow-hidden">
+          <div className="absolute transform rotate-45 bg-white w-4 h-4 -bottom-2 -right-2"></div>
+        </div>
+      </div>
     </div>
   </div>
 );
 
-// Therapist message bubble
+// Updated TherapistMessageBubble - WhatsApp style
 const TherapistMessageBubble = ({ message, time }) => (
-  <div className="flex justify-end">
-    <div className="max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg bg-blue-500 text-white rounded-br-none">
-      <p>{message}</p>
-      {time && <p className="text-xs mt-1 text-blue-100">{time}</p>}
+  <div className="flex justify-end mb-3">
+    <div className="max-w-xs md:max-w-md lg:max-w-lg px-3 py-2 bg-green-100 rounded-lg rounded-br-none text-gray-800 relative">
+      <p className="pr-12">{message}</p>
+      {time && (
+        <span className="text-xs text-gray-500 absolute bottom-1 right-2 flex items-center">
+          {time}
+          {/* WhatsApp double check */}
+          <svg
+            className="w-3 h-3 ml-1 text-blue-500"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M18 7l-8 8-4-4 1.5-1.5L10 12l6.5-6.5L18 7z" />
+            <path d="M12 7l-8 8-4-4 1.5-1.5L4 13l6.5-6.5L12 7z" />
+          </svg>
+        </span>
+      )}
+      {/* Tail for therapist message */}
+      <div className="absolute right-[-8px] bottom-0 w-3 h-3 overflow-hidden">
+        <div className="absolute transform rotate-45 bg-green-100 w-4 h-4 -bottom-2 -left-2"></div>
+      </div>
     </div>
-    <img
-      src={User}
-      alt="Therapist"
-      className="w-8 h-8 rounded-full object-cover ml-2 self-end"
-    />
   </div>
 );
 
-// ChatMessages component
+// Updated ChatMessages component
 const ChatMessages = ({ chatData, loading, messagesEndRef }) => {
+  // Get the current user type
+  const currentUserType = localStorage.getItem("user_type");
+
   if (loading) {
     return <LoadingMessages />;
   }
@@ -333,84 +370,225 @@ const ChatMessages = ({ chatData, loading, messagesEndRef }) => {
   // Check if chatData is empty
   if (!chatData || chatData.length === 0) {
     return (
-      <div className="flex-1 p-4 overflow-y-auto">
-        <div className="space-y-4">
-          <TherapistMessageBubble message="hi" time="" />
-          <div ref={messagesEndRef} />
+      <div className="flex-1 p-4 overflow-y-auto bg-gray-100">
+        <div className="flex justify-center items-center h-full">
+          <div className="text-center">
+            <div className="h-16 w-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8 text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-700">
+              Start a conversation
+            </h3>
+            <p className="text-gray-500 text-sm mt-2">No messages yet</p>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Flatten nested messages
+  const flattenedMessages = chatData.flat(Infinity);
+
+  // Group messages by date
+  const messagesByDate = flattenedMessages.reduce((groups, msg) => {
+    // Display the msg at what date they sent
+    const date = msg.date;
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(msg);
+    return groups;
+  }, {});
+
   return (
-    <div className="flex-1 p-4 overflow-y-auto">
-      <div className="space-y-4">
-        {/* Display user message if it exists */}
-        {/*
-        {chatData.user_message && (
-          <UserMessageBubble message={chatData.user_message} time="" />
-        )}
-        */}
+    <div className="flex-1 p-4 overflow-y-auto bg-gray-100">
+      <div className="space-y-6">
+        {Object.keys(messagesByDate).map((date) => (
+          <div key={date}>
+            <div className="flex justify-center mb-4">
+              <div className="bg-white px-3 py-1 rounded-full text-xs text-gray-500 shadow-sm">
+                {date}
+              </div>
+            </div>
+            <div className="space-y-1">
+              {messagesByDate[date].map((msg, index) => {
+                // Determine if the message is from the current user
+                const isCurrentUser =
+                  (currentUserType === "therapist" &&
+                    msg.sender === "therapist") ||
+                  (currentUserType === "user" && msg.sender === "user");
 
-        {/* Display therapist message if it exists */}
-        {/*
-        {chatData.therapist_message && (
-          <TherapistMessageBubble
-            message={chatData.therapist_message}
-            time=""
-          />
-        )}
-        */}
-        {/* this is fucking disturbing section .................|............... */}
-        {chatData.map((msg, index) => (
-          <>
-            <UserMessageBubble message={msg.user_message} time="" />
-          </>
+                const messageContent = msg.text || msg.message || "";
+                const displayTime = msg.time;
+
+                // Use the appropriate message bubble based on who sent the message
+                return isCurrentUser ? (
+                  <CurrentUserMessageBubble
+                    key={`msg-${msg.date}-${index}`}
+                    message={messageContent}
+                    time={displayTime}
+                  />
+                ) : (
+                  <OtherUserMessageBubble
+                    key={`msg-${msg.date}-${index}`}
+                    message={messageContent}
+                    time={displayTime}
+                    sender={msg.sender}
+                  />
+                );
+              })}
+            </div>
+          </div>
         ))}
-
-        {/* Display message history if it exists */}
-        {/*000000000000000000000000000000 This piece of shit is responsible for user therapist communication*/}
-        {chatData.map((msg, index) =>
-          msg.sender === "user" || msg.sender === "therapist" ? (
-            <UserMessageBubble
-              key={msg.id || index}
-              message={msg.text || msg.user_message}
-              time={msg.time}
-            />
-          ) : (
-            <TherapistMessageBubble
-              key={msg.id || index}
-              message={msg.text || msg.therapist_message}
-              time={msg.time}
-            />
-          ),
-        )}
-
         <div ref={messagesEndRef} />
       </div>
     </div>
   );
 };
 
+// Message bubble for the current logged in user (shown on the right)
+const CurrentUserMessageBubble = ({ message, time }) => (
+  <div className="flex justify-end mb-3">
+    <div className="max-w-xs text-nowrap md:max-w-md lg:max-w-lg px-3 py-2 bg-green-100 rounded-lg rounded-br-none text-gray-800 relative">
+      {/*add mb-2 to adjust overlap of the message with time*/}
+      <p className="pr-12 mb-2">{message}</p>
+      {time && (
+        <span className="text-xs text-gray-500 absolute bottom-1 right-2 flex items-center">
+          {time}
+          {/* WhatsApp double check */}
+          <svg
+            className="w-3 h-3 ml-1 text-blue-500"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M18 7l-8 8-4-4 1.5-1.5L10 12l6.5-6.5L18 7z" />
+            <path d="M12 7l-8 8-4-4 1.5-1.5L4 13l6.5-6.5L12 7z" />
+          </svg>
+        </span>
+      )}
+      {/* Tail for current user message */}
+      <div className="absolute right-[-8px] bottom-0 w-3 h-3 overflow-hidden">
+        <div className="absolute transform rotate-45 bg-green-100 w-4 h-4 -bottom-2 -left-2"></div>
+      </div>
+    </div>
+  </div>
+);
+
+// Message bubble for the other user (shown on the left)
+const OtherUserMessageBubble = ({ message, time, sender }) => (
+  <div className="flex justify-start mb-3">
+    <div className="flex items-end">
+      <img
+        src={User}
+        alt={sender === "user" ? "Client" : "Therapist"}
+        className="w-8 h-8 rounded-full object-cover mr-2 self-end mb-1"
+      />
+      <div className="max-w-xs md:max-w-md lg:max-w-lg px-3 py-2 bg-white rounded-lg rounded-bl-none shadow text-gray-800 relative">
+        <p className="pr-12 mb-2">{message}</p>
+        {time && (
+          <span className="text-xs text-gray-500 absolute bottom-1 right-2">
+            {time}
+          </span>
+        )}
+        {/* Tail for other user message */}
+        <div className="absolute left-[-8px] bottom-0 w-3 h-3 overflow-hidden">
+          <div className="absolute transform rotate-45 bg-white w-4 h-4 -bottom-2 -right-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 // MessageInput component
+// Updated MessageInput component for WhatsApp style
 const MessageInput = ({ message, setMessage, handleSendMessage, disabled }) => (
-  <div className="p-4 border-t border-gray-300 bg-white mb-30">
-    <form onSubmit={handleSendMessage} className="flex items-center">
-      <IconButton icon={<AttachmentIcon />} />
+  <div className="p-3 bg-gray-50 border-t border-gray-200">
+    <form onSubmit={handleSendMessage} className="flex items-center mb-30">
+      {/* Emoji button */}
+      <button
+        type="button"
+        className="p-2 text-white rounded-full hover:bg-gray-200 focus:outline-none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </button>
+
+      {/* Attachment button */}
+      <button
+        type="button"
+        className="p-2 text-white rounded-full hover:bg-gray-200 focus:outline-none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+          />
+        </svg>
+      </button>
+
+      {/* Input field */}
       <input
         type="text"
         placeholder="Type a message..."
-        className="flex-1 mx-3 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+        className="flex-1 mx-2 p-3 rounded-full border border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 text-black"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         disabled={disabled}
       />
+
+      {/* Send button */}
       <button
         type="submit"
-        className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50"
+        className={`p-2 rounded-full focus:outline-none ${message.trim() && !disabled ? "bg-green-500 text-white" : "bg-gray-300 text-gray-500"}`}
         disabled={!message.trim() || disabled}
       >
-        <SendIcon />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 12h14M12 5l7 7-7 7"
+          />
+        </svg>
       </button>
     </form>
   </div>
@@ -453,14 +631,35 @@ const TherapistChat = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [clients, setClients] = useState([]);
   const messagesEndRef = useRef(null);
-  const userType = localStorage.getItem("user_type") || "therapist";
-  const therapistId = localStorage.getItem("therapist_id");
+  // get therapist_id or user_id
+  const get_user_type = localStorage.getItem("user_type");
   const accessToken = localStorage.getItem("accessToken");
+
+  const therapistId =
+    get_user_type === "user"
+      ? localStorage.getItem("user_id")
+      : localStorage.getItem("therapist_id");
 
   // Add this function inside the TherapistChat component, before the return statement
   const handleClientSelection = (client) => {
     setActiveClient(client);
   };
+
+  // Notifies if access token is expired
+  useEffect(() => {
+    if (!accessToken) {
+      toast.warn("Session expired. Please login again", {
+        position: "top-right",
+        autoClose: 2000, // Closes after 2 seconds
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    }
+  }, [accessToken]);
 
   // Handle receiving a message via WebSocket
   const handleMessageReceived = (data) => {
@@ -472,10 +671,13 @@ const TherapistChat = () => {
           id: data.message_id || Date.now(),
           text: data.message,
           sender: data.sender,
+          time: data.time,
+          /*
           time: new Date().toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
           }),
+          */
         },
       ]);
 
@@ -530,6 +732,9 @@ const TherapistChat = () => {
         //setSampleClientList();
         return;
       }
+      const role = get_user_type === "user" ? "user" : "therapist";
+      console.log("therapist Id", therapistId);
+      console.log("User role passing  ", role);
 
       const response = await axios.get(
         "http://127.0.0.1:8000/api/get_session/",
@@ -538,11 +743,13 @@ const TherapistChat = () => {
             Authorization: `Bearer ${accessToken}`,
           },
           params: {
-            role: "therapist",
+            role: role,
+            user_id: therapistId,
           },
         },
       );
 
+      console.log("Retrieved session successfully: ", response.data.response);
       if (response.data && response.data.response) {
         // Process the client list
         const clientList = response.data.response.map((client) => ({
@@ -589,18 +796,26 @@ const TherapistChat = () => {
           },
           params: {
             session_id: sessionId,
+            role: get_user_type,
+            user_id: therapistId,
           },
         },
       );
 
-      console.log("Messages received:", response.data.response);
-      setChatData(response.data.response);
+      if (Array.isArray(response.data.response)) {
+        console.log("Messages received:", response.data.response);
+        setChatData(response.data.response);
+      }
     } catch (error) {
       console.error("Error fetching chat messages:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log("ChatData Log: ", chatData);
+  }, [chatData]);
 
   // Auto-scroll to bottom of messages when chat data changes
   useEffect(() => {
@@ -609,15 +824,21 @@ const TherapistChat = () => {
     }
   }, [chatData]);
 
+  var [date, setDate] = useState(new Date());
+  useEffect(() => {
+    var timer = setInterval(() => setDate(new Date()), 1000);
+    return function cleanup() {
+      clearInterval(timer);
+    };
+  });
+
   // Handle sending a new message
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!message.trim() || !activeClient || loading) return;
 
-    const currentTime = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const currentTime = date.toLocaleTimeString();
+    const date_ = date.toLocaleDateString();
 
     // Create a new message object
     const newMessage = {
@@ -636,8 +857,11 @@ const TherapistChat = () => {
       message_type: "chat_message",
       session_id: activeClient.session_id || activeClient.id,
       message: message,
-      sender: "therapist",
+      // get the user_type
+      sender: get_user_type,
       therapist_id: therapistId,
+      date: date_,
+      curr_time: currentTime,
     });
 
     // If WebSocket fails or is not connected, fall back to API
@@ -713,6 +937,7 @@ const TherapistChat = () => {
 
   return (
     <div className="flex flex-col mt-10 min-h-screen">
+      <ToastContainer />
       <div className="flex-grow flex bg-gray-100">
         {/* Sidebar - Client List */}
         <div className="w-full md:w-1/3 lg:w-1/2 bg-white border-r border-gray-300">
@@ -834,6 +1059,9 @@ const TherapistChat = () => {
           </div>
         )}
       </div>
+      <main className="flex-1">
+        <AutoLogout />
+      </main>
       <Footer />
     </div>
   );

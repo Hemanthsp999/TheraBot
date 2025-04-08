@@ -109,7 +109,7 @@ export default function Navbar() {
           {[
             user_type == "therapist" ? "Dashboard" : "Home",
             "About",
-            user_type == "therapist" ? "Chat" : "Services",
+             "Chat" , "Services",
             "Contact",
           ].map((item, index) => (
             <li key={index} className="py-2">

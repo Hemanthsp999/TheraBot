@@ -26,7 +26,6 @@ const PatientsPage = () => {
 
       /* This api calls the get_client() func */
       const api_url = "http://127.0.0.1:8000/api/fetchClients/";
-    
 
       try {
         console.log("Access Token: ", access_token);
@@ -52,9 +51,10 @@ const PatientsPage = () => {
 
   // Filter patients based on search term and status
   const filteredPatients = patients.filter((patient) => {
-    const matchesSearch =
-      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.condition.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = patient.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    //||patient.condition.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       filterStatus === "All" || patient.status === filterStatus;
     return matchesSearch && matchesStatus;
