@@ -41,8 +41,6 @@ from datetime import timedelta
 from django.utils.crypto import get_random_string
 from twilio.rest import Client
 
-client = Client(account_sid, auth_token)
-
 
 transformer_model_name = "sentence-transformers/all-miniLM-L6-v2"
 embedding_model = HuggingFaceEmbeddings(model_name=transformer_model_name)
@@ -233,19 +231,6 @@ class Register_Login_View(viewsets.ViewSet):
         try:
             get_phone = User.objects.get(phone_number=phone)
             print(f"user found: {get_phone.name}")
-
-        except get_phone.DoesNotExist:
-            return Response({"error": "user not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            client = Client(account_sid, auth_token)
-            verification = client.verify.v2.services(
-                verify_sid).verifications.create(to=f'+91{get_phone.phone_number}', channel='sms')
-
-            if verification.status == "pending":
-                return Response({"message": "OTP sent successfully"}, status=200)
-            else:
-                return Response({"error": "Failed to send OTP"}, status=400)
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
