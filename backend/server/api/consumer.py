@@ -1,4 +1,6 @@
 import json
+import pytz
+from datetime import date, datetime
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 # from django.contrib.auth.models import User
@@ -13,6 +15,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.session_id = self.scope['url_route']['kwargs']['session_id']
         self.room_group_name = f'chat_{self.session_id}'
+        self.india = pytz.timezone("Asia/Kolkata")
 
         # Get token from query string
         # query_string = self.scope.get('query_string', b'').decode('utf-8')
@@ -156,8 +159,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             message = data.get('message')
             sender = data.get('sender')
-            date = data.get('date')
-            time = data.get('curr_time')
+            # date = data.get('date')
+            # time = data.get('curr_time')
             session_id = self.session_id
 
             # Get session
@@ -189,7 +192,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 # chat = UserTherapistChatModel.objects.filter(session_id=session).first()
 
                 chat.messages.append(
-                    {"sender": sender, "message": message, "date": date, "time": time})
+                    {"sender": sender, "message": message, "date": date.today().isoformat(), "time": datetime.now(self.india).strftime("%H:%M:%S")})
 
                 chat.save()
 
@@ -200,7 +203,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 user_id = data.get('user_id')
 
                 chat.messages.append(
-                    {"sender": sender, "message": message, "date": date, "time": time})
+                    {"sender": sender, "message": message, "date": date.today().isoformat(), "time": datetime.now(self.india).strftime("%H:%M:%S")})
 
                 chat.save()
 

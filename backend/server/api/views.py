@@ -363,13 +363,24 @@ class Therapist_View(viewsets.ViewSet):
     def get_user_therapist_chat_id(self, request):
         print(f"Headers: {request.headers}")
         auth_header = request.headers.get("Authorization")
-        print(f"Authorization: {auth_header}")
+        # print(f"Authorization: {auth_header}")
 
         if not auth_header:
             return Response({"error": "User not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
+        user_role = request.query_params.get('role')
+        user_id = request.query_params.get('user_id')
+        print(f"Debugging Log: Role: {user_role} | User ID: {user_id}")
+
         try:
-            user_role = request.query_params.get('role')
+            if user_role == "user":
+                get_user_session = BookingModel.objects.filter(user=user_id).first()
+            else:
+                get_user_session = BookingModel.objects.filter(therapist=user_id).first()
+
+            if not get_user_session:
+                return Response({"error": "There is no session registered for this user/therapist"}, status=status.HTTP_404_NOT_FOUND)
+
             sessions = UserTherapistChatModel.objects.all()
 
             registered_sessions = [{
@@ -382,13 +393,14 @@ class Therapist_View(viewsets.ViewSet):
                 "response": registered_sessions
             }, status=status.HTTP_200_OK)
 
-        except Exception as e:
-            return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception:
+            return Response({"error": f"USER {user_id} Does not in the Session Registered Log"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_chat_messages(self, request):
         print(f"Header: {request.headers}")
         auth_header = request.headers.get('Authorization')
+        user_id = request.query_params.get('user_id')
 
         # NOTE need to work on this
         if not auth_header:
@@ -396,7 +408,17 @@ class Therapist_View(viewsets.ViewSet):
 
         try:
             session_id = request.query_params.get('session_id')
-            get_session = UserTherapistChatModel.objects.get(id=session_id)
+            user_role = request.query_params.get('role')
+
+            if user_role == "user":
+                get_user_session = BookingModel.objects.filter(user=user_id).first()
+            else:
+                get_user_session = BookingModel.objects.filter(therapist=user_id).first()
+
+            if not get_user_session:
+                return Response({"error": "User not registered"}, status=status.HTTP_404_NOT_FOUND)
+
+            get_session = UserTherapistChatModel.objects.filter(id=session_id).first()
 
             if not get_session:
                 return Response({"error": "Session is not registered"}, status=status.HTTP_404_NOT_FOUND)
@@ -406,6 +428,7 @@ class Therapist_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # this api get called if web sockets get crashed
     @ action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def make_chat_to_db(self, request):
         print(f"Full header: {request.headers}")
@@ -446,7 +469,7 @@ class Therapist_View(viewsets.ViewSet):
 # return responses from bot
 class ChatbotView(viewsets.ViewSet):
 
-    # track the history of the sessions
+    # NOTE It only tracks current session after expiriation of session the memory will be wiped out
     conversation_memories = {}
 
     def __init__(self, **kwargs):

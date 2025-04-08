@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+from datetime import date, datetime
 from django.db import models
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
@@ -112,8 +113,8 @@ class BookingModel(models.Model):
                 session_id=self,
                 user=self.user,
                 therapist=self.therapist,
-                messages=[{"sender": "user", "message": "session Initaied", "date": "", "time": "00:00:00"},
-                          {"sender": "therapist", "message": "Session Initiated", "date": "", "time": "00:00:00"}]
+                messages=[{"sender": "user", "message": "session Initaied", "date": date.today().isoformat(), "time": datetime.now().strftime("%H:%M")},
+                          {"sender": "therapist", "message": "Session Initiated", "date": date.today().isoformat(), "time": datetime.now().strftime("%H:%M")}]
             )
 
     def __str__(self):

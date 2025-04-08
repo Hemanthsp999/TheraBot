@@ -35,4 +35,3 @@ urlpatterns = [
          Therapist_View.as_view({'get': 'get_clients'}), name='fetchClients')
 
 ]
-
