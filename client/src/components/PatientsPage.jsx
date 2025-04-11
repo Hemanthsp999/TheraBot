@@ -36,6 +36,7 @@ const PatientsPage = () => {
           },
           params: { therapist_id: therapist_id },
         });
+        localStorage.setItem("patient_id", resp.data.message.user_id);
         console.log("Response", resp.data.message);
 
         if (Array.isArray(resp.data.message)) {
@@ -48,6 +49,25 @@ const PatientsPage = () => {
 
     getPatients();
   }, []);
+
+  const handleOnSubmit = async (patientId) => {
+    const access_token = localStorage.getItem("accessToken");
+    const api = "http://127.0.0.1:8000/api/ai_summarize/";
+
+    try {
+      const response = await axios.get(api, {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          "Content-Type": "application/json",
+        },
+        params: { user_id: patientId },
+      });
+
+      console.log(response.data.response.summary);
+    } catch (e) {
+      console.log(e.error);
+    }
+  };
 
   // Filter patients based on search term and status
   const filteredPatients = patients.filter((patient) => {
@@ -176,7 +196,12 @@ const PatientsPage = () => {
                           Delete
                         </button>
                         */}
-                        <button className="text-red-400 hover:text-red-600">
+                        <button
+                          className="text-red-400 hover:text-red-600"
+                          onClick={() => {
+                            handleOnSubmit(patient.id);
+                          }}
+                        >
                           Summarize
                         </button>
                       </td>

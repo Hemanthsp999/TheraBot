@@ -1,7 +1,7 @@
 import "./css/App.css";
 import { useRef, useEffect, useState } from "react";
 import Slider from "react-slick";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import carsouel1 from "./images/Carsouel1.jpg";
@@ -9,6 +9,7 @@ import carsouel2 from "./images/Carsouel2.jpg";
 import carsouel3 from "./images/Carsouel.webp";
 import carsouel from "./images/Bot_Human.png";
 import Carsouel5 from "./images/stress.jpg";
+import PatientInfoModal from "./PatientInfoModal.jsx";
 
 const LandingPage = () => {
   const settings = {
@@ -50,6 +51,20 @@ const LandingPage = () => {
 
   const [scrollingUp, setScrollingUp] = useState(false);
 
+  const user = localStorage.getItem("user_type"); // adjust based on your auth flow
+  const patient_history = localStorage.getItem("patient_history");
+
+  if (user === "therapist") {
+    return <Navigate to="/therapist" />;
+  }
+
+  // patient modal
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    setShowModal(true); // Show when page loads
+  }, []);
+
   useEffect(() => {
     let lastScrollY = window.scrollY;
     const handleScroll = () => {
@@ -71,6 +86,16 @@ const LandingPage = () => {
 
   return (
     <div className="Landingpage  max-w-full " data-aos="fade-down">
+            {console.log(patient_history)}
+      {patient_history === "false" && (
+        <PatientInfoModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          onSubmit={""}
+          userId={localStorage.getItem("user_id")}
+        />
+      )}
+
       {/* <div className="w-screen lg:w-full md:w-full px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">*/}
       {/* Hero Section */}
       <section

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import TherapistImg from './images/TherapistImg.jpg';
 import axios from "axios";
 // import Bot from "./images/Bot.jpeg";
 
@@ -173,7 +174,7 @@ const TherapistCard = ({ therapist }) => {
       <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105">
         <div className="relative">
           <img
-            src={therapist.image}
+            src={TherapistImg}
             alt={therapist.name}
             className="w-full h-48 object-cover"
           />

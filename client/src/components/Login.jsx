@@ -34,12 +34,14 @@ const Login = () => {
       localStorage.setItem("name", response.data.name);
       localStorage.setItem("user_id", response.data.id);
       localStorage.setItem("expiresAt", response.data.expires_at);
+      localStorage.setItem("patient_history", response.data.patient_history);
       console.log("Access_Token: ", response.data.access_token);
       console.log("Expires_at", response.data.expires_at);
       console.log("refresh token", response.data.refresh);
       console.log("name", response.data.name);
       console.log("user type: ", localStorage.getItem("user_type"));
       console.log(" User ID: ", localStorage.getItem("user_id"));
+      console.log("Patient_history", localStorage.getItem("patient_history"));
 
       navigate(response.data.redirect_url);
     } catch (error) {

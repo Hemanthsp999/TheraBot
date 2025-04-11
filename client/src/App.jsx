@@ -37,7 +37,7 @@ function App() {
   }, [scrollingUp]);
 
   return (
-    <div className="flex flex-col min-h-screen overflow-x-hidden overflow-y-hidden">
+    <div className="app-container">
       <Navbar />
       <main className="flex-1">
         <AutoLogout />

@@ -4,8 +4,6 @@ import { Typography } from "@material-tailwind/react";
 import './css/App.css';
 import { useRef } from "react";
 
-/* Don't alter Footer: You mentioned route '/chatbot' which is not a children of <App/> component, so the footer and navbar will not affect ChatBot page*/
-
 export default function Footer() {
     const topRef = useRef(null);
 
@@ -15,11 +13,10 @@ export default function Footer() {
     };
 
     return (
-        <footer className="footer w-full bg-gray-900 p-6 text-white">
-            <div ref={topRef}></div> {/* Reference to the top of the page */}
+        <footer className="footer w-full bg-gray-900 p-6 text-white mt-auto border-t border-gray-800">
+            <div ref={topRef}></div>
 
-            <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center sm:justify-between gap-6 text-center w-full">
-
+            <div className="container mx-auto flex flex-col sm:flex-row flex-wrap items-center justify-center sm:justify-between gap-6 text-center">
                 {/* Logo & Name - Responsive */}
                 <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
                     <img
@@ -30,7 +27,7 @@ export default function Footer() {
                     <Typography
                         as="span"
                         className="text-lg sm:text-xl font-semibold cursor-pointer"
-                        onClick={scrollToTop} // Click to scroll to the top
+                        onClick={scrollToTop}
                     >
                         TheraBot
                     </Typography>
@@ -42,7 +39,7 @@ export default function Footer() {
                         <li key={index}>
                             <Typography
                                 as={Link}
-                                to={`/${item.toLowerCase()}`}
+                                to={`/${item.toLowerCase().replace(/\s+/g, '')}`}
                                 color="blue-gray"
                                 className="font-normal transition-colors hover:text-blue-500 focus:text-blue-500"
                             >
@@ -56,10 +53,11 @@ export default function Footer() {
             <hr className="my-4 border-gray-700" />
 
             {/* Copyright */}
-            <Typography color="blue-gray" className="text-center font-normal">
-                &copy; {new Date().getFullYear()} TheraBot
-            </Typography>
+            <div className="container mx-auto">
+                <Typography color="blue-gray" className="text-center font-normal">
+                    &copy; {new Date().getFullYear()} TheraBot
+                </Typography>
+            </div>
         </footer>
     );
 }
-
