@@ -144,3 +144,14 @@ class OTP(models.Model):
     def __str__(self):
         return f"{self.user.phone_number} - {self.otp}"
 
+
+class PatientHealthInfo(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={
+                             'role': 'user'}, related_name="patient_health_info")
+    health_history = models.TextField(max_length=500, blank=False, null=False, default="N/A")
+    curr_medications = models.TextField(max_length=500, blank=False, null=False, default="N/A")
+    family_history = models.TextField(max_length=500, blank=False, null=False, default="N/A")
+    present_health_issues = models.TextField(max_length=500, blank=False, null=False, default="N/A")
+
+    def __str__(self):
+        return str(self.user)

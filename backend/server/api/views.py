@@ -21,12 +21,10 @@ from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import ChatOllama
 from django.utils.timezone import now
-from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth import get_user_model
-from api.models import BookingModel, UserTherapistChatModel, OTP
+# from django.contrib.auth import get_user_model
+# from api.models import BookingModel, UserTherapistChatModel, PatientHealthInfo
 from rest_framework import status
 from rest_framework.response import Response
 import whisper
@@ -38,8 +36,9 @@ import numpy as np
 from io import BytesIO
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import timedelta
-from django.utils.crypto import get_random_string
-from twilio.rest import Client
+from .Serializers import BookingSerializer, UserSerializer, PatientHealthSerializer, User
+from api.models import BookingModel, UserTherapistChatModel, PatientHealthInfo
+from .agent_summarizer import generate_patient_summary, PatientHealthInfoSchema
 
 
 transformer_model_name = "sentence-transformers/all-miniLM-L6-v2"
@@ -51,57 +50,7 @@ folder_path = "/home/hexa/ai_bhrtya/backend/chatbot_model/faiss/"
 vector_db = FAISS.load_local(folder_path=folder_path,
                              embeddings=embedding_model, allow_dangerous_deserialization=True)
 
-User = get_user_model()
-
-
-# return db
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = [
-            'id', 'email', 'password', 'role', 'name', 'phone_number',
-            'gender', 'age', 'specialization', 'experience', 'desc', 'availability'
-        ]
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def validate(self, data):
-        role = data.get("role")
-
-        if role == "user":
-            # Remove therapist-specific fields if role is "user"
-            data.pop("specialization", None)
-            data.pop("experience", None)
-            data.pop("desc", None)
-            data.pop("availability", None)
-        elif role == "therapist":
-            # Ensure required therapist fields are provided
-            missing_fields = []
-            for field in ["specialization", "experience", "desc", "availability"]:
-                if not data.get(field):
-                    missing_fields.append(field)
-
-            if missing_fields:
-                raise serializers.ValidationError(
-                    {field: "This field is required for therapists." for field in missing_fields})
-
-        return data
-
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
-        validated_data['password'] = make_password(validated_data['password'])
-        return user
-
-
-class BookingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BookingModel
-        fields = '__all__'
-
-
-class ChatSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserTherapistChatModel
-        fields = '__all__'
+# User = get_user_model()
 
 
 class Register_Login_View(viewsets.ViewSet):
@@ -161,6 +110,10 @@ class Register_Login_View(viewsets.ViewSet):
 
             if not user.check_password(password):
                 raise User.DoesNotExist
+
+            if user_type == "user":
+                get_patient_history = PatientHealthInfo.objects.filter(user=user).exists()
+
         except User.DoesNotExist:
             # Consider adding a small delay here to prevent timing attacks
             time.sleep(random.uniform(0.1, 0.3))  # Add 'import time, random' at the top
@@ -185,6 +138,7 @@ class Register_Login_View(viewsets.ViewSet):
             "id": user.id,
             "email": user.email,
             "user_type": user.role,
+            "patient_history": True if user_type == "user" and get_patient_history else False
         }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
@@ -335,8 +289,91 @@ class User_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    def user_health_history(self, request):
+        print(f'Full header {request.headers}')
+        auth_header = request.headers.get('Authorization')
+        health_history = request.data.get('health_history')
+        family_history = request.data.get('family_history')
+        curr_medications = request.data.get('curr_medications')
+        present_health_issues = request.data.get('present_health_issue')
+
+        user_id = request.query_params.get('user_id')
+
+        if not auth_header:
+            return Response({"error": "Header is missing"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            get_user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            patient_health_history = PatientHealthInfo.objects.create(
+                user=get_user,
+                health_history=health_history,
+                curr_medications=curr_medications,
+                family_history=family_history,
+                present_health_issues=present_health_issues
+            )
+
+            fetch_to_db = PatientHealthSerializer(patient_health_history).data
+            print(f"Fetched to Database: {fetch_to_db}")
+
+            return Response({"response": "Data fetched to database successfully."}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": f"Internal server error {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    '''
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    def get_user_history(self, request):
+        print(f"Headers: {request.headers}")
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            user_id = request.query_params.get('user_id')
+            print(f"Looking for user with ID: {user_id}")
+
+            try:
+                get_user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            try:
+                get_history = PatientHealthInfo.objects.get(user=get_user)
+            except PatientHealthInfo.DoesNotExist:
+                return Response({"error": "Health history not found for this user"}, status=status.HTTP_404_NOT_FOUND)
+
+            schema = PatientHealthInfoSchema(
+                user_id=get_history.id,
+                health_history=get_history.health_history,
+                family_history=get_history.family_history,
+                curr_medications=get_history.curr_medications,
+                present_health_issues=get_history.present_health_issues
+            )
+
+            try:
+                get_agent_response = generate_patient_summary(schema)
+                print(f"AI generated Response: {get_agent_response}")
+                return Response({"response": get_agent_response}, status=status.HTTP_200_OK)
+            except Exception as e:
+                print(f"Error generating summary: {str(e)}")
+                import traceback
+            traceback.print_exc()
+            return Response({"error": f"Error generating AI summary: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        '''
 
 # returns the therapist_components
+
+
 class Therapist_View(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
@@ -360,6 +397,7 @@ class Therapist_View(viewsets.ViewSet):
             # make a list of clients who have appointment for particular therapist and send response
             booking_list = [{
                 "id": client.id,
+                "user_id": client.user.id,
                 "name": client.user.name,
                 "age": client.user.age,
                 "email": client.user.email,
@@ -446,7 +484,8 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # this api get called if web sockets get crashed
-    @ action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def make_chat_to_db(self, request):
         print(f"Full header: {request.headers}")
         auth_header = request.headers.get('Authorization')
@@ -593,7 +632,7 @@ class ChatbotView(viewsets.ViewSet):
 
         return Response({"response": response})
 
-    @ action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def post(self, request):
         # Add extensive logging
         print("Full Request Headers:", request.headers)

@@ -33,6 +33,9 @@ urlpatterns = [
     path('post_chat/', Therapist_View.as_view({'post': 'make_chat_to_db'}), name="post_chat/"),
     path('fetchClients/',
          Therapist_View.as_view({'get': 'get_clients'}), name='fetchClients'),
-    path('send-otp/', Register_Login_View.as_view({'post': 'generate_otp'}), name="send-otp/")
+    path('send-otp/', Register_Login_View.as_view({'post': 'generate_otp'}), name="send-otp/"),
+    path('post_health_history', User_View.as_view(
+        {'post': 'user_health_history'}), name="post_health_history/"),
+    path('ai_summarize/', User_View.as_view({'get': 'get_user_history'}), name="ai_summarize/")
 
 ]
