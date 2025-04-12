@@ -38,6 +38,7 @@ import ProfileSettings from "./components/ProfileSettings.jsx";
 import PatientsPage from "./components/PatientsPage";
 import PatientDetailPage from "./components/PatientDetailPage";
 import TherapistChat from "./components/TherapistChat";
+import ManageRequest from "./components/ManageRequest.jsx";
 
 const router = createBrowserRouter([
   {
@@ -45,120 +46,48 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <Landingpage /> },
-      { path: "/access-account", element: <AccessAccount /> },
-      { path: "/login", element: <Login /> },
-      { path: "/therapist-login", element: <TherapistLogin /> },
+      { path: "access-account", element: <AccessAccount /> },
+      { path: "login", element: <Login /> },
+      { path: "therapist-login", element: <TherapistLogin /> },
       { path: "user/signup", element: <Register /> },
-      { path: "/about", element: <About /> },
-      { path: "/contact", element: <Contact /> },
+      { path: "about", element: <About /> },
+      { path: "contact", element: <Contact /> },
       { path: "register", element: <TherapistRegister /> },
-      { path: "/forget", element: <Forgetpassword /> },
+      { path: "forget", element: <Forgetpassword /> },
+
+      // User protected routes
       {
-        path: "/user",
+        path: "user",
         element: <Protected />,
         children: [
-          {
-            path: "therapist",
-            element: <Therapist />,
-          },
-          {
-            path: "services",
-            element: <Service />,
-          },
-          {
-            path: "profile",
-            element: <ProfileSettings />,
-          },
+          { path: "therapist", element: <Therapist /> },
+          { path: "services", element: <Service /> },
+          { path: "profile", element: <ProfileSettings /> },
         ],
       },
 
+      // Therapist protected routes (nested)
       {
         path: "therapist",
         element: <Protected />,
         children: [
-          {
-            index: true,
-            element: <TherapistLanding />,
-          },
-          {
-            path: "profile",
-            element: <ProfileSettings />,
-          },
-          {
-            path: "chat",
-            element: <TherapistChat />,
-          },
-          {
-            path: "patients",
-            element: <PatientsPage />,
-          },
-          {
-            path: "patients/:id",
-            element: <PatientDetailPage />,
-          },
+          { index: true, element: <TherapistLanding /> },
+          { path: "profile", element: <ProfileSettings /> },
+          { path: "chat", element: <TherapistChat /> },
+          { path: "patients", element: <PatientsPage /> },
+          { path: "patients/:id", element: <PatientDetailPage /> },
+          { path: "manage-requests", element: <ManageRequest /> },
         ],
       },
     ],
   },
+
+  // Absolute protected route for user chatbot
   {
-    path: "/user/chatbot",
+    path: "user/chatbot",
     element: <Protected />,
     children: [{ index: true, element: <ChatBot /> }],
   },
-  {
-    path: "therapist",
-    element: <Protected />,
-    children: [
-      {
-        index: true,
-        element: <TherapistLanding />,
-      },
-      {
-        path: "chat",
-        element: <TherapistChat />,
-      },
-      {
-        path: "patients",
-        element: <PatientsPage />,
-      },
-      {
-        path: "patients/:id",
-        element: <PatientDetailPage />,
-      },
-    ],
-  },
-
-  /*
-   *  Don't change the route structre and function
-   *  If you want to add a new route
-   *  then simply use this strucutre
-   *  {
-   *  path: "<your relative_path>",
-   *  element: "<component/>"
-   *  }
-   *  Or if you want protected route:
-   *  1. for relative path, i.e /therapist/patients like this ?
-   *  then
-   *  {
-   *        path: "partent_route_name",
-   *        element: <Protected_route/>,
-   *        children:[
-   *            {index: true, element: <Parent_Component/>},
-   *            {path: "child_route_name", element: "<child_component/>" }
-   *        ]
-   *  }
-   *
-   *  2. for absolute path, i.e /chatbot
-   *  {
-   *    path: 'chatbot',
-   *    element: <Protected/>,
-   *    children: [
-   *        {index: true, element: <ChatBot/>}
-   *    ]
-   *  }
-   *
-   *  3. How to use ? for relative_path: /partent_route/children and for absolute_path: /children_path
-   */
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

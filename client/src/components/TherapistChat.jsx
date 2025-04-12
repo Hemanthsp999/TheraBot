@@ -541,7 +541,7 @@ const MessageInput = ({ message, setMessage, handleSendMessage, disabled }) => (
       {/* Attachment button */}
       <button
         type="button"
-        className="p-2 text-white rounded-full hover:bg-gray-200 focus:outline-none"
+        className="p-2 text- rounded-full hover:bg-gray-200 focus:outline-none"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
