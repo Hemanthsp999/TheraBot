@@ -1,46 +1,41 @@
+import axios from "axios";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./css/App.css";
 
 const ManageRequests = () => {
   // State for client requests
-  const [clientRequests, setClientRequests] = useState([
-    {
-      id: 1,
-      name: "John Smith",
-      requestDate: "April 10, 2025",
-      requestType: "Anxiety Therapy",
-      message:
-        "I've been experiencing increased anxiety at work and would like to discuss coping strategies.",
-      status: "pending",
-    },
-    {
-      id: 2,
-      name: "Emma Johnson",
-      requestDate: "April 8, 2025",
-      requestType: "Depression Counseling",
-      message:
-        "I'm seeking help for persistent feelings of sadness that have been affecting my daily life.",
-      status: "pending",
-    },
-    {
-      id: 3,
-      name: "Michael Brown",
-      requestDate: "April 7, 2025",
-      requestType: "Relationship Counseling",
-      message:
-        "My partner and I are having communication issues and would like professional guidance.",
-      status: "pending",
-    },
-  ]);
+  const [clientRequests, setClientRequests] = useState([]);
 
   // Handler for approving a request
-  const handleApprove = (id) => {
-    setClientRequests(
-      clientRequests.map((request) =>
-        request.id === id ? { ...request, status: "approved" } : request,
-      ),
-    );
+  const access_token = localStorage.getItem("accessToken");
+  const therapist_id = localStorage.getItem("therapist_id");
+  const handleApprove = async (id) => {
+    const api = "http://127.0.0.1:8000/api/make_approve/";
+    try {
+      const makeApprove = await axios.post(
+        api,
+        {
+          therapist_id: therapist_id,
+          booking_id: id,
+          is_approved: "Approved",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      setClientRequests(
+        clientRequests.map((request) =>
+          request.id === id ? { ...request, status: "Approved" } : request,
+        ),
+      );
+    } catch (e) {
+      console.error(e);
+    }
+
     // In a real application, you would make an API call here to update the status
   };
 
@@ -58,6 +53,33 @@ const ManageRequests = () => {
   useEffect(() => {
     // Fetch client requests data
     // Example: fetchClientRequests().then(data => setClientRequests(data));
+    const fetchClientRequests = async () => {
+      const api_url = "http://127.0.0.1:8000/api/get_pending_clients/";
+
+      try {
+        console.log("therapist id", therapist_id);
+        console.log(access_token);
+        if (!access_token) {
+          return;
+        }
+        const clientList = await axios.get(api_url, {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            "Content-Type": "application/json",
+          },
+          params: { therapist_id: therapist_id },
+        });
+
+        if (Array.isArray(clientList.data.response)) {
+          console.log(clientList.data.response);
+          setClientRequests(clientList.data.response);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    fetchClientRequests();
   }, []);
 
   return (
@@ -69,9 +91,9 @@ const ManageRequests = () => {
         </h1>
         <Link
           to="/therapist"
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700"
+          className="px-4 py-2 bg-indigo-600 mx-1 rounded-lg shadow hover:bg-indigo-700"
         >
-          Back to Dashboard
+          <span className="text-gray-100">Back to Dashboard</span>
         </Link>
       </header>
 
@@ -120,7 +142,7 @@ const ManageRequests = () => {
                   <div className="mt-4 flex justify-between items-center">
                     <div>
                       <span className="font-medium mr-2">Status:</span>
-                      {request.status === "pending" && (
+                      {request.status === "Pending" && (
                         <span className="text-yellow-600">Pending</span>
                       )}
                       {request.status === "approved" && (
@@ -131,7 +153,7 @@ const ManageRequests = () => {
                       )}
                     </div>
 
-                    {request.status === "pending" && (
+                    {request.status === "Pending" && (
                       <div className="space-x-3">
                         <button
                           onClick={() => handleApprove(request.id)}

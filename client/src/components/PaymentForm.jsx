@@ -4,7 +4,7 @@ import axios from "axios";
 import "./css/App.css";
 
 const PaymentForm = () => {
-  const { requestId } = useParams();
+  let { requestId } = useParams();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,7 @@ const PaymentForm = () => {
     const fetchSessionDetails = async () => {
       const access_token = localStorage.getItem("accessToken");
       const user_id = localStorage.getItem("user_id");
-      const api_url = `http://127.0.0.1:8000/api/get_session/`;
+      const api_url = `http://127.0.0.1:8000/api/get_session_details/?request_id=${parseInt(requestId, 10)}`;
 
       if (!access_token || !user_id) {
         setError("You need to log in to complete payment");
@@ -32,16 +32,17 @@ const PaymentForm = () => {
       }
 
       try {
+        console.log(requestId);
         const response = await axios.get(api_url, {
           headers: {
             Authorization: `Bearer ${access_token}`,
             "Content-Type": "application/json",
           },
-          params: { user_id: user_id, request_id: requestId },
+          params: { user_id: user_id },
         });
 
-        if (response.data && response.data.session) {
-          setSessionDetails(response.data.session);
+        if (response.data && response.data.response) {
+          setSessionDetails(response.data.response);
         } else {
           setError("Unable to load session details");
         }
@@ -181,13 +182,13 @@ const PaymentForm = () => {
               to="/dashboard"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
             >
-              Go to Dashboard
+              <span className="text-black">Go to Dashboard</span>
             </Link>
             <Link
-              to="/my-sessions"
+              to="chat"
               className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700"
             >
-              View My Sessions
+              <span className="text-black">View My Sessions</span>
             </Link>
           </div>
         </div>
@@ -221,17 +222,19 @@ const PaymentForm = () => {
             <div>
               <p className="text-sm text-gray-500">Therapist</p>
               <p className="font-medium text-black">
-                {sessionDetails.therapist_name}
+                {sessionDetails.therapist}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Session Type</p>
-              <p className="font-medium">{sessionDetails.request_type}</p>
+              <p className="font-medium text-black">
+                {sessionDetails.session_type}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Date & Time</p>
-              <p className="font-medium">
-                {sessionDetails.session_date} at {sessionDetails.session_time}
+              <p className="font-medium text-black">
+                {sessionDetails.Date} at {sessionDetails.Time}
               </p>
             </div>
             <div>
@@ -241,7 +244,7 @@ const PaymentForm = () => {
             <div className="pt-3 border-t">
               <p className="text-sm text-gray-500">Amount Due</p>
               <p className="text-2xl font-bold text-blue-700">
-                ${sessionDetails.amount.toFixed(2)}
+                {/*${sessionDetails.amount.toFixed(2)}*/}
               </p>
             </div>
           </div>
@@ -371,7 +374,11 @@ const PaymentForm = () => {
                     Processing...
                   </span>
                 ) : (
-                  `Pay $${sessionDetails.amount.toFixed(2)}`
+                  `Pay $ ${
+                    {
+                      /*sessionDetails.amount.toFixed(2)*/
+                    }
+                  }`
                 )}
               </button>
             </div>

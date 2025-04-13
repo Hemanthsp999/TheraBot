@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
-import TherapistImg from './images/TherapistImg.jpg';
+import TherapistImg from "./images/TherapistImg.jpg";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 // import Bot from "./images/Bot.jpeg";
 
 // New BookingModal Component
@@ -14,6 +15,8 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
     therapist_id: therapist.id,
     role: "therapist",
   });
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,6 +47,14 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
       console.log("Data Posted: ", post_data.data.booking.id);
       localStorage.setItem("session_id", post_data.data.booking.id);
       alert(post_data.data.message);
+      navigate("/user/clientrequest", {
+        state: {
+          request_type: bookingData.sessionType,
+          request_date: bookingData.date,
+          notes: bookingData.notes,
+          status: "Pending",
+        },
+      });
     } catch (error) {
       console.error("Booking failed: ", error.response?.data || error.message);
     }
@@ -149,7 +160,7 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
               type="submit"
               className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300"
             >
-              Confirm Booking
+              Make Request
             </button>
             <button
               type="button"

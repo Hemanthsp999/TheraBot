@@ -172,6 +172,13 @@ export default function Navbar() {
                         <b>Profile Settings</b>
                       </Link>
                     </li>
+                    <li className="px-4 py-2 hover:bg-gray-200 text-blue-800 cursor-pointer ">
+                      <Link
+                        to={'user/clientrequest'}
+                      >
+                        <b>Request Handler</b>
+                      </Link>
+                    </li>
                     <li
                       className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition cursor-pointer"
                       onClick={handleLogout}

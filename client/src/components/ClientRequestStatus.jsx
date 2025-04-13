@@ -89,7 +89,8 @@ const ClientRequestStatus = () => {
 
   const handleProceedToPayment = (requestId) => {
     // Navigate to payment form with the request ID
-    navigate(`payment/${user_id}`);
+    console.log("In clientrequest",requestId)
+    navigate(`payment/${requestId}`);
   };
 
   if (loading) {
@@ -122,10 +123,10 @@ const ClientRequestStatus = () => {
           🔔 My Therapy Requests
         </h1>
         <Link
-          to="/dashboard"
+          to="/"
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700"
         >
-          Back to Dashboard
+          <span className="text-white">Back to Home </span>
         </Link>
       </header>
 

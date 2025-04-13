@@ -39,6 +39,8 @@ import PatientsPage from "./components/PatientsPage";
 import PatientDetailPage from "./components/PatientDetailPage";
 import TherapistChat from "./components/TherapistChat";
 import ManageRequest from "./components/ManageRequest.jsx";
+import PaymentForm from "./components/PaymentForm.jsx";
+import ClientRequestStatus from "./components/ClientRequestStatus.jsx";
 
 const router = createBrowserRouter([
   {
@@ -63,6 +65,8 @@ const router = createBrowserRouter([
           { path: "therapist", element: <Therapist /> },
           { path: "services", element: <Service /> },
           { path: "profile", element: <ProfileSettings /> },
+          { path: "clientrequest", element: <ClientRequestStatus /> },
+          { path: "clientrequest/payment/:requestId", element: <PaymentForm /> },
         ],
       },
 
