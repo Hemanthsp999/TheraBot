@@ -36,6 +36,14 @@ urlpatterns = [
     path('send-otp/', Register_Login_View.as_view({'post': 'generate_otp'}), name="send-otp/"),
     path('post_health_history', User_View.as_view(
         {'post': 'user_health_history'}), name="post_health_history/"),
-    path('ai_summarize/', User_View.as_view({'get': 'get_user_history'}), name="ai_summarize/")
+    path('ai_summarize/', User_View.as_view({'get': 'get_user_history'}), name="ai_summarize/"),
+    path('get_pending_clients/',
+         Therapist_View.as_view({'get': 'get_pending_clients'}), name='get_pending_clients/'),
+    path('make_approve/',
+         Therapist_View.as_view({'post': 'approve_decline_request'}), name="make_approve/"),
+    path('get_approval/',
+         Therapist_View.as_view({'get': 'get_approve_decline'}), name="get_approve/"),
+    path('get_session_details/',
+         User_View.as_view({'get': 'get_user_creds'}), name='get_session_details/')
 
 ]

@@ -162,6 +162,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # date = data.get('date')
             # time = data.get('curr_time')
             session_id = self.session_id
+            print(f"Date: {date.today().isoformat()}")
 
             # Get session
             try:

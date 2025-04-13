@@ -23,8 +23,6 @@ from langchain_ollama import ChatOllama
 from django.utils.timezone import now
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
-# from django.contrib.auth import get_user_model
-# from api.models import BookingModel, UserTherapistChatModel, PatientHealthInfo
 from rest_framework import status
 from rest_framework.response import Response
 import whisper
@@ -41,16 +39,20 @@ from api.models import BookingModel, UserTherapistChatModel, PatientHealthInfo
 from .agent_summarizer import generate_patient_summary, PatientHealthInfoSchema
 
 
+# NOTE These are models components
 transformer_model_name = "sentence-transformers/all-miniLM-L6-v2"
 embedding_model = HuggingFaceEmbeddings(model_name=transformer_model_name)
-# conversation_memories = {}
 
 # Load FAISS directory
 folder_path = "/home/hexa/ai_bhrtya/backend/chatbot_model/faiss/"
 vector_db = FAISS.load_local(folder_path=folder_path,
                              embeddings=embedding_model, allow_dangerous_deserialization=True)
-
-# User = get_user_model()
+model_name = "llama3.2"
+temperature = 0.5
+whisper_model = whisper.load_model("tiny")
+llm = ChatOllama(model=model_name, temperature=temperature)
+vector_db = vector_db
+str_out_put_parser = StrOutputParser()
 
 
 class Register_Login_View(viewsets.ViewSet):
@@ -113,6 +115,7 @@ class Register_Login_View(viewsets.ViewSet):
 
             if user_type == "user":
                 get_patient_history = PatientHealthInfo.objects.filter(user=user).exists()
+                print("Patient Health history", get_patient_history)
 
         except User.DoesNotExist:
             # Consider adding a small delay here to prevent timing attacks
@@ -138,7 +141,7 @@ class Register_Login_View(viewsets.ViewSet):
             "id": user.id,
             "email": user.email,
             "user_type": user.role,
-            "patient_history": True if user_type == "user" and get_patient_history else False
+            "patient_history": True if user.role == "user" and get_patient_history else False
         }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
@@ -189,15 +192,13 @@ class Register_Login_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
-# returns user_component
-
 
 class User_View(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    # returns list of therapist
     @action(detail=False, methods=['get'])
+    # returns list of therapist
     def get_therapist(self, request):
         print("Full Request Headers:", request.headers)
         print("Authorization Header:", request.headers.get("Authorization"))
@@ -235,9 +236,8 @@ class User_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # returns the success if the session booked successfully
-
     @action(detail=False, methods=['post'])
+    # returns the success if the session booked successfully
     def book_therapist(self, request):
         print(f"Full Headers: {request.headers}")
         auth_header = request.headers.get('Authorization')
@@ -271,6 +271,9 @@ class User_View(viewsets.ViewSet):
             if not therapist:
                 return Response({"error": "Therapist Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
+            if BookingModel.objects.filter(user=user, therapist=therapist).exists():
+                return Response({"response": "Session already exists"}, status=status.HTTP_302_FOUND)
+
             # Insert into Database
             booking = BookingModel.objects.create(
                 user=user,
@@ -290,6 +293,7 @@ class User_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    # returns msg indicating patient health history into DB
     def user_health_history(self, request):
         print(f'Full header {request.headers}')
         auth_header = request.headers.get('Authorization')
@@ -325,61 +329,43 @@ class User_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    '''
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    def get_user_history(self, request):
-        print(f"Headers: {request.headers}")
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+    @action(detail=False, methods=['GET'])
+    def get_user_creds(self, request):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or "Bearer " not in auth_header:
+            return Response({"error": "No Access Key found"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        booking_id = request.GET.get('request_id')
+        user_id = request.query_params.get('user_id')
+        print(f"User: {user_id}")
+
+        if not booking_id:
+            return Response({"error": "Missing request_id"}, status=400)
 
         try:
-            user_id = request.query_params.get('user_id')
-            print(f"Looking for user with ID: {user_id}")
+            get_creds = BookingModel.objects.get(id=booking_id)
 
-            try:
-                get_user = User.objects.get(id=user_id)
-            except User.DoesNotExist:
-                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            user_cred = {
+                "id": get_creds.id,
+                "therapist": get_creds.therapist.name,
+                "session_type": get_creds.session_type,
+                "Date": get_creds.assign_date,
+                "Time": get_creds.assign_time
+            }
 
-            try:
-                get_history = PatientHealthInfo.objects.get(user=get_user)
-            except PatientHealthInfo.DoesNotExist:
-                return Response({"error": "Health history not found for this user"}, status=status.HTTP_404_NOT_FOUND)
-
-            schema = PatientHealthInfoSchema(
-                user_id=get_history.id,
-                health_history=get_history.health_history,
-                family_history=get_history.family_history,
-                curr_medications=get_history.curr_medications,
-                present_health_issues=get_history.present_health_issues
-            )
-
-            try:
-                get_agent_response = generate_patient_summary(schema)
-                print(f"AI generated Response: {get_agent_response}")
-                return Response({"response": get_agent_response}, status=status.HTTP_200_OK)
-            except Exception as e:
-                print(f"Error generating summary: {str(e)}")
-                import traceback
-            traceback.print_exc()
-            return Response({"error": f"Error generating AI summary: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"response": user_cred}, status=status.HTTP_200_OK)
 
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        '''
-
-# returns the therapist_components
+            print(f"Error: {str(e)}")
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class Therapist_View(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    # returns the client(patient) list
     @action(detail=False, methods=['get'])
+    # returns the client(patient) list
     def get_clients(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or "Bearer " not in auth_header:
@@ -412,9 +398,121 @@ class Therapist_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # returns the therapist sessions for users
+    @action(detail=False, methods=['get'])
+    # returns client who are yet to get approve or rejected
+    def get_pending_clients(self, request):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or "Bearer " not in auth_header:
+            return Response({"error": "No Access Key found"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        therapist_id = request.query_params.get('therapist_id')
+        print(f"Therapist ID: {therapist_id}")
+
+        try:
+            get_therapist = User.objects.get(id=therapist_id)
+            if not get_therapist:
+                return Response({"error": "Therapist not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            print(f"USER: {get_therapist}")
+
+            get_pending_list = BookingModel.objects.filter(
+                therapist=get_therapist, status="Pending")
+
+            print(f"{get_pending_list}")
+
+            if not get_pending_list:
+                return Response({"error": "No list found"}, status=status.HTTP_404_NOT_FOUND)
+
+            session_list = [{
+                "id": session.id,
+                "name": session.user.name,
+                "requestDate": session.assign_date,
+                "requestTime": session.assign_time,
+                "requestType": session.session_type,
+                "message": session.note,
+                "status": session.status,
+            } for session in get_pending_list]
+
+            print(f"Session list: {session_list}")
+
+            return Response({"response": session_list}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"Exception: {str(e)}")
+            return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'])
+    # return msg indicating the session is approved
+    def approve_decline_request(self, request):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or "Bearer " not in auth_header:
+            return Response({"error": "No Access Key found"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        therapist_id = request.data.get('therapist_id')
+        print(f"Therapist ID: {therapist_id}")
+        try:
+            get_therapist = User.objects.get(id=therapist_id if request.data.get(
+                'therapist_id') else request.query_params.get('user_id'))
+            if not get_therapist:
+                return Response({"error": "Therapist not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            print(f"USER: {get_therapist}")
+            is_approved = request.data.get("is_approved")
+            booking_id = request.data.get('booking_id')
+
+            if not is_approved or not booking_id:
+                return Response({"error": "Missing data"}, status=status.HTTP_400_BAD_REQUEST)
+
+            booking = BookingModel.objects.filter(
+                id=booking_id, therapist=get_therapist).first()
+
+            if is_approved == "declined":
+                booking.delete()
+
+            booking.status = is_approved
+
+            booking.save()
+
+            return Response({"response": "Updated Successfully"}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            print(f"Exception: {str(e)}")
+            return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'])
+    # return msg indicating the session is approved
+    def get_approve_decline(self, request):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or "Bearer " not in auth_header:
+            return Response({"error": "No Access Key found"}, status=status.HTTP_401_UNAUTHORIZED)
+        user_id = request.query_params.get('user_id')
+
+        try:
+            get_user = User.objects.get(id=user_id)
+            if not get_user:
+                return Response({"error": "Therapist not found"}, status=status.HTTP_404_NOT_FOUND)
+            print(get_user)
+
+            get_approval = BookingModel.objects.filter(user=get_user).first()
+            approval_list = []
+
+            approval_list.append({
+                "id": get_approval.id,
+                "type": get_approval.session_type,
+                "status": get_approval.status,
+                "note": get_approval.note,
+                "requestDate": get_approval.assign_date,
+            })
+            print(approval_list)
+
+            return Response({"response": approval_list}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"Exception: {str(e)}")
+            return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    # returns the therapist sessions for users
     def get_user_therapist_chat_id(self, request):
         print(f"Headers: {request.headers}")
         auth_header = request.headers.get("Authorization")
@@ -530,12 +628,6 @@ class ChatbotView(viewsets.ViewSet):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.model_name = "llama3.2"
-        self.temperature = 0.5
-        self.whisper_model = whisper.load_model("tiny")
-        self.llm = ChatOllama(model=self.model_name, temperature=self.temperature)
-        self.vector_db = vector_db
-        self.str_out_put_parser = StrOutputParser()
         self.rag_chain = self.setup_rag_chain()
         self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
         # self.conversation_memories = conversation_memo
@@ -544,7 +636,7 @@ class ChatbotView(viewsets.ViewSet):
         return "\n\n".join(doc.page_content for doc in docs)
 
     def setup_rag_chain(self):
-        retriever = self.vector_db.as_retriever()
+        retriever = vector_db.as_retriever(search_kwargs={"k": 3})
 
         template = """
         You are an AI Therapist named TheraBot. You provide efficient solution for users mental health issues.
@@ -573,8 +665,8 @@ class ChatbotView(viewsets.ViewSet):
                 "chat_history": lambda x: x.get("chat_history", []),
             }
             | prompt
-            | self.llm
-            | self.str_out_put_parser
+            | llm
+            | str_out_put_parser
         )
 
         return rag_chain
@@ -619,7 +711,7 @@ class ChatbotView(viewsets.ViewSet):
             # convert into array
             audio = np.array(audio, dtype=np.float32)
             audio = whisper.pad_or_trim(audio)
-            result = self.whisper_model.transcribe(audio)
+            result = whisper_model.transcribe(audio)
             print(f"Decoded Audio: {result['text']}")
             query = result['text']
 

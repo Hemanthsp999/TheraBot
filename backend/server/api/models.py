@@ -17,6 +17,9 @@ from datetime import date, datetime
 from django.db import models
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+import pytz
+
+india = pytz.timezone("Asia/Kolkata")
 
 
 class UserManager(BaseUserManager):
@@ -102,6 +105,10 @@ class BookingModel(models.Model):
     assign_date = models.DateField()
     assign_time = models.TimeField()
     is_valid = models.CharField(max_length=10, default="false", null=False)
+    status = models.CharField(max_length=20, choices=[
+        ('approved', 'Approved'),
+        ('pending', 'Pending')
+    ], default="Pending")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
@@ -113,12 +120,12 @@ class BookingModel(models.Model):
                 session_id=self,
                 user=self.user,
                 therapist=self.therapist,
-                messages=[{"sender": "user", "message": "session Initaied", "date": date.today().isoformat(), "time": datetime.now().strftime("%H:%M")},
-                          {"sender": "therapist", "message": "Session Initiated", "date": date.today().isoformat(), "time": datetime.now().strftime("%H:%M")}]
+                messages=[{"sender": "user", "message": "session Initaied", "date": date.today().isoformat(), "time": datetime.now(india).strftime("%H:%M")},
+                          {"sender": "therapist", "message": "Session Initiated", "date": date.today().isoformat(), "time": datetime.now(india).strftime("%H:%M")}]
             )
 
     def __str__(self):
-        return f"Booking: {self.user.email} -> {self.therapist.name} on {self.assigned_date} at {self.assigned_time}"
+        return f"Booking: {self.user.email} -> {self.therapist.name} on {self.assign_date} at {self.assign_time}"
 
 
 class UserTherapistChatModel(models.Model):
