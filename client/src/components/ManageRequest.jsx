@@ -40,12 +40,33 @@ const ManageRequests = () => {
   };
 
   // Handler for declining a request
-  const handleDecline = (id) => {
-    setClientRequests(
-      clientRequests.map((request) =>
-        request.id === id ? { ...request, status: "declined" } : request,
-      ),
-    );
+  const handleDecline = async (id) => {
+    const api = "http://127.0.0.1:8000/api/make_approve/";
+
+    try {
+      const decline = await axios.post(
+        api,
+        {
+          therapist_id: therapist_id,
+          booking_id: id,
+          is_approved: "Declined",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+            console.log(decline.data.response)
+      setClientRequests(
+        clientRequests.map((request) =>
+          request.id === id ? { ...request, status: "declined" } : request,
+        ),
+      );
+    } catch (e) {
+      console.error(e);
+    }
     // In a real application, you would make an API call here to update the status
   };
 
@@ -141,9 +162,9 @@ const ManageRequests = () => {
 
                   <div className="mt-4 flex justify-between items-center">
                     <div>
-                      <span className="font-medium mr-2">Status:</span>
+                      <span className="font-medium mr-2 text-black">Status:</span>
                       {request.status === "Pending" && (
-                        <span className="text-yellow-600">Pending</span>
+                        <span className="text-yellow-600 bg-yellow-100 text-yellow-800">Pending</span>
                       )}
                       {request.status === "approved" && (
                         <span className="text-green-600">Approved</span>

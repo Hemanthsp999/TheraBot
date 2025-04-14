@@ -80,7 +80,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="navbar fixed top-0 left-0 w-full bg-black text-white p-4 shadow-md"
+      className="navbar top-0 left-0 w-full bg-black text-white p-4 shadow-md"
       style={{ fontSize: "15px" }}
     >
       <div ref={topRef}></div> {/* Reference to the top of the page */}

@@ -43,6 +43,7 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
         },
       );
 
+      const status = "Pending";
       console.log("Data Posted: ", post_data.data.message);
       console.log("Data Posted: ", post_data.data.booking.id);
       localStorage.setItem("session_id", post_data.data.booking.id);
@@ -52,7 +53,7 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
           request_type: bookingData.sessionType,
           request_date: bookingData.date,
           notes: bookingData.notes,
-          status: "Pending",
+          status: status,
         },
       });
     } catch (error) {

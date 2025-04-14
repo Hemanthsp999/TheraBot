@@ -96,6 +96,7 @@ mark {
 /* Fix for elements causing overflow */
 html, body{
     width: 100%;
+    padding: 0;
     overflow-x: hidden; /* Prevents any overflow globally */
     margin: 0;
 }
@@ -166,23 +167,21 @@ html, body{
 
 
 .footer {
-    width: 100vw !important;
-    margin-top: auto;
     position: fixed;
+    width: 100%;
+    margin-top: auto;
     bottom: 0;
     left: 0;
     flex-shrink: 0;
-    max-width: 100%;
+    max-width: 100vw;
     background: rgb(0, 0, 0);
     box-sizing: border-box;
     color: white;
     display: flex;
     justify-content: center;
-    align-items: center;
-    min-height: 60px;
+    min-height: 80px;
     padding: 10px 20px;
     flex-direction: column;
-    text-align: center;
     font-size: 16px;
 }
 

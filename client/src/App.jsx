@@ -43,7 +43,7 @@ function App() {
         <AutoLogout />
         <Outlet />
       </main>
-      <Footer />
+        <Footer />
     </div>
   );
 }
