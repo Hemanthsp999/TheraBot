@@ -21,28 +21,55 @@ urlpatterns = [
          Register_Login_View.as_view({'post': 'user_therapist_register'}), name="register"),
     path("login/", Register_Login_View.as_view({'post': 'user_therapist_login'}), name="login"),
     path("logout/", Register_Login_View.as_view({'post': 'logout'}), name="logout"),
+
     path('chatbot/', ChatbotView.as_view({'post': 'post'}), name='chatbot'),
-    path('fetchTherapist/',
-         User_View.as_view({'get': 'get_therapist'}), name='fetchTherapist'),
-    path('book_clients/',
-         User_View.as_view({'post': 'book_therapist'}), name='book_clients'),
-    path('get_session/',
-         Therapist_View.as_view({'get': 'get_user_therapist_chat_id'}), name="get_session/"),
-    path('get_chat_messages/',
-         Therapist_View.as_view({'get': 'get_chat_messages'}), name="get_chat_messages/"),
-    path('post_chat/', Therapist_View.as_view({'post': 'make_chat_to_db'}), name="post_chat/"),
+
+    # returns approved clients for therapist
     path('fetchClients/',
          Therapist_View.as_view({'get': 'get_clients'}), name='fetchClients'),
+
+    # return therapist list for user
+    path('fetchTherapist/',
+         User_View.as_view({'get': 'get_therapist'}), name='fetchTherapist'),
+
+    # user can book therapist
+    path('book_clients/',
+         User_View.as_view({'post': 'book_therapist'}), name='book_clients'),
+
+    # returns approved clients for have conversation with therapist
+    path('get_session/',
+         Therapist_View.as_view({'get': 'get_user_therapist_sessions'}), name="get_session/"),
+
+    # returns client-therapist conversation
+    path('get_chat_messages/',
+         Therapist_View.as_view({'get': 'get_chat_messages'}), name="get_chat_messages/"),
+
+    # add client/therapist message to database
+    path('post_chat/', Therapist_View.as_view({'post': 'make_chat_to_db'}), name="post_chat/"),
+
+    # currently not focusing
     path('send-otp/', Register_Login_View.as_view({'post': 'generate_otp'}), name="send-otp/"),
+
+    # stores user health history into DB
     path('post_health_history', User_View.as_view(
         {'post': 'user_health_history'}), name="post_health_history/"),
+
+    # returns the patient health summarize by ai agent
     path('ai_summarize/', User_View.as_view({'get': 'get_user_history'}), name="ai_summarize/"),
+
+    # returns client who needs get approval from therapist
     path('get_pending_clients/',
          Therapist_View.as_view({'get': 'get_pending_clients'}), name='get_pending_clients/'),
+
+    # returns client approval/decline
     path('make_approve/',
          Therapist_View.as_view({'post': 'approve_decline_request'}), name="make_approve/"),
+
+    # returns approved list
     path('get_approval/',
          Therapist_View.as_view({'get': 'get_approve_decline'}), name="get_approve/"),
+
+    # returns users session details
     path('get_session_details/',
          User_View.as_view({'get': 'get_user_creds'}), name='get_session_details/')
 

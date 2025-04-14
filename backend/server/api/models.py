@@ -113,9 +113,10 @@ class BookingModel(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
+        status = self.status
         super().save(*args, **kwargs)
 
-        if is_new:
+        if is_new and status == "Approved":
             UserTherapistChatModel.objects.create(
                 session_id=self,
                 user=self.user,

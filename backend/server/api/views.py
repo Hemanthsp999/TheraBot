@@ -34,10 +34,12 @@ import numpy as np
 from io import BytesIO
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import timedelta
-from .Serializers import BookingSerializer, UserSerializer, PatientHealthSerializer, User
+from .Serializers import BookingSerializer, UserSerializer, PatientHealthSerializer, User, ChatSerializer
 from api.models import BookingModel, UserTherapistChatModel, PatientHealthInfo
-from .agent_summarizer import generate_patient_summary, PatientHealthInfoSchema
+from datetime import date, datetime
+import pytz
 
+india = pytz.timezone("Asia/Kolkata")
 
 # NOTE These are models components
 transformer_model_name = "sentence-transformers/all-miniLM-L6-v2"
@@ -56,9 +58,8 @@ str_out_put_parser = StrOutputParser()
 
 
 class Register_Login_View(viewsets.ViewSet):
-    permission_classes = [AllowAny]  # Open for registration
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def user_therapist_register(self, request):
         data = request.data.copy()
         role = data.get('role', 'user')
@@ -92,6 +93,9 @@ class Register_Login_View(viewsets.ViewSet):
 
             print("Serializer Errors:", serializer.errors)  # Debugging errors
             return Response(serializer.errors, status=400)
+
+        else:
+            print("Invalid Role")
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def user_therapist_login(self, request, format=None):
@@ -157,13 +161,6 @@ class Register_Login_View(viewsets.ViewSet):
             if not user:
                 return Response({"error": "User not authenticated"}, status=401)
 
-            '''
-            self.conversation_memories = conversation_memories
-            user_id = request.user.id if request.user.is_authenticated else request.session.session_key
-            if user_id in self.conversation_memories:
-                del self.conversation_memories[user_id]
-            '''
-
             print("User Found:", user.email)
 
             refresh_token = request.data.get("refreshToken")
@@ -194,13 +191,10 @@ class Register_Login_View(viewsets.ViewSet):
 
 
 class User_View(viewsets.ViewSet):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=['get'])
-    # returns list of therapist
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    # returns list of therapist to users
     def get_therapist(self, request):
-        print("Full Request Headers:", request.headers)
         print("Authorization Header:", request.headers.get("Authorization"))
 
         # Check for authorization token
@@ -236,10 +230,9 @@ class User_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     # returns the success if the session booked successfully
     def book_therapist(self, request):
-        print(f"Full Headers: {request.headers}")
         auth_header = request.headers.get('Authorization')
         print(f'Authorization header: {auth_header}')
 
@@ -273,6 +266,10 @@ class User_View(viewsets.ViewSet):
 
             if BookingModel.objects.filter(user=user, therapist=therapist).exists():
                 return Response({"response": "Session already exists"}, status=status.HTTP_302_FOUND)
+
+            # check if the session timings are overlaping or trying to book at the same time
+            if BookingModel.objects.filter(assign_date=assign_date, assign_time=assign_time).exists():
+                return Response({"error": f"Session with {assign_date} and {assign_time} already exists"}, status=status.HTTP_409_CONFLICT)
 
             # Insert into Database
             booking = BookingModel.objects.create(
@@ -329,7 +326,7 @@ class User_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_user_creds(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or "Bearer " not in auth_header:
@@ -364,7 +361,7 @@ class Therapist_View(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     # returns the client(patient) list
     def get_clients(self, request):
         auth_header = request.headers.get("Authorization")
@@ -398,7 +395,7 @@ class Therapist_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     # returns client who are yet to get approve or rejected
     def get_pending_clients(self, request):
         auth_header = request.headers.get("Authorization")
@@ -441,7 +438,7 @@ class Therapist_View(viewsets.ViewSet):
             print(f"Exception: {str(e)}")
             return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     # return msg indicating the session is approved
     def approve_decline_request(self, request):
         auth_header = request.headers.get("Authorization")
@@ -463,23 +460,34 @@ class Therapist_View(viewsets.ViewSet):
             if not is_approved or not booking_id:
                 return Response({"error": "Missing data"}, status=status.HTTP_400_BAD_REQUEST)
 
-            booking = BookingModel.objects.filter(
-                id=booking_id, therapist=get_therapist).first()
+            booking = BookingModel.objects.get(
+                id=booking_id, therapist=get_therapist)
 
-            if is_approved == "declined":
+            if is_approved == "Declined":
                 booking.delete()
 
-            booking.status = is_approved
+            elif is_approved == "Approved":
+                booking.status = is_approved
 
-            booking.save()
+                booking.save()
 
-            return Response({"response": "Updated Successfully"}, status=status.HTTP_201_CREATED)
+                initiate_chat = UserTherapistChatModel.objects.create(
+                    session_id=booking,
+                    user=booking.user,
+                    therapist=booking.therapist,
+                    messages=[{"sender": "user", "message": "session Initaied", "date": date.today().isoformat(), "time": datetime.now(india).strftime("%H:%M")},
+                              {"sender": "therapist", "message": "Session Initiated", "date": date.today().isoformat(), "time": datetime.now(india).strftime("%H:%M")}]
+                )
+
+                print(f"Chat Initiated: {initiate_chat}")
+
+                return Response({"response": "Updated Successfully"}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             print(f"Exception: {str(e)}")
             return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     # return msg indicating the session is approved
     def get_approve_decline(self, request):
         auth_header = request.headers.get("Authorization")
@@ -512,11 +520,10 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    # returns the therapist sessions for users
-    def get_user_therapist_chat_id(self, request):
+    # return sessions list for user and therapist
+    def get_user_therapist_sessions(self, request):
         print(f"Headers: {request.headers}")
         auth_header = request.headers.get("Authorization")
-        # print(f"Authorization: {auth_header}")
 
         if not auth_header:
             return Response({"error": "User not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -526,19 +533,20 @@ class Therapist_View(viewsets.ViewSet):
         print(f"Debugging Log: Role: {user_role} | User ID: {user_id}")
 
         try:
-            if user_role == "user":
-                get_user_session = BookingModel.objects.filter(user=user_id).first()
-            else:
-                get_user_session = BookingModel.objects.filter(therapist=user_id).first()
 
-            if not get_user_session:
+            get_user = User.objects.get(id=user_id)
+
+            if not get_user:
                 return Response({"error": "There is no session registered for this user/therapist"}, status=status.HTTP_404_NOT_FOUND)
 
-            sessions = UserTherapistChatModel.objects.all()
+            if user_role == "user":
+                sessions = UserTherapistChatModel.objects.filter(user=get_user)
+            elif user_role == "therapist":
+                sessions = UserTherapistChatModel.objects.filter(therapist=get_user)
 
             registered_sessions = [{
                 "session_id": session.id,
-                "name": session.user.name if "therapist" in user_role else session.therapist.name,
+                "name": session.user.name if user_role == "therapist" else session.therapist.name,
             } for session in sessions]
             print("Registered Sessions", registered_sessions)
 
@@ -546,14 +554,14 @@ class Therapist_View(viewsets.ViewSet):
                 "response": registered_sessions
             }, status=status.HTTP_200_OK)
 
-        except Exception:
+        except Exception as e:
+            print(f"Exception: {str(e)}")
             return Response({"error": f"USER {user_id} Does not in the Session Registered Log"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_chat_messages(self, request):
         print(f"Header: {request.headers}")
         auth_header = request.headers.get('Authorization')
-        user_id = request.query_params.get('user_id')
 
         # NOTE need to work on this
         if not auth_header:
@@ -562,23 +570,37 @@ class Therapist_View(viewsets.ViewSet):
         try:
             session_id = request.query_params.get('session_id')
             user_role = request.query_params.get('role')
+            user_id = request.query_params.get('user_id')
+            print(f"Session ID: {session_id} | User ID: {user_id}")
+            print(f"Role: {user_role}")
+
+            if not user_role or not session_id or not user_id:
+                return Response({"error": "session_iD, user_role and user_id are missing"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+            get_user = User.objects.get(id=user_id)
+
+            if not get_user:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
             if user_role == "user":
-                get_user_session = BookingModel.objects.filter(user=user_id).first()
+                get_session = UserTherapistChatModel.objects.filter(
+                    id=session_id, user=get_user).first()
+            elif user_role == "therapist":
+                get_session = UserTherapistChatModel.objects.filter(
+                    id=session_id, therapist=get_user).first()
             else:
-                get_user_session = BookingModel.objects.filter(therapist=user_id).first()
+                print("Invalid Role provided")
 
-            if not get_user_session:
-                return Response({"error": "User not registered"}, status=status.HTTP_404_NOT_FOUND)
-
-            get_session = UserTherapistChatModel.objects.filter(id=session_id).first()
+            print("Debugging Log")
+            print(f"ID: {user_id} with Name: {get_user.name} has registered session with -> {get_session} ")
 
             if not get_session:
-                return Response({"error": "Session is not registered"}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Session not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            return Response({"response": [get_session.messages]}, status=status.HTTP_200_OK)
+            return Response({"response": get_session.messages}, status=status.HTTP_200_OK)
 
         except Exception as e:
+            print(f"Exception: {str(e)}")
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # this api get called if web sockets get crashed
