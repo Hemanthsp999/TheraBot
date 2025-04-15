@@ -1,56 +1,112 @@
-from pydantic import BaseModel, Field
-from pydantic_ai.models.mistral import MistralModel
+from typing import TypedDict, Dict, Optional
+from langgraph.graph import StateGraph, END
+from deepseek import DeepSeek
+from pydantic import BaseModel
 
 
-class PatientHealthInfoSchema(BaseModel):
-    user_id: int
+class PatientData(BaseModel):
+    """Data model for patient information received from server"""
+    patient_id: str
+    patient_name: str
+    patient_age: str
+    patient_gender: str
     health_history: str
-    curr_medications: str
     family_history: str
-    present_health_issues: str
+    curr_medications: str
+    present_issues: str
+    error: Optional[str] = None
 
 
-class PatientSummary(BaseModel):
-    summary: str = Field(description="Concise health summary of the patient")
+class GraphState(TypedDict):
+    """State for the LangGraph workflow"""
+    patient_data: PatientData
+    summary: Optional[str]
+    error: Optional[str]
 
 
-# Prompt template
-SUMMARY_PROMPT_TEMPLATE = """
-You are a helpful medical assistant summarizing a patient's mental health history for a therapist.
+def generate_summary(state: GraphState) -> Dict:
+    """Generate summary using DeepSeek LLM"""
+    if state.get("error"):
+        return state
 
-Based on the following patient data:
-- Health History: {health_history}
-- Current Medications: {curr_medications}
-- Family History: {family_history}
-- Present Health Issues: {present_health_issues}
+    patient = state["patient_data"]
+    llm = DeepSeek(model="deepseek-chat")
 
-Generate a concise summary highlighting:
-- Key historical concerns
-- Current issues and medications
-- Family history impact
-- Any points for therapist attention
+    prompt = f"""
+    You are a medical assistant preparing a patient summary for a therapist.
+    Please provide a concise yet comprehensive summary of the patient's health history.
 
-Summary:
-"""
+    Patient Information:
+        - Name: {patient.patient_name}
+        - Age: {patient.patient_age}
+        - Gender: {patient.patient_gender}
+
+    Health History: {patient.health_history}
+    Present Medications: {patient.curr_medications}
+    Family History: {patient.family_history}
+    Present Health Issues: {patient.present_issues}
+
+    Please organize the summary with these sections:
+        1. Patient Overview
+        2. Key Medical History
+        3. Current Treatment Plan
+        4. Potential Therapy Considerations
+    
+    Write professionally but in a way that's easy to quickly scan.
+    Include relevant connections between conditions and treatments.
+    Highlight any important patterns or concerns for therapy.
+    """
+
+    try:
+        summary = llm.generate(prompt)
+        return {"summary": summary}
+    except Exception as e:
+        print(f"Exception: {str(e)}")
+        return {"error": f"LLM error: {str(e)}"}
 
 
-def generate_patient_summary(patient_info: PatientHealthInfoSchema) -> PatientSummary:
-    prompt = SUMMARY_PROMPT_TEMPLATE.format(
-        health_history=patient_info.health_history,
-        curr_medications=patient_info.curr_medications,
-        family_history=patient_info.family_history,
-        present_health_issues=patient_info.present_health_issues,
-    )
+def create_workflow() -> StateGraph:
+    """Create and configure the LangGraph workflow"""
+    workflow = StateGraph(GraphState)
 
-    # Set up the model with schema output
-    model = MistralModel(
-        provider="ollama",  # make sure Ollama is running with Mistral
-        model_name="mistral-small-latest",
-        # temperature=0.7,
-        json_mode_schema_prompt="Answer in JSON Object, respect the format:\n```\n{schema}\n```\n"
-    )
+    # Add nodes to the workflow
+    workflow.add_node("generate_summary", generate_summary)
 
-    # Run the model using the AIModelRunner
-    result = model(PatientSummary, prompt)
+    # Set entry point
+    workflow.set_entry_point("generate_summary")
 
-    return result
+    # Define the end point
+    workflow.add_edge("generate_summary", END)
+
+    return workflow.compile()
+
+
+# Initialize the workflow
+app = create_workflow()
+
+
+def summarize_patient_data(patient_data: Dict) -> Dict:
+    """
+    Main function to summarize patient data
+    Args:
+        patient_data: Dictionary containing patient data from server
+    Returns:
+        Dictionary with summary or error message
+    """
+    try:
+        # Validate and convert input data
+        patient = PatientData(**patient_data)
+
+        # Run the workflow
+        result = app.invoke({"patient_data": patient})
+
+        if result.get("error"):
+            return {"status": "error", "message": result["error"]}
+
+        return {
+            "status": "success",
+            "summary": result["summary"],
+            "patient_id": patient.patient_id
+        }
+    except Exception as e:
+        return {"status": "error", "message": f"Processing error: {str(e)}"}
