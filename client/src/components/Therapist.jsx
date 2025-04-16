@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import TherapistImg from "./images/TherapistImg.jpg";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 // import Bot from "./images/Bot.jpeg";
 
 // New BookingModal Component
@@ -58,6 +59,18 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
       });
     } catch (error) {
       console.error("Booking failed: ", error.response?.data || error.message);
+            alert("Session is not available for this date and time")
+
+      toast.warn("Session is not available for this date and time", {
+        position: "top-right",
+        autoClose: 2000, // Closes after 2 seconds
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
     }
 
     onClose();
@@ -76,6 +89,7 @@ const BookingModal = ({ therapist, isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex items-center justify-center p-4">
+      <ToastContainer />
       <div className="bg-white rounded-lg max-w-md w-full p-6 relative shadow-2xl border border-gray-200">
         <button
           onClick={onClose}

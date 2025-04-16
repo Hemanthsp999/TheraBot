@@ -109,7 +109,8 @@ export default function Navbar() {
           {[
             user_type == "therapist" ? "Dashboard" : "Home",
             "About",
-             "Chat" , "Services",
+            "Chat",
+            user_type == "user" ? "Services" : "",
             "Contact",
           ].map((item, index) => (
             <li key={index} className="py-2">
@@ -173,9 +174,7 @@ export default function Navbar() {
                       </Link>
                     </li>
                     <li className="px-4 py-2 hover:bg-gray-200 text-blue-800 cursor-pointer ">
-                      <Link
-                        to={'user/clientrequest'}
-                      >
+                      <Link to={"user/clientrequest"}>
                         <b>Request Handler</b>
                       </Link>
                     </li>
