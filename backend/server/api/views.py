@@ -41,11 +41,10 @@ import pytz
 
 india = pytz.timezone("Asia/Kolkata")
 
-# NOTE These are models components
+# NOTE Pre-Load model components
 transformer_model_name = "sentence-transformers/all-miniLM-L6-v2"
 embedding_model = HuggingFaceEmbeddings(model_name=transformer_model_name)
 
-# Load FAISS directory
 folder_path = "/home/hexa/ai_bhrtya/backend/chatbot_model/faiss/"
 vector_db = FAISS.load_local(folder_path=folder_path,
                              embeddings=embedding_model, allow_dangerous_deserialization=True)
@@ -58,8 +57,9 @@ str_out_put_parser = StrOutputParser()
 
 
 class Register_Login_View(viewsets.ViewSet):
+    permission_classes = [AllowAny]
 
-    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    @action(detail=False, methods=['post'])
     def user_therapist_register(self, request):
         data = request.data.copy()
         role = data.get('role', 'user')
@@ -123,7 +123,7 @@ class Register_Login_View(viewsets.ViewSet):
 
         except User.DoesNotExist:
             # Consider adding a small delay here to prevent timing attacks
-            time.sleep(random.uniform(0.1, 0.3))  # Add 'import time, random' at the top
+            time.sleep(random.uniform(0.1, 0.3))
             return Response(
                 {'error': 'Invalid credentials'},
                 status=status.HTTP_401_UNAUTHORIZED
@@ -135,6 +135,8 @@ class Register_Login_View(viewsets.ViewSet):
 
         # Set token expiry (if using simple_jwt)
         refresh.access_token.set_exp(lifetime=timedelta(minutes=30))
+
+        print(user.email)
 
         return Response({
             'refresh': str(refresh),
@@ -148,10 +150,9 @@ class Register_Login_View(viewsets.ViewSet):
             "patient_history": True if user.role == "user" and get_patient_history else False
         }, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def logout(self, request):
         try:
-            # Debugging: Print authentication headers
             print("Authorization Header:", request.headers.get("Authorization"))
 
             # Manually authenticate user
@@ -662,6 +663,8 @@ class ChatbotView(viewsets.ViewSet):
 
         template = """
         You are an AI Therapist named TheraBot. You provide efficient solution for users mental health issues.
+        And also highlight most important solution. 
+        If user asks related to Sucidical thoughts, then say "your are stressed now, please call 100 for more help"
 
         Context information is below.
         {context}
@@ -715,14 +718,6 @@ class ChatbotView(viewsets.ViewSet):
 
         if not (query or audio_file):
             return Response({"error": "Query is missing"}, status=status.HTTP_400_BAD_REQUEST)
-
-        '''
-        if query.lower() == "exit":
-            # the memories get erased after the user logsout
-            if user_id in self.conversation_memories:
-                del self.conversation_memories[user_id]
-            return Response({"Message": "Conversation ended"})
-        '''
 
         # Process audio if provided
         if audio_file:
