@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class PatientData(BaseModel):
-    """Data model for patient information received from server"""
+    """Data model for patient information retrieved from DB"""
     patient_id: str
     patient_name: str
     patient_age: str
@@ -19,8 +19,8 @@ class PatientData(BaseModel):
 
 class GraphState(TypedDict):
     """State for the LangGraph workflow"""
-    patient_data: PatientData
-    summary: Optional[str]
+    patient_data: PatientData  # holds patient health history
+    summary: Optional[str]  # returns patient health summary
     error: Optional[str]
 
 

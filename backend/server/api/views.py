@@ -653,7 +653,6 @@ class ChatbotView(viewsets.ViewSet):
         super().__init__(**kwargs)
         self.rag_chain = self.setup_rag_chain()
         self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-        # self.conversation_memories = conversation_memo
 
     def format_docs(self, docs):
         return "\n\n".join(doc.page_content for doc in docs)
