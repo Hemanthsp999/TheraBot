@@ -6,7 +6,7 @@ Users **can talk freely with an empathetic AI chatbot**, and if needed, **connec
 
 ## Flow Chart:
 
-![User Flow Chart](user_flow_chart.jpeg)
-![Therapist Flow Chart](therapist_flow_chart.jpeg)
+![User Flow Chart](images/user_flow_chart.jpeg)
+![Therapist Flow Chart](images/therapist_flow_chart.jpeg)
 
 # Still working in progress
