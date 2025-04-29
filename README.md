@@ -42,7 +42,10 @@ The Platform includes real-time chat feature, the clients can easily communicate
 
 ## How it works:
 
+Patient Architecture
 ![User Flow Chart](images/user_flow_chart.jpeg)
+
+Therapist Architecture
 ![Therapist Flow Chart](images/therapist_flow_chart.jpeg)
 
 
