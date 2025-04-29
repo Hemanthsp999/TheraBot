@@ -53,6 +53,6 @@ Therapist Architecture
 ![Mental Health Dataset](https://huggingface.co/datasets/Amod/mental_health_counseling_conversations)
 
 ## License
-This is project licensed under the [Apache](License)
+This is project licensed under the [Apache](LICENSE)
 
 # Still working in progress
