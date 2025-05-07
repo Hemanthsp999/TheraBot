@@ -36,6 +36,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import timedelta
 from .Serializers import BookingSerializer, UserSerializer, PatientHealthSerializer, User, ChatSerializer
 from api.models import BookingModel, UserTherapistChatModel, PatientHealthInfo
+from api.agent_summarizer import summarize_patient_data, PatientData
 from datetime import date, datetime
 import pytz
 
@@ -327,6 +328,37 @@ class User_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    # returns patient health history from database
+    def get_user_health_history(self, request):
+        print(f"Authorization: {request.headers}")
+        auth_header = request.headers.get('Authorization')
+
+        if not auth_header:
+            return Response({"error": "Sorry, You are not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user_id = request.query_params.get('user_id')
+        print(f"user id: {user_id}")
+
+        try:
+            get_user = User.objects.get(id=user_id)
+
+            if not get_user.DoesNotExist:
+                return Response({"error": "user not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            get_patient = PatientHealthInfo.objects.filter(user=get_user).first()
+
+            if not get_patient:
+                return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            print(f"user found: {get_patient}")
+
+            return Response({"patient_history": "true"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"Error Debug: {str(e)}")
+            return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_user_creds(self, request):
         auth_header = request.headers.get("Authorization")
@@ -546,8 +578,9 @@ class Therapist_View(viewsets.ViewSet):
                 sessions = UserTherapistChatModel.objects.filter(therapist=get_user)
 
             registered_sessions = [{
-                "session_id": session.id,
+                "session_id": session.session_id.id,
                 "name": session.user.name if user_role == "therapist" else session.therapist.name,
+                "id": session.user.id,
             } for session in sessions]
             print("Registered Sessions", registered_sessions)
 
@@ -642,8 +675,53 @@ class Therapist_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    def patient_history_summarizer(self, request):
+        print(f"Header: {request.headers}")
+        auth_header = request.headers.get('Authorization')
+
+        if not auth_header:
+            return Response({"error": "The user is not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user_id = request.query_params.get('user_id')
+
+        print(f"user id: {user_id}")
+
+        try:
+            get_user = User.objects.get(id=user_id)
+
+            if not get_user.DoesNotExist:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            get_patient_history = PatientHealthInfo.objects.get(user=get_user)
+
+            # convert to PatientData schema
+            patient_health_data = {
+                "patient_id": str(get_user.id),
+                "patient_name": get_patient_history.user.name,
+                "patient_age": str(get_patient_history.user.age),
+                "patient_gender": get_patient_history.user.gender,
+                "health_history": get_patient_history.health_history,
+                "family_history": get_patient_history.family_history,
+                "curr_medications": get_patient_history.curr_medications,
+                "present_issues": get_patient_history.present_health_issues,
+            }
+
+            print(f"Patient History: {patient_health_data}")
+
+            # returns summary of patient history
+            get_summary = summarize_patient_data(patient_health_data)
+
+            print(f"Patient Summary: {get_summary}")
+
+            return Response({get_summary.get("summary", "")}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Error Debug: {str(e)}")
+            return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # return responses from bot
+
+
 class ChatbotView(viewsets.ViewSet):
 
     # NOTE It only tracks current session after expiriation of session the memory will be wiped out
@@ -663,7 +741,7 @@ class ChatbotView(viewsets.ViewSet):
         template = """
         You are an AI Therapist named TheraBot. You provide efficient solution for users mental health issues.
         And also highlight most important solution. 
-        If user asks related to Sucidical thoughts, then say "your are stressed now, please call 100 for more help"
+        If user asks related to Sucidical thoughts, then say "It's sensitive topic you should not think of that, just remember your family who are waiting for you, please call 100 for more help"
 
         Context information is below.
         {context}
