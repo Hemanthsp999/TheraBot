@@ -71,6 +71,13 @@ urlpatterns = [
 
     # returns users session details
     path('get_session_details/',
-         User_View.as_view({'get': 'get_user_creds'}), name='get_session_details/')
+         User_View.as_view({'get': 'get_user_creds'}), name='get_session_details/'),
+
+    # return patient health summary
+    path('summarize/',
+         Therapist_View.as_view({'get': 'patient_history_summarizer'}), name='summarize/'),
+
+    path('is_patient_info_exists/',
+         User_View.as_view({'get': 'get_user_health_history'}), name='is_patient_info_exists/')
 
 ]

@@ -1,7 +1,14 @@
 from typing import TypedDict, Dict, Optional
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, END
-from deepseek import DeepSeek
+from dotenv import load_dotenv
+# from deepseek import DeepSeek
 from pydantic import BaseModel
+import os
+
+load_dotenv()
+
+my_Key = os.getenv("GOOGLE_API_KEY")
 
 
 class PatientData(BaseModel):
@@ -30,7 +37,14 @@ def generate_summary(state: GraphState) -> Dict:
         return state
 
     patient = state["patient_data"]
-    llm = DeepSeek(model="deepseek-chat")
+    # llm = DeepSeek(model="deepseek-chat")
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.0-flash",
+        temperature=0.5,
+        max_tokens=None,
+        timeout=None,
+        max_retries=5,
+    )
 
     prompt = f"""
     You are a medical assistant preparing a patient summary for a therapist.
@@ -58,7 +72,8 @@ def generate_summary(state: GraphState) -> Dict:
     """
 
     try:
-        summary = llm.generate(prompt)
+        response = llm.invoke(prompt)
+        summary = response.content if hasattr(response, "content") else str(response)
         return {"summary": summary}
     except Exception as e:
         print(f"Exception: {str(e)}")
@@ -104,9 +119,11 @@ def summarize_patient_data(patient_data: Dict) -> Dict:
             return {"status": "error", "message": result["error"]}
 
         return {
-            "status": "success",
+            # "status": "success",
             "summary": result["summary"],
-            "patient_id": patient.patient_id
+            # "patient_id": patient.patient_id
         }
     except Exception as e:
         return {"status": "error", "message": f"Processing error: {str(e)}"}
+
+
