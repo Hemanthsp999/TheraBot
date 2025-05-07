@@ -4,3 +4,4 @@ backend/server/server/__pycache__/
 backend/server/api/__pycache__/
 backend/server/api/migrations/
 backend/server/api/.env
+backend/server/db.sqlite3
