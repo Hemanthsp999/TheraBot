@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
+import pytz
+import random
+import librosa
+import whisper
+import numpy as np
 from operator import itemgetter
 from rest_framework.decorators import action
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -25,20 +31,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
-import whisper
 from rest_framework import viewsets
-import random
-import time
-import librosa
-import numpy as np
 from io import BytesIO
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import timedelta
 from .Serializers import BookingSerializer, UserSerializer, PatientHealthSerializer, User, ChatSerializer
 from api.models import BookingModel, UserTherapistChatModel, PatientHealthInfo
-from api.agent_summarizer import summarize_patient_data, PatientData
+from api.agent_summarizer import summarize_patient_data
 from datetime import date, datetime
-import pytz
 
 india = pytz.timezone("Asia/Kolkata")
 
@@ -46,10 +46,11 @@ india = pytz.timezone("Asia/Kolkata")
 transformer_model_name = "sentence-transformers/all-miniLM-L6-v2"
 embedding_model = HuggingFaceEmbeddings(model_name=transformer_model_name)
 
+# path to vector database
 folder_path = "/home/hexa/ai_bhrtya/backend/chatbot_model/faiss/"
 vector_db = FAISS.load_local(folder_path=folder_path,
                              embeddings=embedding_model, allow_dangerous_deserialization=True)
-model_name = "llama3.2"
+model_name = "llama3.2"  # Llama-3.2 LLM Model
 temperature = 0.5
 whisper_model = whisper.load_model("tiny")
 llm = ChatOllama(model=model_name, temperature=temperature)
@@ -60,6 +61,7 @@ str_out_put_parser = StrOutputParser()
 class Register_Login_View(viewsets.ViewSet):
     permission_classes = [AllowAny]
 
+    # -returns to client and therapist to database
     @action(detail=False, methods=['post'])
     def user_therapist_register(self, request):
         data = request.data.copy()
@@ -98,6 +100,7 @@ class Register_Login_View(viewsets.ViewSet):
         else:
             print("Invalid Role")
 
+    # -returns authorized clients/therapist
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def user_therapist_login(self, request, format=None):
         email = request.data.get('email')
@@ -177,6 +180,7 @@ class Register_Login_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
+    # we've not implemented forgot pass func in frontend, so this is of no use
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def generate_otp(self, request):
         phone = request.data.get("phone_number")
@@ -194,12 +198,11 @@ class Register_Login_View(viewsets.ViewSet):
 
 class User_View(viewsets.ViewSet):
 
+    # -returns list of therapist to users
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    # returns list of therapist to users
     def get_therapist(self, request):
         print("Authorization Header:", request.headers.get("Authorization"))
 
-        # Check for authorization token
         auth_header = request.headers.get("Authorization")
         if not auth_header:
             return Response(
@@ -213,7 +216,7 @@ class User_View(viewsets.ViewSet):
             if not therapists.exists():
                 return Response({"message": "No therapists available"}, status=status.HTTP_404_NOT_FOUND)
 
-            # Serialize therapist data
+            # make a list of therapist retrieved from database
             therapist_list = [
                 {
                     "id": therapist.id,
@@ -232,8 +235,8 @@ class User_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     # returns the success if the session booked successfully
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def book_therapist(self, request):
         auth_header = request.headers.get('Authorization')
         print(f'Authorization header: {auth_header}')
@@ -250,10 +253,12 @@ class User_View(viewsets.ViewSet):
         note = request.data.get('note', '')
         is_valid = request.data.get('is_valid')
 
+        # ID exists ?
         if not id:
             return Response({"error": "Therapist ID is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # typecast to int from str
             id = int(id)
         except ValueError:
             return Response({"error": "Invalid therapist ID format."}, status=status.HTTP_400_BAD_REQUEST)
@@ -269,11 +274,11 @@ class User_View(viewsets.ViewSet):
             if BookingModel.objects.filter(user=user, therapist=therapist).exists():
                 return Response({"response": "Session already exists"}, status=status.HTTP_302_FOUND)
 
-            # check if the session timings are overlaping or trying to book at the same time
+            # if session timings are overlaping or trying to book at the same slot/time ???
             if BookingModel.objects.filter(assign_date=assign_date, assign_time=assign_time).exists():
                 return Response({"error": f"Session with {assign_date} and {assign_time} already exists"}, status=status.HTTP_409_CONFLICT)
 
-            # Insert into Database
+            # Fetch Database
             booking = BookingModel.objects.create(
                 user=user,
                 therapist=therapist,
@@ -286,13 +291,14 @@ class User_View(viewsets.ViewSet):
 
             serialized_booking = BookingSerializer(booking).data
 
+            # return success message
             return Response({"message": "Booking successful", "booking": serialized_booking}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # Fetch Patient health history into Database
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    # returns msg indicating patient health history into DB
     def user_health_history(self, request):
         print(f'Full header {request.headers}')
         auth_header = request.headers.get('Authorization')
@@ -306,7 +312,12 @@ class User_View(viewsets.ViewSet):
         if not auth_header:
             return Response({"error": "Header is missing"}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # user_id exists ?
+        if not user_id:
+            return Response({"error": "Require user_id params"}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
+            # retrieve user from the database
             get_user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -328,8 +339,8 @@ class User_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # returns patient health history
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    # returns patient health history from database
     def get_user_health_history(self, request):
         print(f"Authorization: {request.headers}")
         auth_header = request.headers.get('Authorization')
@@ -341,6 +352,7 @@ class User_View(viewsets.ViewSet):
         print(f"user id: {user_id}")
 
         try:
+            # retrieve user from database
             get_user = User.objects.get(id=user_id)
 
             if not get_user.DoesNotExist:
@@ -359,6 +371,7 @@ class User_View(viewsets.ViewSet):
             print(f"Error Debug: {str(e)}")
             return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # returns user session info
     @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_user_creds(self, request):
         auth_header = request.headers.get("Authorization")
@@ -394,8 +407,8 @@ class Therapist_View(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    # returns client(patient) list
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    # returns the client(patient) list
     def get_clients(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or "Bearer " not in auth_header:
@@ -428,8 +441,8 @@ class Therapist_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # returns client whose status is approve or rejected
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    # returns client who are yet to get approve or rejected
     def get_pending_clients(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or "Bearer " not in auth_header:
@@ -471,8 +484,8 @@ class Therapist_View(viewsets.ViewSet):
             print(f"Exception: {str(e)}")
             return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # return sessions if approved
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    # return msg indicating the session is approved
     def approve_decline_request(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or "Bearer " not in auth_header:
@@ -520,8 +533,8 @@ class Therapist_View(viewsets.ViewSet):
             print(f"Exception: {str(e)}")
             return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # returns approved sessions
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    # return msg indicating the session is approved
     def get_approve_decline(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or "Bearer " not in auth_header:
@@ -552,8 +565,8 @@ class Therapist_View(viewsets.ViewSet):
             print(f"Exception: {str(e)}")
             return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     # return sessions list for user and therapist
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_user_therapist_sessions(self, request):
         print(f"Headers: {request.headers}")
         auth_header = request.headers.get("Authorization")
@@ -592,12 +605,12 @@ class Therapist_View(viewsets.ViewSet):
             print(f"Exception: {str(e)}")
             return Response({"error": f"USER {user_id} Does not in the Session Registered Log"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # return chat message of client <--> therapist
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_chat_messages(self, request):
         print(f"Header: {request.headers}")
         auth_header = request.headers.get('Authorization')
 
-        # NOTE need to work on this
         if not auth_header:
             return Response({"error": "User in not authorized to use this func"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -638,13 +651,11 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # this api get called if web sockets get crashed
-
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def make_chat_to_db(self, request):
         print(f"Full header: {request.headers}")
         auth_header = request.headers.get('Authorization')
 
-        # NOTE need to work on this
         if not auth_header:
             return Response({"error": "User in not authorized to use this func"}, status=status.HTTP_401_UNAUTHORIZED)
         try:
@@ -675,6 +686,7 @@ class Therapist_View(viewsets.ViewSet):
         except Exception as e:
             return Response({"error": f"Internal server error: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # returns Patient health summary
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def patient_history_summarizer(self, request):
         print(f"Header: {request.headers}")
@@ -718,8 +730,6 @@ class Therapist_View(viewsets.ViewSet):
         except Exception as e:
             print(f"Error Debug: {str(e)}")
             return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-# return responses from bot
 
 
 class ChatbotView(viewsets.ViewSet):
