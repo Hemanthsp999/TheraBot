@@ -749,7 +749,6 @@ const TherapistChat = () => {
         },
       );
 
-
       console.log("Retrieved session successfully: ", response.data.response);
       if (response.data && response.data.response) {
         // Process the client list
@@ -788,7 +787,6 @@ const TherapistChat = () => {
         setLoading(false);
         return;
       }
-
 
       const response = await axios.get(
         "http://127.0.0.1:8000/api/get_chat_messages/",
@@ -839,8 +837,17 @@ const TherapistChat = () => {
     e.preventDefault();
     if (!message.trim() || !activeClient || loading) return;
 
+    function FormatDate(date) {
+      const [month, day, year] = date.split("/");
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+
     const currentTime = date.toLocaleTimeString();
     const date_ = date.toLocaleDateString();
+
+    const format_date = FormatDate(date_);
+
+    console.log("Format Date: ", format_date);
 
     // Create a new message object
     const newMessage = {
