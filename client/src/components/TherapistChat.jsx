@@ -749,6 +749,7 @@ const TherapistChat = () => {
         },
       );
 
+
       console.log("Retrieved session successfully: ", response.data.response);
       if (response.data && response.data.response) {
         // Process the client list
@@ -787,6 +788,7 @@ const TherapistChat = () => {
         setLoading(false);
         return;
       }
+
 
       const response = await axios.get(
         "http://127.0.0.1:8000/api/get_chat_messages/",

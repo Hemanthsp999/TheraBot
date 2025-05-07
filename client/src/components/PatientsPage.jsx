@@ -3,11 +3,14 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import PatientSummaryModal from "../components/PatientSummaryModal";
 
 const PatientsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [patients, setPatients] = useState([]);
+  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState(null);
 
   function make_upper_case(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -50,23 +53,9 @@ const PatientsPage = () => {
     getPatients();
   }, []);
 
-  const handleOnSubmit = async (patientId) => {
-    const access_token = localStorage.getItem("accessToken");
-    const api = "http://127.0.0.1:8000/api/ai_summarize/";
-
-    try {
-      const response = await axios.get(api, {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          "Content-Type": "application/json",
-        },
-        params: { user_id: patientId },
-      });
-
-      console.log(response.data.response.summary);
-    } catch (e) {
-      console.log(e.error);
-    }
+  const handleShowSummary = (patient) => {
+    setSelectedPatient(patient);
+    setSummaryModalOpen(true);
   };
 
   // Filter patients based on search term and status
@@ -142,7 +131,7 @@ const PatientsPage = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredPatients.length > 0 ? (
                   filteredPatients.map((patient) => (
-                    <tr key={patient.id} className="hover:bg-gray-50">
+                    <tr key={patient.user_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">
                           {patient.name}
@@ -191,18 +180,11 @@ const PatientsPage = () => {
                         <button className="text-indigo-600 hover:text-indigo-900 mr-3">
                           Edit
                         </button>
-                        {/*
-                        <button className="text-red-600 hover:text-red-900">
-                          Delete
-                        </button>
-                        */}
                         <button
-                          className="text-red-400 hover:text-red-600"
-                          onClick={() => {
-                            handleOnSubmit(patient.id);
-                          }}
+                          className="text-green-600 hover:text-green-800"
+                          onClick={() => handleShowSummary(patient)}
                         >
-                          Summarize
+                          Summary
                         </button>
                       </td>
                     </tr>
@@ -236,6 +218,16 @@ const PatientsPage = () => {
           </div>
         </div>
       </div>
+      
+      {summaryModalOpen && selectedPatient && (
+        <PatientSummaryModal
+          isOpen={summaryModalOpen}
+          onClose={() => setSummaryModalOpen(false)}
+          patientId={selectedPatient.user_id}
+          patientName={selectedPatient.name}
+        />
+      )}
+      
       <Footer />
     </div>
   );

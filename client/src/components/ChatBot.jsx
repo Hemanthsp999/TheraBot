@@ -23,6 +23,7 @@ const ChatBot = () => {
   const [storedAudio, setStoredAudio] = useState(null);
   const [recordedAudio, setRecordedAudio] = useState(null);
   const messagesEndRef = useRef(null);
+  const access_token = localStorage.getItem("accessToken");
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -120,7 +121,7 @@ const ChatBot = () => {
     const API_URL = "http://127.0.0.1:8000/api/chatbot/";
 
     setMessages((prev) => [...prev, { type: "user", content: userMessage }]);
-    const access_token = localStorage.getItem("accessToken");
+    //const access_token = localStorage.getItem("accessToken");
     console.log("Access: ", localStorage.getItem("accessToken"));
 
     try {

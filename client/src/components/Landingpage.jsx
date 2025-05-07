@@ -1,4 +1,5 @@
 import "./css/App.css";
+import axios from "axios";
 import { useRef, useEffect, useState } from "react";
 import Slider from "react-slick";
 import { useNavigate, Navigate } from "react-router-dom";
@@ -62,6 +63,31 @@ const LandingPage = () => {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
+    const api_url = "http://127.0.0.1:8000/api/is_patient_info_exists/";
+    const get_patient_info = async () => {
+      try {
+        const resp = await axios.get(api_url, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+          params: { user_id: localStorage.getItem("user_id") },
+        });
+
+        console.log(resp.data.patient_history);
+        localStorage.setItem("patient_history", resp.data.patient_history);
+      } catch (e) {
+        console.error(e.error);
+      }
+    };
+
+    get_patient_info();
+
+    // make request for every 10s
+    const interval = setInterval(get_patient_info, 10000);
+    return () => clearInterval(interval);
+  }, [patient_history]);
+
+  useEffect(() => {
     setShowModal(true); // Show when page loads
   }, []);
 
@@ -86,7 +112,7 @@ const LandingPage = () => {
 
   return (
     <div className="Landingpage  max-w-full " data-aos="fade-down">
-            {console.log(patient_history)}
+      {console.log(patient_history)}
       {patient_history === "false" && (
         <PatientInfoModal
           isOpen={showModal}
