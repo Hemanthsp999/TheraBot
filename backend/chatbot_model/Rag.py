@@ -14,7 +14,7 @@ retriever = vector_db.as_retriever()
 query = "why everythin happens to me only. First i lost my job and now i've been diagnoised with aids."
 
 retrieved_docs = retriever.invoke(query)
-ans = vector_db.similarity_search_with_score(query, k=5)
+ans = vector_db.similarity_search_with_score(query, k=2)
 
 # Print retrieved results
 print("\n Retrieved Contexts:")

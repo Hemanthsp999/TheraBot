@@ -1,4 +1,3 @@
-# NOTE still wrok in progress
 from tqdm.auto import tqdm
 import re
 import fitz
