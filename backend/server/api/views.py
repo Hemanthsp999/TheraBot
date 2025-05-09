@@ -418,7 +418,7 @@ class Therapist_View(viewsets.ViewSet):
 
         try:
             # Retrieve clients from the database
-            get_clients = BookingModel.objects.filter(therapist=therapist_id)
+            get_clients = BookingModel.objects.filter(therapist=therapist_id, status="Approved")
 
             if not get_clients.exists:
                 return Response({"message": "Clients not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -746,12 +746,17 @@ class ChatbotView(viewsets.ViewSet):
         return "\n\n".join(doc.page_content for doc in docs)
 
     def setup_rag_chain(self):
+        start = time.time()
         retriever = vector_db.as_retriever(search_kwargs={"k": 3})
+        end = time.time() - start
+        metadata = retriever.metadata
+        print(f"Retrieved ans with time: {end} {metadata}")
 
         template = """
         You are an AI Therapist named TheraBot. You provide efficient solution for users mental health issues.
         And also highlight most important solution. 
-        If user asks related to Sucidical thoughts, then say "It's sensitive topic you should not think of that, just remember your family who are waiting for you, please call 100 for more help"
+        If user has sucide thought, then you should remember them that they've family members they waiting for them. And think throughly before answering this question.
+        Don't answer other than mental health issues.
 
         Context information is below.
         {context}
