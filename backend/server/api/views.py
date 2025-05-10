@@ -23,6 +23,7 @@ from rest_framework.decorators import action
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain.chains.conversation.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferWindowMemory
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import ChatOllama
@@ -736,23 +737,9 @@ class ChatbotView(viewsets.ViewSet):
 
     # NOTE It only tracks current session after expiriation of session the memory will be wiped out
     conversation_memories = {}
+    rag_chain = None
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.rag_chain = self.setup_rag_chain()
-        self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-
-    def format_docs(self, docs):
-        return "\n\n".join(doc.page_content for doc in docs)
-
-    def setup_rag_chain(self):
-        start = time.time()
-        retriever = vector_db.as_retriever(search_kwargs={"k": 3})
-        end = time.time() - start
-        metadata = retriever.metadata
-        print(f"Retrieved ans with time: {end} {metadata}")
-
-        template = """
+    SYSTEM_TEMPLATE = """
         You are an AI Therapist named TheraBot. You provide efficient solution for users mental health issues.
         And also highlight most important solution. 
         If user has sucide thought, then you should remember them that they've family members they waiting for them. And think throughly before answering this question.
@@ -767,9 +754,27 @@ class ChatbotView(viewsets.ViewSet):
         Human: {input}
         AI:"""
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if ChatbotView.rag_chain is None:
+            ChatbotView.rag_chain = self.setup_rag_chain()
+
+    @staticmethod
+    def format_docs(docs):
+        return "\n\n".join(doc.page_content for doc in docs)
+
+    def setup_rag_chain(self):
+        start = time.time()
+        retriever = vector_db.as_retriever(
+            search_kwargs={"k": 3},
+        )
+        end = time.time() - start
+        metadata = retriever.metadata
+        print(f"Response time(in seconds): {end} Model Response: {metadata}")
+
         prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", template),
+                ("system", self.SYSTEM_TEMPLATE),
                 MessagesPlaceholder(variable_name="chat_history"),
                 ("human", "{input}"),
             ]
@@ -785,13 +790,17 @@ class ChatbotView(viewsets.ViewSet):
             | llm
             | str_out_put_parser
         )
+        nxt = time.time()
+        print(f"time taken to retrieve from vector database: {nxt-start}")
 
         return rag_chain
 
     def get_memory_for_user(self, user_id):
         """Get or create a memory instance for a specific user"""
         if user_id not in self.conversation_memories:
-            self.conversation_memories[user_id] = ConversationBufferMemory(return_messages=True)
+            self.conversation_memories[user_id] = ConversationBufferMemory(
+                return_messages=True
+            )
             print(f"Session history: {self.conversation_memories[user_id]}")
         return self.conversation_memories[user_id]
 
@@ -825,7 +834,10 @@ class ChatbotView(viewsets.ViewSet):
             query = result['text']
 
         # Use the RAG chain with proper input structure
-        response = self.rag_chain.invoke({"input": query, "chat_history": chat_history})
+        start = time.time()
+        response = ChatbotView.rag_chain.invoke({"input": query, "chat_history": chat_history})
+        end = time.time() - start
+        print(f"Final response time of Bot: {end}")
 
         # add user_question and bot_response into chat_memory
         memory.chat_memory.add_user_message(query)
