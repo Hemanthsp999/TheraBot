@@ -15,48 +15,57 @@
 import time
 import pytz
 import random
-import librosa
-import whisper
-import numpy as np
-from operator import itemgetter
 from rest_framework.decorators import action
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.output_parsers import StrOutputParser
-from langchain.chains.conversation.memory import ConversationBufferMemory
-from langchain.memory import ConversationBufferWindowMemory
-from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_ollama import ChatOllama
 from django.utils.timezone import now
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import viewsets
-from io import BytesIO
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from datetime import timedelta
 from .Serializers import BookingSerializer, UserSerializer, PatientHealthSerializer, User, ChatSerializer
+from api.chatbot import Chatbot
 from api.models import BookingModel, UserTherapistChatModel, PatientHealthInfo
 from api.agent_summarizer import summarize_patient_data
 from datetime import date, datetime
 
 india = pytz.timezone("Asia/Kolkata")
 
-# NOTE Pre-Load model components
-transformer_model_name = "sentence-transformers/all-miniLM-L6-v2"
-embedding_model = HuggingFaceEmbeddings(model_name=transformer_model_name)
 
-# path to vector database
-folder_path = "/home/hexa/ai_bhrtya/backend/chatbot_model/faiss/"
-vector_db = FAISS.load_local(folder_path=folder_path,
-                             embeddings=embedding_model, allow_dangerous_deserialization=True)
-model_name = "llama3.2"  # Llama-3.2 LLM Model
-temperature = 0.5
-whisper_model = whisper.load_model("tiny")
-llm = ChatOllama(model=model_name, temperature=temperature)
-vector_db = vector_db
-str_out_put_parser = StrOutputParser()
+chatbot = Chatbot()
+
+
+class ChatbotView(viewsets.ViewSet):
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    def post(self, request):
+        # Add extensive logging
+        print("Full Request Headers:", request.headers)
+        print("Authorization Header:", request.headers.get("Authorization"))
+        try:
+            auth_header = request.headers.get("Authorization")
+            if not auth_header:
+                return Response(
+                    {"error": "No authorization header", "code": "no_auth_header"},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+            return Response(
+                {"error": f"Authentication error: {str(e)}", "code": "auth_error"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        # If all checks pass, proceed with the conversation
+        try:
+            start = time.time()
+            bot_response = chatbot.conversation(request)
+            end = time.time()
+            print(f"Time Stamp: {end - start}")
+            return Response({"response": bot_response}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Debug Error: {str(e)}")
+            return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class Register_Login_View(viewsets.ViewSet):
@@ -102,7 +111,7 @@ class Register_Login_View(viewsets.ViewSet):
             print("Invalid Role")
 
     # -returns authorized clients/therapist
-    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    @ action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def user_therapist_login(self, request, format=None):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -155,7 +164,7 @@ class Register_Login_View(viewsets.ViewSet):
             "patient_history": True if user.role == "user" and get_patient_history else False
         }, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def logout(self, request):
         try:
             print("Authorization Header:", request.headers.get("Authorization"))
@@ -182,7 +191,7 @@ class Register_Login_View(viewsets.ViewSet):
             return Response({"error": str(e)}, status=400)
 
     # we've not implemented forgot pass func in frontend, so this is of no use
-    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    @ action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def generate_otp(self, request):
         phone = request.data.get("phone_number")
 
@@ -200,7 +209,7 @@ class Register_Login_View(viewsets.ViewSet):
 class User_View(viewsets.ViewSet):
 
     # -returns list of therapist to users
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_therapist(self, request):
         print("Authorization Header:", request.headers.get("Authorization"))
 
@@ -237,7 +246,7 @@ class User_View(viewsets.ViewSet):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # returns the success if the session booked successfully
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def book_therapist(self, request):
         auth_header = request.headers.get('Authorization')
         print(f'Authorization header: {auth_header}')
@@ -299,7 +308,7 @@ class User_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # Fetch Patient health history into Database
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def user_health_history(self, request):
         print(f'Full header {request.headers}')
         auth_header = request.headers.get('Authorization')
@@ -341,7 +350,7 @@ class User_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # returns patient health history
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_user_health_history(self, request):
         print(f"Authorization: {request.headers}")
         auth_header = request.headers.get('Authorization')
@@ -373,7 +382,7 @@ class User_View(viewsets.ViewSet):
             return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # returns user session info
-    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_user_creds(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or "Bearer " not in auth_header:
@@ -409,7 +418,7 @@ class Therapist_View(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
 
     # returns client(patient) list
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_clients(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or "Bearer " not in auth_header:
@@ -443,7 +452,7 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # returns client whose status is approve or rejected
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_pending_clients(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or "Bearer " not in auth_header:
@@ -486,7 +495,7 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # return sessions if approved
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def approve_decline_request(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or "Bearer " not in auth_header:
@@ -535,7 +544,7 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # returns approved sessions
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_approve_decline(self, request):
         auth_header = request.headers.get("Authorization")
         if not auth_header or "Bearer " not in auth_header:
@@ -567,7 +576,7 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": "Internal Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # return sessions list for user and therapist
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_user_therapist_sessions(self, request):
         print(f"Headers: {request.headers}")
         auth_header = request.headers.get("Authorization")
@@ -607,7 +616,7 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": f"USER {user_id} Does not in the Session Registered Log"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # return chat message of client <--> therapist
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def get_chat_messages(self, request):
         print(f"Header: {request.headers}")
         auth_header = request.headers.get('Authorization')
@@ -652,7 +661,7 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # this api get called if web sockets get crashed
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def make_chat_to_db(self, request):
         print(f"Full header: {request.headers}")
         auth_header = request.headers.get('Authorization')
@@ -688,7 +697,7 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": f"Internal server error: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # returns Patient health summary
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
+    @ action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
     def patient_history_summarizer(self, request):
         print(f"Header: {request.headers}")
         auth_header = request.headers.get('Authorization')
@@ -733,135 +742,3 @@ class Therapist_View(viewsets.ViewSet):
             return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class ChatbotView(viewsets.ViewSet):
-
-    # NOTE It only tracks current session after expiriation of session the memory will be wiped out
-    conversation_memories = {}
-    rag_chain = None
-
-    SYSTEM_TEMPLATE = """
-        You are an AI Therapist named TheraBot. You provide efficient solution for users mental health issues.
-        And also highlight most important solution. 
-        If user has sucide thought, then you should remember them that they've family members they waiting for them. And think throughly before answering this question.
-        Don't answer other than mental health issues.
-
-        Context information is below.
-        {context}
-
-        Chat history:
-            {chat_history}
-
-        Human: {input}
-        AI:"""
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if ChatbotView.rag_chain is None:
-            ChatbotView.rag_chain = self.setup_rag_chain()
-
-    @staticmethod
-    def format_docs(docs):
-        return "\n\n".join(doc.page_content for doc in docs)
-
-    def setup_rag_chain(self):
-        start = time.time()
-        retriever = vector_db.as_retriever(
-            search_kwargs={"k": 3},
-        )
-        end = time.time() - start
-        metadata = retriever.metadata
-        print(f"Response time(in seconds): {end} Model Response: {metadata}")
-
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", self.SYSTEM_TEMPLATE),
-                MessagesPlaceholder(variable_name="chat_history"),
-                ("human", "{input}"),
-            ]
-        )
-
-        rag_chain = (
-            {
-                "context": itemgetter("input") | retriever | self.format_docs,
-                "input": lambda x: x["input"],
-                "chat_history": lambda x: x.get("chat_history", []),
-            }
-            | prompt
-            | llm
-            | str_out_put_parser
-        )
-        nxt = time.time()
-        print(f"time taken to retrieve from vector database: {nxt-start}")
-
-        return rag_chain
-
-    def get_memory_for_user(self, user_id):
-        """Get or create a memory instance for a specific user"""
-        if user_id not in self.conversation_memories:
-            self.conversation_memories[user_id] = ConversationBufferMemory(
-                return_messages=True
-            )
-            print(f"Session history: {self.conversation_memories[user_id]}")
-        return self.conversation_memories[user_id]
-
-    def conversation(self, request):
-        query = request.data.get('query', "").strip()
-        audio_file = request.FILES.get("audio", None)
-        print(f"audio file is received: {audio_file}")
-
-        user_id = request.user.id if request.user.is_authenticated else request.session.session_key
-
-        # Get memory for this specific user
-        memory = self.get_memory_for_user(user_id)
-
-        # Retrieve chat history from memory
-        chat_history = memory.load_memory_variables({}).get("history", [])
-
-        if not (query or audio_file):
-            return Response({"error": "Query is missing"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Process audio if provided
-        if audio_file:
-            audio_bytes = audio_file.read()
-            audio_stream = BytesIO(audio_bytes)
-            # Load the audio file into a NumPy array
-            audio, sr = librosa.load(audio_stream, sr=16000)  # Whisper expects 16kHz audio
-            # convert into array
-            audio = np.array(audio, dtype=np.float32)
-            audio = whisper.pad_or_trim(audio)
-            result = whisper_model.transcribe(audio)
-            print(f"Decoded Audio: {result['text']}")
-            query = result['text']
-
-        # Use the RAG chain with proper input structure
-        start = time.time()
-        response = ChatbotView.rag_chain.invoke({"input": query, "chat_history": chat_history})
-        end = time.time() - start
-        print(f"Final response time of Bot: {end}")
-
-        # add user_question and bot_response into chat_memory
-        memory.chat_memory.add_user_message(query)
-        memory.chat_memory.add_ai_message(response)
-
-        return Response({"response": response})
-
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], authentication_classes=[JWTAuthentication])
-    def post(self, request):
-        # Add extensive logging
-        print("Full Request Headers:", request.headers)
-        print("Authorization Header:", request.headers.get("Authorization"))
-        try:
-            auth_header = request.headers.get("Authorization")
-            if not auth_header:
-                return Response(
-                    {"error": "No authorization header", "code": "no_auth_header"},
-                    status=status.HTTP_401_UNAUTHORIZED
-                )
-        except Exception as e:
-            print(f"Unexpected error: {str(e)}")
-            return Response(
-                {"error": f"Authentication error: {str(e)}", "code": "auth_error"},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-        # If all checks pass, proceed with the conversation
-        return self.conversation(request)
