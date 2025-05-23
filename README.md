@@ -39,7 +39,10 @@ The Platform includes real-time chat feature, the clients can easily communicate
 ## How it works:
 
 System Architecture<br/>
+
+<center>
 ![System Architecture](images/system_architecture.jpeg)
+<center/>
 
 Data Flow Diagram
 ![Data Flow](images/dataflow.jpeg)
