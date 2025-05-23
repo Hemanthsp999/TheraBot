@@ -41,6 +41,9 @@ The Platform includes real-time chat feature, the clients can easily communicate
 System Architecture
 ![System Architecture](images/system_architecture.jpeg)
 
+Data Flow Diagram
+![Data Flow](images/dataflow.jpeg)
+
 Patient Architecture
 ![User Flow Chart](images/user_flow_chart.jpeg)
 
