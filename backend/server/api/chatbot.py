@@ -80,6 +80,7 @@ class Chatbot():
     rag_chain = None
 
     def __init__(self, **kwargs):
+        super().__init__()
         if Chatbot.rag_chain is None:
             Chatbot.rag_chain = setup_rag_chain(self)
 
