@@ -51,9 +51,39 @@ Patient Architecture
 Therapist Architecture
 ![Therapist Flow Chart](images/therapist_flow_chart.jpeg)
 
+## How to Execute ?
+
+1. Clone the Repo
+
+```bash
+git clone <project_repo.git>"
+cd "project_repo"
+```
+
+2. Activate the Environment
+
+```bash
+python3 -m venv evn
+```
+
+3. Run frontend
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+4. Run Backend
+
+```bash
+cd backend
+python server/manage.py runserver
+```
+
 ## Dataset Reference:
 
-![Mental Health Dataset](https://huggingface.co/datasets/Amod/mental_health_counseling_conversations)
+[Mental Health Dataset](https://huggingface.co/datasets/Amod/mental_health_counseling_conversations)
 
 ## License
 
