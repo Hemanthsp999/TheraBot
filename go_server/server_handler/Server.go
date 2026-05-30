@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"go_server/server_handler/DataModel/datahandler"
-	db "go_server/server_handler/DbHandler/database"
+	"go_server/server_handler/DataModel/datahandler"
 )
 
 type ServerContainer struct {

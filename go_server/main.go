@@ -1,7 +1,7 @@
 package main
 
 import (
-	"go_server/server_handler/datahandler"
+	"go_server/server_handler/DataModel/datahandler"
 	"go_server/server_handler/server"
 )
 
