@@ -1,56 +1,44 @@
-package server
+package server_handler
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
-	"os/exec"
-	"strings"
 
-	"go_server/server_handler/DataModel/datahandler"
-	"go_server/server_handler/DataModel/datahandler"
+	"go_server/server_handler/DataModel"
+	"go_server/server_handler/DbHandler"
+	"go_server/server_handler/internal"
 )
 
 type ServerContainer struct {
-	Conn *datahandler.DBConnection
+	Conn       *datahandler.DBConnection
+	httpServer *http.Server
 }
 
 func (s *ServerContainer) InitServer(port int) {
+	s.Conn.Db = database.InitDB()
+	handler.Db = *s.Conn
+
 	addr := fmt.Sprintf(":%d", port)
-	fmt.Printf("Starting server on Port %d\n", port)
+	fmt.Printf("Starting server on port %d\n", port)
 
-	// Initialize DB and store it in the container
-	s.Conn.Db = db.InitDB()
+	s.httpServer = &http.Server{
+		Addr:    addr,
+		Handler: handler.Router(),
+	}
 
-	// Use a default serve mux or define your routes here
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "Server is running")
-	})
-
-	log.Fatal(http.ListenAndServe(addr, nil))
+	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
 }
 
-func (s *ServerContainer) KillServer(port int) {
-	go func() {
-		portStr := fmt.Sprintf("%d", port)
-		cmd := exec.Command("lsof", "-ti", "tcp:"+portStr)
-		output, err := cmd.Output()
-
-		if err != nil {
-			return
+func (s *ServerContainer) KillServer() {
+	if s.httpServer != nil {
+		if err := s.httpServer.Shutdown(context.Background()); err != nil {
+			log.Printf("Server shutdown error: %v", err)
 		}
-
-		pid := strings.TrimSpace(string(output))
-		if pid == "" {
-			return
-		}
-
-		pidInt := strings.Split(pid, "\n")[0]
-		killCmd := exec.Command("kill", "-9", pidInt)
-
-		if err := killCmd.Run(); err == nil {
-			db.CloseDB(s.Conn.Db)
-			fmt.Printf("Successfully killed process %s on port %d\n", pidInt, port)
-		}
-	}()
+	}
+	database.CloseDB(s.Conn.Db)
+	fmt.Println("Server stopped.")
 }

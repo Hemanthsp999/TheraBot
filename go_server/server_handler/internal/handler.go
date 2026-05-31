@@ -1,79 +1,62 @@
-pacakge server_handler
+package handler
 
 import (
-	"net/http",
-	"github.com/gin-gonic/gin",
-	db "go_server/server_handler/DbHandler/database",
-	dataContent "go_server/server_handler/DataModel/datahandler"
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+	"go_server/server_handler/DataModel"
+	"go_server/server_handler/DbHandler"
 )
 
-var Db dataContent.DBConnection
+var Db datahandler.DBConnection
 
-func UserLogin(c *gin.Context){
+func UserLogin(c *gin.Context) {
+	userEmail := c.PostForm("user_email")
+	userPass := c.PostForm("user_pass")
 
-	userEamil, userPass := c.PostForm("user_email"), c.PostForm("user_pass")
+	fmt.Printf("Login attempt for email: %s\n", userEmail)
 
-	fmt.Printf("User %s and pass %s\n", userName, userPass)
+	userModel := datahandler.User{
+		UserEmail: userEmail,
+		UserPass:  userPass,
+	}
 
-	var UserModel UserHandler.User 
-
-	UserModel.UserEmail = userEmail
-	UserModel.UserPass = userPass
-
-	is_valid := db.IsValidUser(UserModel, Db)
-
-	if !is_valid{
-		log.Print("User not found")
-		c.JSON(http.StatusNotFound, gin.H{"error": "Invalid email or password"})
+	if !database.IsValidUser(userModel, Db.Db) {
+		log.Print("Invalid credentials")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
-	fmt.Printf("user found")
-
-	c.JSON(http.StatusFound, gin.H{"message": "user creds found!"})
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
 }
 
 func RegisterUser(c *gin.Context) {
-	// 1. Retrieve form values
-	user_name := c.PostForm("user_name")
-	user_email := c.PostForm("user_email")
-	user_pass := c.PostForm("user_pass")
-	user_phone := c.PostForm("user_phone")
-	user_gender := c.PostForm("user_gender")
-	user_role := c.PostForm("user_role")
+	userPass := c.PostForm("user_pass")
 
-	// 2. Hash the password
-	// bcrypt.DefaultCost is usually 10. Higher is more secure but slower.
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user_pass), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userPass), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
 
-	// 3. Initialize the struct correctly
-	// Use := for new variables inside the function, and fix the syntax (commas and colons)
-	user_model := &UserHandler{
-		UserName:  user_name,
-		UserEmail: user_email,
-		Password:  string(hashedPassword), // Store the hash, never plain text
-		Phone:     user_phone,
-		Gender:    user_gender,
-		Role:      user_role,
+	userModel := datahandler.User{
+		UserName:   c.PostForm("user_name"),
+		UserEmail:  c.PostForm("user_email"),
+		UserPass:   string(hashedPassword),
+		UserPhone:  c.PostForm("user_phone"),
+		UserGender: c.PostForm("user_gender"),
+		UserRole:   c.PostForm("user_role"),
 	}
 
-	// 4. Save to Database
-	// Assuming 'db' is your GORM instance passed to the function
-	result := db.AddUser(user_model, Db)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save user", "details": result.Error.Error()})
+	if err := database.AddUser(userModel, Db.Db); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save user", "details": err.Error()})
 		return
 	}
 
-	// 5. Success Response
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "User registered successfully",
-		"user_id": user_model.ID, // Assumes your struct has an ID field populated by DB
-	})
+	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
 
 

@@ -1,15 +1,14 @@
 package main
 
 import (
-	"go_server/server_handler/DataModel/datahandler"
-	"go_server/server_handler/server"
+	server "go_server/server_handler"
+	"go_server/server_handler/DataModel"
 )
 
 func main() {
-
 	s := server.ServerContainer{
 		Conn: &datahandler.DBConnection{},
 	}
-
 	s.InitServer(8080)
+
 }

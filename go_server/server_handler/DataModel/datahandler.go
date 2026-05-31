@@ -13,10 +13,10 @@ type User struct {
 	UserRole   string `json:"role"`
 }
 
-type ProfileSwitcher struct{
+type ProfileSwitcher struct {
 	UserProfile *User
 }
 
-type DBConnection struct{
+type DBConnection struct {
 	Db *sql.DB
 }
