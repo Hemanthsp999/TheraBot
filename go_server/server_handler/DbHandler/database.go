@@ -6,7 +6,7 @@ import (
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
-	"go_server/server_handler/DataModel"
+	datahandler "go_server/server_handler/DataModel"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -28,9 +28,11 @@ func InitDB() *sql.DB {
 	-- Core Authentication Table
 	CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT,
 		email TEXT UNIQUE NOT NULL,
 		password_hash TEXT NOT NULL,
-		name TEXT,
+		phone TEXT,
+		gender TEXT,
 		role TEXT CHECK(role IN ('doctor', 'patient', 'admin')) NOT NULL
 	);
 

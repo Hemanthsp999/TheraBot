@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"go_server/server_handler/DataModel"
-	"go_server/server_handler/DbHandler"
+	datahandler "go_server/server_handler/DataModel"
+	database "go_server/server_handler/DbHandler"
 	"go_server/server_handler/internal"
 )
 

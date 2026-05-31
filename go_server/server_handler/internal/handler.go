@@ -7,22 +7,29 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"go_server/server_handler/DataModel"
-	"go_server/server_handler/DbHandler"
+	datahandler "go_server/server_handler/DataModel"
+	database "go_server/server_handler/DbHandler"
 )
 
 var Db datahandler.DBConnection
 
 func UserLogin(c *gin.Context) {
-	userEmail := c.PostForm("user_email")
-	userPass := c.PostForm("user_pass")
+	var userModel datahandler.User
 
-	fmt.Printf("Login attempt for email: %s\n", userEmail)
-
-	userModel := datahandler.User{
-		UserEmail: userEmail,
-		UserPass:  userPass,
+	// Support JSON body or form-encoded
+	if c.ContentType() == "application/json" {
+		if err := c.BindJSON(&userModel); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
+			return
+		}
+	} else {
+		userModel = datahandler.User{
+			UserEmail: c.PostForm("user_email"),
+			UserPass:  c.PostForm("user_pass"),
+		}
 	}
+
+	fmt.Printf("Login attempt for email: %s\n", userModel.UserEmail)
 
 	if !database.IsValidUser(userModel, Db.Db) {
 		log.Print("Invalid credentials")
@@ -34,21 +41,36 @@ func UserLogin(c *gin.Context) {
 }
 
 func RegisterUser(c *gin.Context) {
-	userPass := c.PostForm("user_pass")
+	var input datahandler.User
+	if c.ContentType() == "application/json" {
+		if err := c.BindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
+			return
+		}
+	} else {
+		input = datahandler.User{
+			UserName:   c.PostForm("user_name"),
+			UserEmail:  c.PostForm("user_email"),
+			UserPass:   c.PostForm("user_pass"),
+			UserPhone:  c.PostForm("user_phone"),
+			UserGender: c.PostForm("user_gender"),
+			UserRole:   c.PostForm("user_role"),
+		}
+	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userPass), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.UserPass), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
 
 	userModel := datahandler.User{
-		UserName:   c.PostForm("user_name"),
-		UserEmail:  c.PostForm("user_email"),
+		UserName:   input.UserName,
+		UserEmail:  input.UserEmail,
 		UserPass:   string(hashedPassword),
-		UserPhone:  c.PostForm("user_phone"),
-		UserGender: c.PostForm("user_gender"),
-		UserRole:   c.PostForm("user_role"),
+		UserPhone:  input.UserPhone,
+		UserGender: input.UserGender,
+		UserRole:   input.UserRole,
 	}
 
 	if err := database.AddUser(userModel, Db.Db); err != nil {

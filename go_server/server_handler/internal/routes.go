@@ -4,12 +4,8 @@ import "github.com/gin-gonic/gin"
 
 func Router() *gin.Engine {
 	r := gin.Default()
-
-
-	/*
-	r.Use(CORSMiddleware())     // apply globally
-	r.Use(RateLimitMiddleware())
-	*/
+	// enable CORS so frontend can reach this API from a different origin
+	r.Use(CORSMiddleWare())
 
 	r.POST("/login", UserLogin)
 	r.POST("/signup", RegisterUser)

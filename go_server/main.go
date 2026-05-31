@@ -2,7 +2,7 @@ package main
 
 import (
 	server "go_server/server_handler"
-	"go_server/server_handler/DataModel"
+	datahandler "go_server/server_handler/DataModel"
 )
 
 func main() {
