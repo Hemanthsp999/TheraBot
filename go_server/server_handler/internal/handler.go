@@ -24,12 +24,13 @@ func UserLogin(c *gin.Context) {
 		}
 	} else {
 		userModel = datahandler.User{
-			UserEmail: c.PostForm("user_email"),
-			UserPass:  c.PostForm("user_pass"),
+			UserEmail: c.PostForm("email"),
+			UserPass:  c.PostForm("password"),
+			UserRole: c.PostForm("role"),
 		}
+		fmt.Printf("Login attempt for email: %s with permission: %s\n", userModel.UserEmail, userModel.UserRole)
 	}
 
-	fmt.Printf("Login attempt for email: %s\n", userModel.UserEmail)
 
 	if !database.IsValidUser(userModel, Db.Db) {
 		log.Print("Invalid credentials")
@@ -49,14 +50,17 @@ func RegisterUser(c *gin.Context) {
 		}
 	} else {
 		input = datahandler.User{
-			UserName:   c.PostForm("user_name"),
-			UserEmail:  c.PostForm("user_email"),
-			UserPass:   c.PostForm("user_pass"),
-			UserPhone:  c.PostForm("user_phone"),
-			UserGender: c.PostForm("user_gender"),
-			UserRole:   c.PostForm("user_role"),
+			UserName:   c.PostForm("name"),
+			UserEmail:  c.PostForm("email"),
+			UserPass:   c.PostForm("password"),
+			UserPhone:  c.PostForm("phone_number"),
+			UserAge:    c.PostForm("age"),
+			UserGender: c.PostForm("gender"),
+			UserRole:   c.PostForm("role"),
 		}
 	}
+
+	fmt.Printf("name: %s email: %s password: %s age: %s gender: %s phone: %s role: %s\n", input.UserName, input.UserEmail, input.UserPass, input.UserAge, input.UserGender, input.UserPhone, input.UserRole)
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.UserPass), bcrypt.DefaultCost)
 	if err != nil {
@@ -69,6 +73,7 @@ func RegisterUser(c *gin.Context) {
 		UserEmail:  input.UserEmail,
 		UserPass:   string(hashedPassword),
 		UserPhone:  input.UserPhone,
+		UserAge:    input.UserAge,
 		UserGender: input.UserGender,
 		UserRole:   input.UserRole,
 	}

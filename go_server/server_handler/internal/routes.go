@@ -7,8 +7,11 @@ func Router() *gin.Engine {
 	// enable CORS so frontend can reach this API from a different origin
 	r.Use(CORSMiddleWare())
 
-	r.POST("/login", UserLogin)
-	r.POST("/signup", RegisterUser)
+	api := r.Group("api")
+	{
+		api.POST("/login", UserLogin)
+		api.POST("/signup", RegisterUser)
+	}
 
 	// Protected routes — auth middleware on a group
 	/*

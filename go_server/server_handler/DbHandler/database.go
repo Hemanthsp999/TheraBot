@@ -31,6 +31,7 @@ func InitDB() *sql.DB {
 		name TEXT,
 		email TEXT UNIQUE NOT NULL,
 		password_hash TEXT NOT NULL,
+		age INT NOT NULL,
 		phone TEXT,
 		gender TEXT,
 		role TEXT CHECK(role IN ('doctor', 'patient', 'admin')) NOT NULL
@@ -114,15 +115,21 @@ func CloseDB(db *sql.DB) {
 
 // AddUser stores user with an already-hashed password
 func AddUser(user_model datahandler.User, db *sql.DB) error {
-	query := `INSERT INTO users (name, email, password_hash, phone, gender, role) VALUES (?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO users (name, email, password_hash, phone, age, gender, role) VALUES (?, ?, ?, ?, ?, ?, ?)`
 	_, err := db.Exec(query,
 		user_model.UserName,
 		user_model.UserEmail,
 		user_model.UserPass,
 		user_model.UserPhone,
+		user_model.UserAge,
 		user_model.UserGender,
 		user_model.UserRole,
 	)
+
+	if err != nil{
+		log.Fatal(err)
+	}
+
 	return err
 }
 
@@ -133,6 +140,7 @@ func IsValidUser(user_model datahandler.User, db *sql.DB) bool {
 		user_model.UserEmail,
 	).Scan(&storedHash)
 	if err != nil {
+		log.Fatal(err)
 		return false
 	}
 	return bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(user_model.UserPass)) == nil

@@ -6,9 +6,11 @@ import (
 )
 
 func main() {
+
+	const port int = 8000
 	s := server.ServerContainer{
 		Conn: &datahandler.DBConnection{},
 	}
-	s.InitServer(8080)
+	s.InitServer(port)
 
 }
