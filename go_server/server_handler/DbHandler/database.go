@@ -115,22 +115,34 @@ func CloseDB(db *sql.DB) {
 
 // AddUser stores user with an already-hashed password
 func AddUser(user_model datahandler.User, db *sql.DB) error {
-	query := `INSERT INTO users (name, email, password_hash, phone, age, gender, role) VALUES (?, ?, ?, ?, ?, ?, ?)`
-	_, err := db.Exec(query,
-		user_model.UserName,
-		user_model.UserEmail,
-		user_model.UserPass,
-		user_model.UserPhone,
-		user_model.UserAge,
-		user_model.UserGender,
-		user_model.UserRole,
-	)
-
+	tx, err := db.Begin() // start transaction
 	if err != nil{
-		log.Fatal(err)
+		return err
 	}
 
-	return err
+	// insert to users table and then map to patient or doctors table based on roles
+	result, err := tx.Exec("INSERT INTO users (name, email, phone, password_hash, age, gender, role) VALUES (?, ?, ?, ?, ?, ?, ?)", 
+	user_model.UserName, user_model.UserEmail, user_model.UserPhone, user_model.UserPass, user_model.UserAge, user_model.UserGender, user_model.UserRole)
+
+	if err != nil{
+		tx.Rollback()
+		return err
+	}
+
+	getUserId, _ := result.LastInsertId()
+
+	if user_model.UserRole == "doctor" {
+		_, err = tx.Exec("INSERT INTO doctors (user_id) VALUES (?)", getUserId)
+	}else if user_model.UserRole == "patient"{
+		_, err = tx.Exec("INSERT INTO patients (user_id) VALUES (?)", getUserId)
+	}
+
+	if err != nil{
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func IsValidUser(user_model datahandler.User, db *sql.DB) bool {
