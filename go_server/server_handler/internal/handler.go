@@ -2,43 +2,59 @@ package handler
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-
+	"time"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	datahandler "go_server/server_handler/DataModel"
 	database "go_server/server_handler/DbHandler"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var Db datahandler.DBConnection
 
-func UserLogin(c *gin.Context) {
-	var userModel datahandler.User
+var jwtKey = []byte("secret-key-for-backend")
 
-	// Support JSON body or form-encoded
-	if c.ContentType() == "application/json" {
-		if err := c.BindJSON(&userModel); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-			return
-		}
-	} else {
-		userModel = datahandler.User{
-			UserEmail: c.PostForm("email"),
-			UserPass:  c.PostForm("password"),
-			UserRole: c.PostForm("role"),
-		}
-		fmt.Printf("Login attempt for email: %s with permission: %s\n", userModel.UserEmail, userModel.UserRole)
+func UserLogin(c *gin.Context) {
+	var user_model datahandler.User
+	if err := c.ShouldBindJSON(&user_model); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
 	}
 
-
-	if !database.IsValidUser(userModel, Db.Db) {
-		log.Print("Invalid credentials")
+	validUser, ok := database.IsValidUser(user_model, Db.Db)
+	if !ok{
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &datahandler.Claims{
+		UserID: validUser.UserId,
+		Email:  validUser.UserEmail,
+		Role:   validUser.UserRole,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
+		return
+	}
+
+	fmt.Println(token)
+	fmt.Println(tokenString)
+
+	// 4. Return token to frontend
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"token":   tokenString,
+		"role":    validUser.UserRole,
+		"user": validUser,
+	})
 }
 
 func RegisterUser(c *gin.Context) {
@@ -68,6 +84,8 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
+
+	fmt.Println(string(hashedPassword))
 	userModel := datahandler.User{
 		UserName:   input.UserName,
 		UserEmail:  input.UserEmail,

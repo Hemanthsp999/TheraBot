@@ -145,15 +145,21 @@ func AddUser(user_model datahandler.User, db *sql.DB) error {
 	return tx.Commit()
 }
 
-func IsValidUser(user_model datahandler.User, db *sql.DB) bool {
+func IsValidUser(user_model datahandler.User, db *sql.DB) (datahandler.User, bool) {
+	var dbUser datahandler.User
 	var storedHash string
+
+	query := "SELECT id, email, password_hash, role FROM users WHERE email = ?"
 	err := db.QueryRow(
-		"SELECT password_hash FROM users WHERE email = ?",
-		user_model.UserEmail,
-	).Scan(&storedHash)
+		query,user_model.UserEmail,
+	).Scan(&dbUser.UserId, &dbUser.UserEmail, &storedHash, &dbUser.UserRole)
+
 	if err != nil {
-		log.Fatal(err)
-		return false
+		return dbUser, false 
 	}
-	return bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(user_model.UserPass)) == nil
+
+
+	err = bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(user_model.UserPass)) 
+
+	return dbUser, err == nil
 }
