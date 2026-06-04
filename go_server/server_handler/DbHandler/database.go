@@ -149,10 +149,10 @@ func IsValidUser(user_model datahandler.User, db *sql.DB) (datahandler.User, boo
 	var dbUser datahandler.User
 	var storedHash string
 
-	query := "SELECT id, email, password_hash, role FROM users WHERE email = ?"
+	query := "SELECT id, name, email, password_hash, role FROM users WHERE email = ?"
 	err := db.QueryRow(
 		query,user_model.UserEmail,
-	).Scan(&dbUser.UserId, &dbUser.UserEmail, &storedHash, &dbUser.UserRole)
+	).Scan(&dbUser.UserId, &dbUser.UserName, &dbUser.UserEmail, &storedHash, &dbUser.UserRole)
 
 	if err != nil {
 		return dbUser, false 

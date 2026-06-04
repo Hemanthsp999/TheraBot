@@ -48,12 +48,15 @@ func UserLogin(c *gin.Context) {
 	fmt.Println(token)
 	fmt.Println(tokenString)
 
-	// 4. Return token to frontend
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Login successful",
-		"token":   tokenString,
-		"role":    validUser.UserRole,
-		"user": validUser,
+		"message":      "Login successful",
+		"access_token": tokenString,             // For localStorage.setItem("accessToken", ...)
+		"user_type":    validUser.UserRole,       // For localStorage.setItem("user_type", ...)
+		"role":         validUser.UserRole,       // For console.log("role", ...)
+		"id":           validUser.UserId,         // For localStorage.setItem("user_id", ...)
+		"name":         validUser.UserName,       // For localStorage.setItem("name", ...)
+		"refresh":      "",                       // Placeholder for refreshToken
+		"expires_at":   expirationTime.Unix(),    // Send expiration timestamp
 	})
 }
 
