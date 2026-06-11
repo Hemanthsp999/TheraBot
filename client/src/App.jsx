@@ -1,49 +1,30 @@
 import "aos/dist/aos.css";
 import AOS from "aos";
 import { Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import "./components/css/App.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AutoLogout from "./components/AutoLogout";
 
 function App() {
-  const [scrollingUp, setScrollingUp] = useState(false);
-
   useEffect(() => {
-    /* Initialize AOS */
+    // Single global initialization pass
     AOS.init({
-      duration: 1000,
+      duration: 800,
       easing: "ease-out",
-      once: false,
+      once: true, // Stops repetitive loops from re-shaking components on scroll
     });
-
-    let lastScrollY = window.scrollY;
-    const handleScroll = () => {
-      if (window.scrollY < lastScrollY) {
-        setScrollingUp(true);
-      } else {
-        setScrollingUp(false);
-      }
-      lastScrollY = window.scrollY;
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  useEffect(() => {
-    AOS.refresh();
-  }, [scrollingUp]);
 
   return (
     <div className="app-container">
       <Navbar />
-      <main className="flex-1">
+      <main className="main-content">
         <AutoLogout />
         <Outlet />
       </main>
-        <Footer />
+      <Footer />
     </div>
   );
 }

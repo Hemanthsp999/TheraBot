@@ -1,246 +1,161 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Typography } from "@material-tailwind/react";
 import User from "./images/user.png";
 import Bot from "./images/Bot.jpeg";
-import { useRef } from "react";
 import axios from "axios";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const navigate = useNavigate();
-
-  const topRef = useRef(null);
-
   const [email, setEmail] = useState("");
   const [user_type, setUserType] = useState("");
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const storeUser = localStorage.getItem("name");
     const store_user_type = localStorage.getItem("user_type");
-    if (storeUser) {
-      setEmail(storeUser);
-    }
+    if (storeUser) setEmail(storeUser);
+    if (store_user_type) setUserType(store_user_type);
+  }, [location]);
 
-    if (store_user_type) {
-      setUserType(store_user_type);
-    }
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
   const handleLogout = async (e) => {
     e.preventDefault();
+    const refresh_token = localStorage.getItem("refreshToken");
+    const access_token = localStorage.getItem("accessToken");
+
+    const clearAndRedirect = () => {
+      localStorage.clear();
+      setEmail("");
+      setUserType("");
+      navigate("/login");
+    };
+
+    if (!refresh_token || !access_token) {
+      clearAndRedirect();
+      return;
+    }
 
     try {
-      const refresh_token = localStorage.getItem("refreshToken");
-      const access_token = localStorage.getItem("accessToken");
-      console.log("Access Token: ", access_token);
-      console.log("Refresh Token: ", refresh_token);
-
-      if (!refresh_token || !access_token) {
-        console.log("Refresh or access token is not found");
-        localStorage.clear();
-        navigate("/login");
-        return;
-      }
-
-      // Send logout request
       const response = await axios.post(
         "http://127.0.0.1:8000/api/logout/",
         { refreshToken: refresh_token },
-        {
-          headers: {
-            Authorization: `Bearer ${access_token}`,
-            "Content-Type": "application/json",
-          },
-        },
+        { headers: { Authorization: `Bearer ${access_token}`, "Content-Type": "application/json" } }
       );
-
-      console.log(response.data.message);
-      localStorage.clear();
-
-      // Redirect to login page
-      navigate(response.data.redirect_url);
-      // check if the data is remove or not ?
-      if (localStorage.length > 0) {
-        console.log("Still data is there...");
-      } else {
-        console.log("Removed Storage");
-      }
+      clearAndRedirect();
+      if (response.data?.redirect_url) navigate(response.data.redirect_url);
     } catch (error) {
-      console.error("Logout failed:", error.response?.data || error);
-      localStorage.clear();
-      navigate("/login");
+      clearAndRedirect();
     }
   };
-  // Scroll to the top of the page
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+
+  const navLinks = [
+    { name: user_type === "therapist" ? "Dashboard" : "Home", path: user_type === "therapist" ? "/therapist" : "/" },
+    { name: "About", path: "/about" },
+    { name: "Chat", path: user_type === "therapist" ? "/therapist/chat" : "/chat" },
+    ...(user_type === "user" ? [{ name: "Services", path: "/user/services" }] : []),
+    { name: "Contact", path: "/contact" }
+  ];
 
   return (
-    <nav
-      className="navbar top-0 left-0 w-full bg-black text-white p-4 shadow-md"
-      style={{ fontSize: "15px" }}
-    >
-      <div ref={topRef}></div> {/* Reference to the top of the page */}
-      <div className="container mx-auto flex justify-between items-center px-4 md:px-8">
-        {/* Left Section (Logo & Name) */}
-        <div className="flex items-center space-x-2 mt-1">
-          <Link to={user_type === "therapist" ? "/therapist" : "/"}>
-            <img
-              src={Bot}
-              onClick={scrollToTop}
-              className="w-8 h-8 md:w-10 md:h-10 rounded-lg object-cover"
-              alt="Logo"
-            />
-          </Link>
-          <Typography
-            as="span"
-            className="text-lg sm:text-xl font-semibold cursor-pointer"
-            onClick={scrollToTop} // Click to scroll to the top
-          >
-            TheraBot
-          </Typography>
-        </div>
+    <nav className="sticky top-0 left-0 w-full bg-gray-950 text-white z-50 border-b border-gray-900 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16 items-center">
+          
+          <div className="flex items-center space-x-3">
+            <Link to={user_type === "therapist" ? "/therapist" : "/"} className="flex items-center space-x-2">
+              <img src={Bot} className="w-9 h-9 rounded-xl object-cover" alt="Logo" />
+              <Typography as="span" className="text-lg font-bold text-white">TheraBot</Typography>
+            </Link>
+          </div>
 
-        {/* Center Section (Navbar Links for Large Screens) */}
-        <ul className="hidden md:flex gap-6">
-          {[
-            user_type == "therapist" ? "Dashboard" : "Home",
-            "About",
-            "Chat",
-            user_type == "user" ? "Services" : "",
-            "Contact",
-          ].map((item, index) => (
-            <li key={index} className="py-2">
-              <Link
-                to={
-                  item === "Home"
-                    ? "/"
-                    : item === "Chat"
-                      ? "/therapist/chat"
-                      : item === "Services"
-                        ? "/user/services"
-                        : item === "Dashboard"
-                          ? "/therapist"
-                          : `/${item.toLowerCase()}`
-                }
-                className="hover:text-blue-500 transition"
-              >
-                {item}
-              </Link>
-            </li>
-          ))}
-          {/* Only show Patients link if user is logged in */}
-          {user_type == "therapist" && (
-            <li className="py-2">
-              <Link
-                to="/therapist/patients"
-                className="hover:text-blue-500 transition"
-              ></Link>
-            </li>
-          )}
-        </ul>
-
-        {/* Right Section (User Profile & Mobile Menu) */}
-        <div className="flex items-center space-x-4">
-          {/* User Profile (Dropdown Toggle) */}
-          {email ? (
-            <div className="relative">
-              <img
-                src={User}
-                alt="User"
-                className="w-8 h-8 md:w-10 md:h-10 bg-gray-100 rounded-full cursor-pointer"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-              />
-              {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white text-black rounded-lg shadow-lg overflow-hidden z-50">
-                  <ul className="py-2">
-                    <li className="px-4 py-2 hover:bg-gray-200 text-blue-700 cursor-pointer ">
-                      <span className="text-black ">
-                        Welcome <b className="text-indigo-800">{email}</b>
-                      </span>
-                    </li>
-                    <li className="px-4 py-2 hover:bg-gray-200 text-blue-900 cursor-pointer ">
-                      <Link
-                        to={
-                          user_type === "user"
-                            ? "user/profile"
-                            : "therapist/profile"
-                        }
-                      >
-                        <b>Profile Settings</b>
-                      </Link>
-                    </li>
-                    <li className="px-4 py-2 hover:bg-gray-200 text-blue-800 cursor-pointer ">
-                      <Link to={"user/clientrequest"}>
-                        <b>Request Handler</b>
-                      </Link>
-                    </li>
-                    <li
-                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500 transition cursor-pointer"
-                      onClick={handleLogout}
-                    >
-                      Logout
-                    </li>
-                  </ul>
-                </div>
+          <div className="hidden md:flex items-center">
+            <ul className="flex space-x-6 text-sm font-medium">
+              {navLinks.map((link, index) => (
+                <li key={index}>
+                  <Link to={link.path} className={`transition-colors py-2 block ${location.pathname === link.path ? "text-indigo-400 font-semibold" : "text-gray-300 hover:text-indigo-400"}`}>
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+              {user_type === "therapist" && (
+                <li>
+                  <Link to="/therapist/patients" className={`transition-colors py-2 block ${location.pathname === "/therapist/patients" ? "text-indigo-400 font-semibold" : "text-gray-300 hover:text-indigo-400"}`}>
+                    Patients
+                  </Link>
+                </li>
               )}
-            </div>
-          ) : (
-            <Link
-              to="/access-account"
-              className="bg-blue-100 text-white px-4 py-2 rounded-md hover:bg-blue-300 transition"
-            >
-              Login
+            </ul>
+          </div>
+
+          <div className="hidden md:flex items-center">
+            {email ? (
+              <div className="relative" ref={dropdownRef}>
+                <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center space-x-2 focus:outline-none p-1 rounded-lg hover:bg-gray-900">
+                  <img src={User} alt="Profile" className="w-8 h-8 rounded-full border border-gray-800" />
+                  <span className="text-sm text-gray-300 max-w-[100px] truncate">{email}</span>
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-xl shadow-xl border border-gray-100 py-1 z-50">
+                    <div className="px-4 py-2 border-b border-gray-100 bg-gray-50 rounded-t-xl"><p className="text-xs text-gray-500 font-medium truncate">{email}</p></div>
+                    <Link to={user_type === "user" ? "/user/profile" : "/therapist/profile"} className="block px-4 py-2 text-sm hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>Profile Settings</Link>
+                    <Link to="/user/clientrequest" className="block px-4 py-2 text-sm hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>Request Handler</Link>
+                    <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-semibold">Logout</button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link to="/access-account" className="text-sm font-semibold bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition shadow-sm">Sign In</Link>
+            )}
+          </div>
+
+          <div className="flex md:hidden">
+            <button onClick={() => setIsOpen(!isOpen)} className="text-gray-400 hover:text-white text-2xl p-2 focus:outline-none">
+              {isOpen ? "✕" : "☰"}
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="md:hidden bg-gray-950 border-t border-gray-900 px-4 py-3 space-y-1">
+          {navLinks.map((link, index) => (
+            <Link key={index} to={link.path} onClick={() => setIsOpen(false)} className={`block px-3 py-2 rounded-lg text-base ${location.pathname === link.path ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-gray-900"}`}>
+              {link.name}
+            </Link>
+          ))}
+          {user_type === "therapist" && (
+            <Link to="/therapist/patients" onClick={() => setIsOpen(false)} className={`block px-3 py-2 rounded-lg text-base ${location.pathname === "/therapist/patients" ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-gray-900"}`}>
+              Patients
             </Link>
           )}
-
-          {/* Mobile Menu Button with Navbar Color */}
-          <div className="relative md:hidden">
-            <button
-              className="bg-black text-white p-2 rounded-md hover:bg-gray-800 transition focus:outline-none"
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              ☰
-            </button>
-
-            {/* Mobile Navbar Links (Appears Below Button) */}
-            {isOpen && (
-              <ul className="absolute right-0 top-full mt-2 w-40 bg-black text-white text-center p-4 rounded-lg shadow-lg z-50">
-                {["Home", "About", "Services", "Contact"].map((item, index) => (
-                  <li key={index} className="py-2">
-                    <Link
-                      to={
-                        item === "Home"
-                          ? "/"
-                          : item === "Chat"
-                            ? "/chat"
-                            : `/${item.toLowerCase()}`
-                      }
-                      className="hover:text-blue-500 transition"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {item}
-                    </Link>
-                  </li>
-                ))}
-                {/* Only show Patients link if user is logged in */}
-                {email && (
-                  <li className="py-2">
-                    <Link
-                      to="therapist/patients"
-                      className="hover:text-blue-500 transition"
-                      onClick={() => setIsOpen(false)}
-                    ></Link>
-                  </li>
-                )}
-              </ul>
+          <div className="border-t border-gray-800 mt-2 pt-2">
+            {email ? (
+              <>
+                <Link to={user_type === "user" ? "/user/profile" : "/therapist/profile"} className="block px-3 py-2 text-sm text-gray-400 hover:text-white" onClick={() => setIsOpen(false)}>Profile Settings</Link>
+                <Link to="/user/clientrequest" className="block px-3 py-2 text-sm text-gray-400 hover:text-white" onClick={() => setIsOpen(false)}>Request Handler</Link>
+                <button onClick={(e) => { setIsOpen(false); handleLogout(e); }} className="w-full text-left block px-3 py-2 text-sm text-red-400 font-medium mt-1">Logout</button>
+              </>
+            ) : (
+              <Link to="/access-account" className="block text-center bg-indigo-600 text-white py-2 rounded-xl font-medium" onClick={() => setIsOpen(false)}>Sign In</Link>
             )}
           </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 }

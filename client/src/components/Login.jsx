@@ -1,14 +1,9 @@
 import axios from "axios";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    role: "user",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "", role: "patient" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -21,12 +16,7 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/login/",
-        formData,
-      );
-      alert("Login successful!");
-
+      const response = await axios.post("http://127.0.0.1:8000/api/login", formData);
       localStorage.setItem("user_type", response.data.user_type);
       localStorage.setItem("accessToken", response.data.access_token);
       localStorage.setItem("refreshToken", response.data.refresh);
@@ -35,87 +25,63 @@ const Login = () => {
       localStorage.setItem("user_id", response.data.id);
       localStorage.setItem("expiresAt", response.data.expires_at);
       localStorage.setItem("patient_history", response.data.patient_history);
-      console.log("Access_Token: ", response.data.access_token);
-      console.log("Expires_at", response.data.expires_at);
-      console.log("refresh token", response.data.refresh);
-      console.log("name", response.data.name);
-      console.log("user type: ", localStorage.getItem("user_type"));
-      console.log(" User ID: ", localStorage.getItem("user_id"));
-      console.log("Patient_history", localStorage.getItem("patient_history"));
 
       navigate(response.data.redirect_url);
     } catch (error) {
-      setError(
-        error.response?.data?.error ||
-          "Something went wrong, please try again.",
-      );
+      setError(error.response?.data?.error || "Something went wrong, please try again.");
     }
   };
 
   return (
-    <div
-      className="min-h-screen mt-0 flex items-center justify-center bg-gray-40 px-4"
-      data-aos="flip-left"
-    >
-      <div className="max-w-md w-full">
+    <div className="flex-1 flex items-center justify-center bg-gray-50 px-4 py-12">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-10">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">User Login</h1>
-          <p className="text-gray-600">
-            Welcome back, please login to your professional account
-          </p>
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">User Login</h1>
+          <p className="text-sm text-gray-500">Welcome back, please login to your professional account</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl  duration-100 transform hover:scale-100">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="relative z-0 w-full mb-5 group">
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="text-center block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                placeholder=" "
-                required
-              />
-              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
-                Email
-              </label>
-            </div>
-            <div className="relative z-0 w-full mb-5 group">
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="block text-center py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                placeholder=" "
-                required
-              />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="relative border-b-2 border-gray-200 focus-within:border-indigo-600 transition-colors duration-200 py-1">
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="block w-full text-base text-gray-900 bg-transparent appearance-none focus:outline-none placeholder-gray-400"
+              placeholder="Email address"
+              required
+            />
+          </div>
 
-              <label className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:left-1/2 peer-placeholder-shown:-translate-x-1/2 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:left-1/2 peer-focus:-translate-x-1/2 text-center">
-                Password
-              </label>
+          <div className="relative border-b-2 border-gray-200 focus-within:border-indigo-600 transition-colors duration-200 py-1">
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="block w-full text-base text-gray-900 bg-transparent appearance-none focus:outline-none placeholder-gray-400"
+              placeholder="Password"
+              required
+            />
+          </div>
+
+          <div className="min-h-[24px] flex items-center">
+            {error && <p className="text-xs font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-md">{error}</p>}
+          </div>
+
+          <div className="space-y-4">
+            <button
+              type="submit"
+              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition duration-150"
+            >
+              Log In
+            </button>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs pt-1">
+              <p className="text-gray-600">Don't have an Account? <Link to="/user/signup" className="text-indigo-600 hover:underline font-bold">Register here</Link></p>
+              <Link to="/forget" className="text-indigo-600 hover:underline font-medium">Forgot Password?</Link>
             </div>
-            {error && <p className="text-red-500">{error}</p>}
-            <div className="flex flex-col">
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 rounded"
-              >
-                Login
-              </button>
-              <p className="text-gray-900 py-2">
-                Don't have an Account?{" "}
-                <Link to="/user/signup">
-                  <u> Register here </u>
-                </Link>
-              </p>
-              <p className="text-gray-900 py-2">
-                <Link to={"/forget"}>Forget Password?</Link>
-              </p>
-            </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   );
