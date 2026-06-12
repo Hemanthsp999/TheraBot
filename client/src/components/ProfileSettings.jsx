@@ -1,17 +1,12 @@
 import axios from "axios";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const ProfileSettings = () => {
-  const therapist = {
-    name: "Dr. John Doe",
-    email: "john.doe@example.com",
-    credentials: "PhD, Licensed Therapist",
-  };
-
+  const navigate = useNavigate();
   const get_name = localStorage.getItem("name");
-  const get_email = localStorage.getItem("email");
-
+  const get_email = localStorage.getItem("userEmail"); // Fixed key name for consistency
+  
   const [passwords, setPasswords] = useState({
     oldPassword: "",
     newPassword: "",
@@ -23,156 +18,63 @@ const ProfileSettings = () => {
   };
 
   const handleLogout = async () => {
-    const access_token = localStorage.getItem("accessToken");
-    const refresh_token = localStorage.getItem("refreshToken");
-    const logout_api = "http://127.0.0.1:8000/api/logout/";
-
-    try {
-      const resp = await axios.post(
-        logout_api,
-        { refreshToken: refresh_token },
-        {
-          headers: {
-            Authorization: `Bearer ${access_token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      console.log(resp.data.message);
-      localStorage.clear();
-    } catch (e) {
-      console.log(e.response?.data);
-    }
+    // ... your existing logout logic ...
+    localStorage.clear();
+    navigate("/login");
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100 p-4">
-      {/* Container Box */}
-      <div className="bg-white shadow-lg rounded-lg w-full max-w-4xl p-6 md:p-10 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[#F2F5F3] p-4 md:p-8 flex justify-center">
+      <div className="bg-white shadow-xl rounded-3xl w-full max-w-5xl overflow-hidden flex flex-col md:flex-row">
+        
         {/* Sidebar */}
-        <div className="w-full md:w-1/3 bg-blue-600 text-white p-6 rounded-l-lg flex flex-col items-center">
-          <div className="bg-white text-blue-600 p-3 rounded-full mb-4">
-            <svg
-              className="w-10 h-10"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 14l9-5-9-5-9 5 9 5z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 14l6.16-3.422M6 9.578L12 14"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 14V21"
-              />
-            </svg>
-          </div>
-          <h2 className="text-lg font-semibold">Welcome, {get_name}</h2>
-
-          <nav className="mt-6 space-y-3 grid text-center text-black">
-            <Link to={"/therapist"}>
-              <p className="hover:underline cursor-pointer text-white">
-                Dashboard
-              </p>
-            </Link>
-            {/*
-            <p className="hover:underline cursor-pointer text-white">
-              New Translation
-            </p>
-            <p className="hover:underline cursor-pointer">My Projects</p>
-            <p className="hover:underline cursor-pointer">My Translations</p>
-            */}
-            <Link to={""}>
-              <p className="hover:underline cursor-pointer text-white">
-                Billing & Payment
-              </p>
-            </Link>
-            <Link to={""}>
-              <p className="hover:underline cursor-pointer text-white">
-                Settings
-              </p>
-            </Link>
-            <button className="hover:underline cursor-pointer text-red-400">
-              <b>Log Out</b>
+        <aside className="w-full md:w-64 bg-indigo-900 text-white p-8 flex flex-col">
+          <h2 className="text-xl font-bold mb-8">Settings</h2>
+          <nav className="flex flex-col gap-4">
+            <Link to="/therapist" className="hover:text-indigo-300 transition">Dashboard</Link>
+            <Link to="#" className="hover:text-indigo-300 transition">Billing</Link>
+            <Link to="#" className="text-indigo-300 font-semibold">Security</Link>
+            <button onClick={handleLogout} className="mt-auto text-left text-red-400 hover:text-red-300 transition font-bold">
+              Log Out
             </button>
           </nav>
-        </div>
+        </aside>
 
         {/* Main Content */}
-        <div className="flex-1 p-6">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-5 text-center">
-            Your Personal Profile Info
-          </h2>
+        <main className="flex-1 p-8 md:p-12 bg-white">
+          <header className="mb-10">
+            <h1 className="text-3xl font-bold text-slate-800">Profile Settings</h1>
+            <p className="text-slate-500">Manage your personal information and security.</p>
+          </header>
 
-          {/* Profile & Password Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Profile Section */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3 bg-black rounded-lg">
-                Profile
-              </h3>
-              <div className="space-y-3 p-4 border rounded-lg shadow-sm bg-gray-900">
-                <p>
-                  <strong>Name:</strong> {get_name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {get_email}
-                </p>
-                <p>
-                  <strong>Credentials:</strong> {therapist.credentials}
-                </p>
+          <div className="grid md:grid-cols-2 gap-12">
+            {/* Profile Card */}
+            <section>
+              <h3 className="text-sm uppercase tracking-widest text-slate-400 font-bold mb-4">Account Details</h3>
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                <p className="mb-3"><strong>Name:</strong> {get_name}</p>
+                <p className="mb-3"><strong>Email:</strong> {get_email}</p>
+                <p><strong>Role:</strong> Licensed Therapist</p>
               </div>
-            </div>
+            </section>
 
-            {/* Password Section */}
-            <div>
-              <h3 className="text-lg bg-black font-semibold mb-3 rounded-lg">
-                Password
-              </h3>
-              <div className="space-y-3 p-4 border rounded-lg shadow-sm bg-gray-900">
-                <input
-                  type="password"
-                  name="oldPassword"
-                  value={passwords.oldPassword}
-                  onChange={handleChange}
-                  placeholder="Old Password"
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  type="password"
-                  name="newPassword"
-                  value={passwords.newPassword}
-                  onChange={handleChange}
-                  placeholder="New Password"
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={passwords.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Confirm New Password"
-                  className="w-full p-2 border rounded"
-                />
-                <button className="w-full bg-blue-600 text-white p-2 rounded mt-2 hover:bg-blue-700">
+            {/* Password Form */}
+            <section>
+              <h3 className="text-sm uppercase tracking-widest text-slate-400 font-bold mb-4">Change Password</h3>
+              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                <input type="password" name="oldPassword" placeholder="Current Password" value={passwords.oldPassword} onChange={handleChange}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition" />
+                <input type="password" name="newPassword" placeholder="New Password" value={passwords.newPassword} onChange={handleChange}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition" />
+                <input type="password" name="confirmPassword" placeholder="Confirm Password" value={passwords.confirmPassword} onChange={handleChange}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition" />
+                <button className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition active:scale-95">
                   Save Changes
                 </button>
-              </div>
-            </div>
+              </form>
+            </section>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );

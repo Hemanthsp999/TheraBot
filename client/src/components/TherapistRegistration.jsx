@@ -30,7 +30,7 @@ const TherapistLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const api = "http://127.0.0.1:8000/api/register/";
+    const api = "http://127.0.0.1:8000/api/signup/";
     console.log(formData);
 
     try {

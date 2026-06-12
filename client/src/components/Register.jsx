@@ -11,7 +11,7 @@ const Register = () => {
     phone_number: "",
     password: "",
     re_password: "",
-    role: "user",
+    role: "patient",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -28,7 +28,7 @@ const Register = () => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/register/",
+        "http://127.0.0.1:8000/api/signup",
         formData,
       );
 

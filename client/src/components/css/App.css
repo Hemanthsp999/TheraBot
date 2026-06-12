@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
-/* Mental Health Color Science Palette:
-  - Base Background: #F2F5F3 (Soft Sage Cream - ultra-calming, non-stimulating)
-  - Secondary Backdrops: #E8ECE9 (Muted Herbal Mist - grounding)
-  - High Contrast Accent: #3B82F6 / #4F46E5 (Trusted Blues)
+/* Mental Wellness Color Psychology System:
+  - Base Healing Tone: #F2F5F3 (Calming Sage Cream - anti-anxiety baseline)
+  - Organic Sheet Tones: #FAFBFB (Pure Mist - clean separation)
+  - Intimate Privacy Tones: #0B0F19 (Deep Secure Midnight - cozy chat spaces)
 */
 
 html, body, #root {
@@ -13,18 +13,18 @@ html, body, #root {
     min-height: 100vh;
     min-height: 100dvh;
     overflow-x: hidden;
-    /* Soft, healing background hue that absorbs glare and reduces anxiety */
-    background-color: #F2F5F3; 
-    color: #1F2937; /* Clean charcoal text for clear readability without harsh contrast */
+    background-color: #F2F5F3;
+    color: #1F2937; /* Clean, anti-glare charcoal gray */
     box-sizing: border-box;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    scroll-behavior: smooth;
 }
 
 *, *:before, *:after {
     box-sizing: inherit;
 }
 
-/* Master Layout Framework */
+/* Master Flexible Page Flow Engine */
 .app-container {
     display: flex;
     flex-direction: column;
@@ -34,7 +34,7 @@ html, body, #root {
     background-color: #F2F5F3;
 }
 
-/* Main Content Wrapper */
+/* Clear Workspace Layout (fixes layout white-screens and gaps) */
 .main-content {
     flex: 1 0 auto;
     width: 100%;
@@ -42,48 +42,49 @@ html, body, #root {
     flex-direction: column;
 }
 
-/* Highlights for wellness analysis output */
+/* Wellness Accent Highlights */
 mark {
-    background-color: #D1FAE5; /* Soft Mint Green highlight instead of aggressive yellow */
+    background-color: #D1FAE5; /* Safe mint-green highlight */
     color: #065F46;
     padding: 2px 6px;
     border-radius: 4px;
     font-weight: 500;
 }
 
-/* Slick Carousel Dot Styling */
+/* Sleek Carousel Overrides */
 .slick-dots {
-    bottom: -25px !important;
+    bottom: -20px !important;
 }
 
 .slick-dots li button:before {
-    color: #4B5563 !important; /* Calmer stone grey navigation indicators */
+    color: #9CA3AF !important;
+    transition: color 0.2s ease;
 }
 
 .slick-dots li.slick-active button:before {
-    color: #2563EB !important; /* Focused trust-blue active marker */
+    color: #4F46E5 !important;
 }
 
-/* Specialized Mental Wellness Safe Chatbot Wrapper Container */
+/* Intimate & Private Chat Space Container */
 .chatbot {
     width: 100%;
-    max-width: 750px;
-    height: 72vh;
-    margin: 2.5rem auto;
+    max-width: 800px;
+    height: 65vh;
+    margin: 2rem auto;
     display: flex;
     flex-direction: column;
-    background-color: #111827; /* Darker background inside the chat viewport to give an intimate, safe, evening feel */
+    background-color: #0B0F19; /* High security color space */
     border-radius: 16px;
     padding: 20px;
-    shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    border: 1px border-gray-800;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(229, 231, 235, 0.1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Mobile Responsiveness Fine-Tuning */
 @media (max-width: 640px) {
     .chatbot {
-        height: 82vh;
-        margin: 0.75rem auto;
+        height: 75vh;
+        margin: 1rem auto;
         border-radius: 12px;
         padding: 12px;
     }

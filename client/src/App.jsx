@@ -9,11 +9,11 @@ import AutoLogout from "./components/AutoLogout";
 
 function App() {
   useEffect(() => {
-    // Single global initialization pass
+    // Single robust initialization pass for clean document calculations
     AOS.init({
       duration: 800,
       easing: "ease-out",
-      once: true, // Stops repetitive loops from re-shaking components on scroll
+      once: true, // Prevents repetitive jumping loops when scrolling over rows
     });
   }, []);
 
