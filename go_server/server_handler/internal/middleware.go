@@ -1,10 +1,14 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"strings"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	datahandler "go_server/server_handler/DataModel"
 )
+
 
 func CORSMiddleWare() gin.HandlerFunc {
 
@@ -26,17 +30,31 @@ func CORSMiddleWare() gin.HandlerFunc {
 
 func AuthMiddleware() gin.HandlerFunc {
     return func(c *gin.Context) {
-        token := c.GetHeader("Authorization")
+        authHeader := c.GetHeader("Authorization")
 
-        if token == "" || !strings.HasPrefix(token, "Bearer ") {
+        if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
             c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-                "error": "Missing or invalid token",
+                "error": "Authorization header missing",
             })
             return
         }
 
-        // TODO: validate JWT here and extract user info
-        // c.Set("user_id", claims.UserId)
+	log.Printf("Debug::Auth: %s", authHeader)
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	claims := &datahandler.Claims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token)(interface{}, error){
+		return jwtKey, nil
+	})
+
+	if err != nil || !token.Valid{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or Expired token"})
+		return 
+	}
+
+	c.Set("userId", claims.UserID)
+	c.Set("role", claims.Role)
 
         c.Next()
     }
